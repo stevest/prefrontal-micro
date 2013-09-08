@@ -1,0 +1,64 @@
+// This HOC file was generated with MATLAB
+
+// Object decleration:
+objref ampaArr
+ampaArr = new Vector(56)
+
+// Validated Weights:
+ampaArr.x[0] = AMPAfactor * 0.000162	//current is 0.045189
+ampaArr.x[1] = AMPAfactor * 0.000172	//current is 0.046129
+ampaArr.x[2] = AMPAfactor * 0.000172	//current is 0.046751
+ampaArr.x[3] = AMPAfactor * 0.000172	//current is 0.044980
+ampaArr.x[4] = AMPAfactor * 0.000191	//current is 0.044623
+ampaArr.x[5] = AMPAfactor * 0.000153	//current is 0.044272
+ampaArr.x[6] = AMPAfactor * 0.000153	//current is 0.043101
+ampaArr.x[7] = AMPAfactor * 0.000162	//current is 0.045261
+ampaArr.x[8] = AMPAfactor * 0.000172	//current is 0.046099
+ampaArr.x[9] = AMPAfactor * 0.000172	//current is 0.043727
+ampaArr.x[10] = AMPAfactor * 0.000153	//current is 0.045746
+ampaArr.x[11] = AMPAfactor * 0.000172	//current is 0.046425
+ampaArr.x[12] = AMPAfactor * 0.000181	//current is 0.045097
+ampaArr.x[13] = AMPAfactor * 0.000191	//current is 0.045927
+ampaArr.x[14] = AMPAfactor * 0.000172	//current is 0.046605
+ampaArr.x[15] = AMPAfactor * 0.000153	//current is 0.043945
+ampaArr.x[16] = AMPAfactor * 0.000153	//current is 0.045289
+ampaArr.x[17] = AMPAfactor * 0.000172	//current is 0.045317
+ampaArr.x[18] = AMPAfactor * 0.000162	//current is 0.044474
+ampaArr.x[19] = AMPAfactor * 0.000172	//current is 0.046480
+ampaArr.x[20] = AMPAfactor * 0.000153	//current is 0.045313
+ampaArr.x[21] = AMPAfactor * 0.000153	//current is 0.043147
+ampaArr.x[22] = AMPAfactor * 0.000153	//current is 0.043254
+ampaArr.x[23] = AMPAfactor * 0.000162	//current is 0.045329
+ampaArr.x[24] = AMPAfactor * 0.000172	//current is 0.044049
+ampaArr.x[25] = AMPAfactor * 0.000143	//current is 0.045148
+ampaArr.x[26] = AMPAfactor * 0.000162	//current is 0.045278
+ampaArr.x[27] = AMPAfactor * 0.000153	//current is 0.045716
+ampaArr.x[28] = AMPAfactor * 0.000153	//current is 0.043167
+ampaArr.x[29] = AMPAfactor * 0.000153	//current is 0.045569
+ampaArr.x[30] = AMPAfactor * 0.000210	//current is 0.046473
+ampaArr.x[31] = AMPAfactor * 0.000153	//current is 0.044601
+ampaArr.x[32] = AMPAfactor * 0.000153	//current is 0.043596
+ampaArr.x[33] = AMPAfactor * 0.000210	//current is 0.043680
+ampaArr.x[34] = AMPAfactor * 0.000210	//current is 0.044081
+ampaArr.x[35] = AMPAfactor * 0.000191	//current is 0.046985
+ampaArr.x[36] = AMPAfactor * 0.000172	//current is 0.044890
+ampaArr.x[37] = AMPAfactor * 0.000162	//current is 0.044993
+ampaArr.x[38] = AMPAfactor * 0.000153	//current is 0.045820
+ampaArr.x[39] = AMPAfactor * 0.000153	//current is 0.044775
+ampaArr.x[40] = AMPAfactor * 0.000153	//current is 0.045748
+ampaArr.x[41] = AMPAfactor * 0.000162	//current is 0.045338
+ampaArr.x[42] = AMPAfactor * 0.000153	//current is 0.043823
+ampaArr.x[43] = AMPAfactor * 0.000162	//current is 0.044903
+ampaArr.x[44] = AMPAfactor * 0.000153	//current is 0.043211
+ampaArr.x[45] = AMPAfactor * 0.000172	//current is 0.045655
+ampaArr.x[46] = AMPAfactor * 0.000191	//current is 0.046590
+ampaArr.x[47] = AMPAfactor * 0.000153	//current is 0.043048
+ampaArr.x[48] = AMPAfactor * 0.000153	//current is 0.044362
+ampaArr.x[49] = AMPAfactor * 0.000153	//current is 0.045245
+ampaArr.x[50] = AMPAfactor * 0.000153	//current is 0.043892
+ampaArr.x[51] = AMPAfactor * 0.000153	//current is 0.045976
+ampaArr.x[52] = AMPAfactor * 0.000153	//current is 0.046497
+ampaArr.x[53] = AMPAfactor * 0.000153	//current is 0.044552
+ampaArr.x[54] = AMPAfactor * 0.000153	//current is 0.046823
+ampaArr.x[55] = AMPAfactor * 0.000153	//current is 0.043543
+// END OF FILE

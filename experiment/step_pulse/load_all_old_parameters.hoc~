@@ -1,0 +1,15 @@
+// Load initial files
+
+load_proc("nrnmainmenu")
+xopen("../../template/load_templates.hoc")         // load needed templates
+cvode_active(0)
+xopen("../../lib/basic-graphics.hoc")
+xopen("../RS1cell.hoc") 
+xopen("sadp.hoc")
+data_dir       = "data"                               	// set directory to store data
+sprint(temp, "mkdir -p %s", data_dir)
+system(temp)
+
+
+ 				
+

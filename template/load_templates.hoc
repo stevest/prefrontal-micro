@@ -1,0 +1,3 @@
+load_file("../../template/ExperimentControl.hoc")   // load needed templates
+load_file("../../template/RangeRef.hoc")
+load_file("../../template/SynapseBand.hoc")

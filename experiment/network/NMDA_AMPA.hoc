@@ -1,0 +1,284 @@
+//--------------Set parameters and run this for the net 
+//--------------Written 8-5-08, modified 08-10-08
+//////////  SERIAL VERSION!  /////////////
+load_file("nrngui.hoc")          //load main NEURON library
+cvode.active(0)     
+xopen("main_parameters.hoc")
+
+///////////   Import/set GLOBAL variables (in capital)    //////////////////
+SDELAY = 20
+
+if (name_declared("PYID")!=5) { // PYID has not been assigned a numerical value from command line
+PYID = 0 //Default cell morphology ID
+printf("No 'PYID' argument passed; reverting to default...\n\n")
+}else{
+printf("'PYID' argument is %d\n\n",PYID)
+}
+if (name_declared("MODE")!=5) { // PYID has not been assigned a numerical value from command line
+MODE = 0 //Default mode: NMDA
+printf("No 'MODE' argument passed; reverting to default...\n\n")
+}else{
+printf("'MODE' argument is %d\n\n",MODE)
+}
+if (name_declared("RUN_NO")!=5) { // PYID has not been assigned a numerical value from command line
+RUN_NO = 0 //Default number of runs: 0
+printf("No 'RUN_NO' argument passed; reverting to default...\n\n")
+}else{
+printf("'RUN_NO' argument is %d\n\n",RUN_NO)
+}
+if (name_declared("OPTVAR")!=5) { // PYID has not been assigned a numerical value from command line
+OPTVAR = 0 //Default value of variable to optimize: OPTVAR
+printf("No 'OPTVAR' argument passed; reverting to default...\n\n")
+}else{
+printf("'OPTVAR' argument is %f\n\n",OPTVAR)
+}
+	
+//objref PC
+//PC=new ParallelContext()//
+//xopen("parfuncs.hoc")
+
+////////////////////////////////////////////
+////////////////////////////////////////////
+//----------------------------------------Set parameters--------------------------------------------------------------//
+
+xopen("../../lib/basic-graphics.hoc")
+xopen("../define_objects.hoc")
+
+//////  VALUE OVERRIDES!   ////////
+tstop=60
+nPcells = 1
+nINcells = 1
+PLOT = 0
+DEBUG = 0
+//Bias choosing the morphology to wanted ID (PYID argument):
+objref PcellIDlist
+PcellIDlist = new Vector(nPcells)
+PcellIDlist.x[0] = PYID
+
+
+
+xopen("../RS1cell.hoc") 
+
+total=200
+objref ns1, ns2, ic1, ic2
+objref ampa[nPcells*60][total][total], nmda[nPcells*60][total][total] 
+
+
+//------------------------------------Pharmacological procedures
+fadp=0//2//0.5//0.23
+proc sadp_soma() {
+	forsec soma_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0001*fadp } 
+		}}}
+proc sadp_dend() {
+	forsec dend_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0001*0.1*fadp} 
+		}}}
+proc sadp_apical() {
+	forsec apical_list {
+		for(x) {
+			if(ismembrane("ican"))  for(x) { gbar_ican(x)= 0.0001*0.1*fadp} 
+		}}}
+
+
+//--------------------------------------Graphs
+if(PLOT==1){
+//for j=0, (nPcells-1) {addgraph_2("Pcells[j].soma.v(0.5)", 0,tstop, -70, 50)}
+//addgraph_2("Pcells[0].dend[15].v(0.5)", 0,tstop, -70, 50)
+//addgraph_2("dend[7].v(1)",0,tstop,-75,110) //basal 151um
+//addgraph_2("vc.i", 0,tstop, -70, 50)
+//addgraph_2("INcells.o(0).soma.v(0.5)", 0,tstop, -80, 50)
+splot=new Shape()
+//forsec Pcells.o(0).somatic {shape.color(2)}
+//forsec Pcells.o(0).axonal {shape.color(5)}
+//forsec Pcells.o(0).basal {shape.color(3)}
+//forsec Pcells.o(0).apical {shape.color(6)}
+}
+
+//---------------------------------------------Multiple Experiments/Runs---------------------------------------------//
+//---For many experiments
+strdef syscmd, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr 
+//-----Variables
+n=int(tstop/dt)
+//-----Objects for record data
+objref cv
+cv=new CVode(0)
+objref PCv[nPcells], PCi[nPcells], PCt[nPcells], INv[nINcells], INt[nINcells], PCSi[300], PCSt[300]
+printf("DEBUG: PFC NEURONS No: %d\n",nPcells)
+printf("DEBUG: INTERNEURONS No: %d\n",nINcells)
+strdef temp
+objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, insomab, curampa, curnmda, curgabaa, curgabab, DendDist, Params
+objref campa[maxsyn], ct[8][inmaxsyn], cnmda[maxsyn], cnmdat[inmaxsyn], cgabaa[maxsyn3], campaa[automaxsyn], cnmdaa[automaxsyn], campain[inmaxsyn], cnmdain[inmaxsyn], cgabaat[maxsyn3], cgabab[maxsyn3], cgababt[maxsyn3], ampac, nmdac, gabaac, gababc	
+objref gababweights, nmdaweights, adpweights
+//----record total cell population spike activity
+objref timevec, idvec, recncs, tobj, nil, total_activity
+
+
+//---------------------------------Procedure for various checks------------------------------------------------//
+objref r1
+//r1=new Random(0)
+//PID1=r1.uniform(0,1)
+//rsid = new Random(1)	
+objref conpyr1pyr2[100], nconpyr1pyr2[100], ampapyr1pyr2[100], nmdapyr1pyr2[100]
+ns2=new NetStim(0.5)
+ns2.interval=20//(in ms!!!)// 20ms in NMDA SPIKES
+ns2.number=1 //Single-Paired stimulation
+ns2.start=0
+ns2.noise=0
+
+objref nc_s1[500]
+objref nc_s2[500]
+objref ic2[5]
+
+
+proc halfAmpl() {
+// Create synapses at random basal dendrite locations:
+			if(PLOT==1){splot.point_mark_remove()}
+
+			cd= currentDendrite
+			access Pcells[0].dend[cd]
+			
+		for cs=0, stimIntensity-1 {
+				/*if(runs){			
+					PID = r1.uniform(0,1)
+				}else{PID=0.5 }*/
+			PID=0.5 //BUG: difficult to converge when I changes randomly..
+
+			printf("CD: %d , CS: %d, PID: %.3f returns PathDistance: %.3f \n",cd,cs,PID,distance(PID))
+			//printf("CD: %d , CS: %d\n",cd,cs)
+			ampa[runs][cd][cs] = new GLU(PID)
+			nmda[runs][cd][cs] = new NMDA(PID)//nmda_segev(PID)
+
+			//print nmda[runs][cd][cs].inmda(PID)
+			if(PLOT==1){			
+			//addgraph_2("nmda[runs][cd][cs].inmda(PID)", 0,tstop, -70, 50)
+			splot.point_mark(nmda[runs][cd][cs],cd+1) //colorize
+			}
+
+			if(MODE==2){
+			nc_s1[cs]=new NetCon(ns2, ampa[runs][cd][cs])
+			nc_s1[cs].delay=SDELAY
+			nc_s1[cs].weight=OPTVAR//0.00015//0.000065//*11// Validated for 1.2
+			nc_s1[cs].threshold=-20
+			}else{
+			nc_s2[cs]=new NetCon(ns2, nmda[runs][cd][cs])
+			nc_s2[cs].delay=SDELAY
+			nc_s2[cs].weight=OPTVAR//.000065*35//*0.1 Validated for 1.1:0.39, for 2.3:0.83
+			nc_s2[cs].threshold=-20
+			}
+		}
+}
+
+
+proc KblockNassiOLD(){
+forall{
+for(x){
+	fk=0
+	//if(ismembrane("kdr")) for(x) { gkdrbar_kdr(x)= gkdrbar_kdr(x)*fk }	// H Nassi DEN to mplokare (commented) //den mplokarontai apo tous blockers tou Kaliou!
+	if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*fk }
+	if(ismembrane("Ks"))  for(x) { gKsbar_Ks(x)= gKsbar_Ks(x)*fk } 
+	if(ismembrane("kca")) { for(x) {  gbar_kca(x)= gbar_kca(x)*fk }}  //slow Ca
+	if(ismembrane("mykca")) { for(x) {  gkbar_mykca(x)= gkbar_mykca(x)*fk }} //fast Ca
+	if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+	if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+	if(ismembrane("can")) for(x) {  gcalbar_can(x)= gcalbar_can(x)*0 }
+	if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 } //mplokaroume k ta Ca, giati den kanoun diafora sto amplitude, alla einai pio sta8era sto Vclamp!	
+	if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
+	//if(ismembrane("calc")) for(x) {  gcabar_calc(x)= gcabar_calc(x)*0 }
+	if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
+	}}}
+	
+
+
+//--------------------------------------------------------------Vclamp
+objref vc, vcdend
+proc vclamp() {
+access Pcells[0].soma
+vc = new VClamp(0.5)
+if(MODE==1){
+vc.amp[0]= 60
+}else{
+vc.amp[0]= -70 
+}
+vc.dur[0]=tstop
+}
+
+// recording/saving processes:
+proc rec_VClamp_Current(){
+  PCi[0]=new Vector(n)
+  PCt[0]=new Vector(n) 
+  for j=0,n-1 {PCt[0].x[j]=j*dt }
+  Pcells[0].soma cv.record(&vc.i,PCi[0],PCt[0],0) 
+}
+
+
+strdef syscmd, data_dir
+
+proc save_VClamp_Current() {    
+  vsoma = new File()		
+  sprint(data_dir,"data/NMDA_AMPA_ratio/%d",MODE)
+  sprint(syscmd,"mkdir -p %s",data_dir)
+  system(syscmd)
+
+  if(MODE==1){
+    sprint(temp,"%s/NMDA_%d_%d.txt", data_dir, PYID, currentDendrite) 
+  } else {
+    sprint(temp,"%s/AMPA_%d_%d.txt", data_dir, PYID, currentDendrite) 
+  }
+  vsoma.wopen(temp)
+  for sb=0, PCi[0].size()-1 { 
+          vsoma.printf ("%f\n",PCi[0].x[sb])
+  }
+  vsoma.close()
+}
+
+//////////////////////////////////
+//-----------------------------------------------------Multiple Runs
+n=int(tstop/dt)
+objref cv
+cv=new CVode(0)
+objref PCv[nPcells]
+objref PCi[nPcells]
+objref PCt[nPcells]
+objref INv[nINcells]
+objref INt[nINcells]
+strdef temp, tmpstr
+objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, curampa, curnmda, curgabaa, curgabab
+objref campa[maxsyn+automaxsyn], campat[maxsyn+automaxsyn], cnmda[maxsyn+automaxsyn], cnmdat[maxsyn+automaxsyn], cgabaa[maxsyn3], cgabaat[maxsyn3], cgabab[maxsyn3], cgababt[maxsyn3], ampac, nmdac, gabaac, gababc, generalfile
+
+ 
+r1=new Random(PYID+1)
+rsid = new Random(PYID+2)
+stimIntensity = 5
+
+  runs=RUN_NO-1
+  BasalNo=0
+  forsec Pcells[0].basal { BasalNo+=1 }
+//for 0, runs {
+ for currentDendrite=0,BasalNo-1{
+
+    objref nc_s1[500]
+    objref nc_s2[500]
+
+    halfAmpl()
+
+    vclamp()
+
+    if(PLOT==1){addgraph_2("vc.i", 0,tstop, -5, 5)}
+
+    sadp_soma()
+    sadp_dend()
+    sadp_apical()
+    if(MODE==1) {
+      KblockNassiOLD() //USE IN NMDA VCLAMP ONLY!
+    }
+
+    rec_VClamp_Current()
+
+    run()
+
+    save_VClamp_Current() 
+ }
+//}

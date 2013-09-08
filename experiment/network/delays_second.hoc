@@ -1,0 +1,19 @@
+// Make a vector of values of second stimulus delays, to be loaded for each experiment.
+//Written by Nassi, 17.09.2010
+
+
+delaysforsecond = new Vector(10)
+
+delaysforsecond.x[0]=1250
+delaysforsecond.x[1]=1500
+delaysforsecond.x[2]=1750
+delaysforsecond.x[3]=2000
+delaysforsecond.x[4]=2250
+delaysforsecond.x[5]=2500
+delaysforsecond.x[6]=2750
+delaysforsecond.x[7]=3000
+delaysforsecond.x[8]=3250
+delaysforsecond.x[9]=3500
+
+
+

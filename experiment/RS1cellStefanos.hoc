@@ -1,0 +1,473 @@
+//Tempalte for layer V prefrontal pyramidal neurons
+zindex=0
+
+begintemplate Pcell
+
+public all, somatic, axonal, basal, apical, soma, axon, dend, apic
+//create soma[1], axon[1], dend[18], apic[25]
+//create soma[1], axon[7], dend[19], apic[11]
+create soma[1], axon[7], dend[26], apic[13]
+
+
+objref all, somatic, axonal, basal, apical
+
+proc subsets() { local i
+	objref all,somatic, axonal, basal, apical 
+  	all = new SectionList()
+    	soma all.append()
+    	for i=0, 25 {dend[i] all.append()}
+    	for i=0, 12 {apic[i] all.append()}
+
+  	somatic = new SectionList()
+
+    	soma somatic.append() //was [0]
+
+  	axonal = new SectionList()
+    	axon axonal.append() //was [0]
+
+  	basal = new SectionList()
+    	for i=0, 25 {dend[i] basal.append()}
+
+ 	apical = new SectionList()
+    	for i=0, 12 {apic[i] apical.append()}
+}
+
+proc cut_sections() {  
+	forall {
+      		nseg=1+int(L/$1)
+}}
+
+proc Rm_sigmoid_basal() { local rm
+	Rm_soma = Rm_default
+	Rm_end=  Rm_default*0.5
+	Rm_dhalf=10 
+	Rm_steep=5
+     	for (x) {  
+		xdist = distance(x)        
+       		rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
+       		g_pas(x) = 1.0/rm
+}}
+
+proc Rm_sigmoid_apical() { local rm
+	Rm_soma = Rm_default
+	Rm_end=  Rm_default*0.5
+	Rm_dhalf=300 
+	Rm_steep=50
+	for (x) {  
+       		xdist = distance(x)    // calc. path distance  
+	       	rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
+       		g_pas(x) = 1.0/rm
+}}
+
+proc Ra_sigmoid() {  
+	Ra_soma=Ra_default
+	Ra_end=Ra_default*10
+	dhalf=10
+	steep=5
+     	for (x) {  
+       		xdist = distance()  //calc. perpedicular distance
+       		Ra = Ra_soma + (Ra_end - Ra_soma)/(1.0 + exp((dhalf-xdist)/steep))
+}}
+
+max_ar2=0
+min_ar2=0
+decay_start=0   
+decay_end=0
+
+strdef ar24_tmp_str
+objref  strobj, ar24_f
+strobj=new StringFunctions()
+ar2_firsttime=1
+
+proc ar2_log() {
+  	if (!ar2_firsttime) { return }
+  	//ar24_f=new File() 
+  	//sprint($o3.tmp_str3, "%s/ar2_log", $o3.generic_dir)
+  	//ar24_f.wopen($o3.tmp_str3)
+  	//ar24_f.printf("%s:",$s1)
+  	while (strobj.substr($s2, "*") > -1) {
+      		index=strobj.head($s2, "\\*", ar24_tmp_str)
+         	strobj.right($s2, 1+index)
+          	$o3.create_variable("ar24_val", ar24_tmp_str)
+      		ar24_f.printf("%s:%g:", ar24_tmp_str, ar24_val)
+     	}
+  	$o3.create_variable("ar24_val", $s2)
+  	ar24_f.printf("%s:%g\n", $s2, ar24_val)
+    	ar24_f.close()
+  	ar2_firsttime=0
+}
+
+proc endpt() {
+  	P=(n3d()-1)*$1
+  	x_d3($1)=x3d(P)
+  	y_d3($1)=y3d(P)
+  	z_d3($1)=z3d(P)
+}
+
+proc fracpt() { local posn, A
+  	A=$1
+  	posn=$2
+  	x_d3(posn)=x3d(i-1) + (x3d(i) - x3d(i-1))*A
+  	y_d3(posn)=y3d(i-1) + (y3d(i) - y3d(i-1))*A
+  	z_d3(posn)=z3d(i-1) + (z3d(i) - z3d(i-1))*A
+}
+
+proc map_segments_to_3d() {
+    	forall {
+	    	insert d3
+	    	i=0
+	    	endpt(0)
+	    	for (x) if (x > 0 && x < 1) {
+	      		while (arc3d(i)/L < x) {
+	        		i += 1
+	      		}
+	      		D=arc3d(i) - arc3d(i-1)
+	      		if (D <= 0) {
+	      			printf("\t\t * %s had a D < 0\n", secname())
+	      		}
+	      		alpha = (x*L - arc3d(i-1))/D
+	      		fracpt(alpha,x)
+	    	}
+	    	endpt(1)
+}}
+// current_balance was here..//
+
+proc init() {
+	//create soma[1], axon[1], dend[18], apic[25]
+	zindex=$1*100
+	//xopen("../../morphology/ratpfc22.hoc")
+	//xopen("../../morphology/smith_new_axon/0-2a_axon.hoc")
+	xopen("../../morphology/smith_new_axon/0-2_axon.hoc")
+	subsets()
+
+	Rm_default=30000 
+	Rm_dend=15000//30000*0.5    
+	Ra_default= 100			
+	Cm_default = 1.2	
+	Cm_dend = 2.0//1.0*2
+	v_init = -66	
+	celsius=34
+
+	cut_sections(75)
+	map_segments_to_3d()
+	
+	// Set HH Sodium - Potassium propertiess
+	gna_default = 0.031 	
+	gkdrbar_default=0.045  
+	soma_caN = 0.3e-4	
+	soma_caL = 3e-4  
+	soma_car = 3e-5*25  *0.5//75e-5//*0.5 	//MODIFIED FOR SUSTAINED
+	soma_caT = 1e-5*10//1e-4 //MODIFIED FOR SUSTAINED	    
+	soma_kca =  0.005*5*0.5 //0.025*0.5  
+	mykca_init =0.006*5*0.001  //0.00003    
+	kad_init = 0.00075*1.2  //0.0009	
+	soma_kdBG = 0.0012*4.4  
+	soma_hbar = 1.872e-5*0.5 //1.872e-5*0.5    		
+	soma_nap = 1.2e-5   *0.5 //MODIFIED FOR SUSTAINED
+	gCAN = 0.0001 	
+
+	//===================================================================================== 
+	forsec somatic {
+	       	nseg = 21
+		insert pas   
+	        g_pas 	= 1/Rm_default
+	        e_pas 	= v_init
+	       	Ra    	= Ra_default
+		cm 	= Cm_default
+
+		insert Naf
+		gnafbar_Naf = gna_default*5  
+			
+		insert kdr
+		gkdrbar_kdr = gkdrbar_default
+		
+	        insert h     
+	        gbar_h  = soma_hbar
+	        K_h     = 8.8
+	        vhalf_h = -82
+
+		insert kad  
+	      	gkabar_kad = kad_init
+	                  
+	       	insert cal 
+		gcalbar_cal=soma_caL
+
+	       	insert can
+		gcalbar_can=soma_caN   
+
+	       	insert kca
+		gbar_kca = soma_kca
+
+	      	insert mykca 
+		gkbar_mykca = mykca_init
+
+	      	insert cad
+
+	   	insert Ks
+		gKsbar_Ks = soma_kdBG
+			    
+	       	insert cat 
+	      	gcatbar_cat = soma_caT   
+
+	   	insert car
+		gcabar_car=soma_car
+
+	    	insert nap	
+		gnabar_nap=soma_nap*0.1
+	 
+	    	insert ican
+	        gbar_ican  = gCAN       
+		}
+
+	forsec axonal {
+		nseg=5
+		insert pas  
+	       	g_pas       = 1/Rm_default
+	       	e_pas       = v_init
+	       	Ra          = Ra_default
+	       	cm          = Cm_default
+
+		insert Naf
+		gnafbar_Naf = gna_default*10
+			
+		insert kdr
+		gkdrbar_kdr = gkdrbar_default  
+	}
+
+	access soma//was [0]
+	distance()
+
+	forsec apical {	
+		insert pas
+		e_pas          = v_init                    
+	 	Ra             = Ra_default*0.5	
+	     	cm             = 1.2  
+		Rm_sigmoid_apical()	 //without argument?!?	
+		
+		insert Naf
+		gnafbar_Naf = gna_default*0.2 
+		
+		insert kdr 
+		gkdrbar_kdr=gkdrbar_default*0.001   
+		
+		gh_soma=soma_hbar
+		gh_end=soma_hbar*10
+		H_dhalf=300
+		H_steep=50
+	     	for (x) {  
+	       		xdist = distance(x) 
+	       		insert h
+	       		gbar_h(x) = gh_soma + (gh_end - gh_soma)/(1.0 + exp((H_dhalf-xdist)/H_steep))
+		}
+		
+		kap_distal_maxfactor=1
+		kap_distal_distance=100
+		kad_distal_maxfactor=0.1
+		kad_distal_distance=300  
+		//for cortical cell, data is up to 400um
+		for (x) {  
+	       		xdist=distance(x)
+	       		fr1= kad_distal_distance/(xdist+ 00000.1 ) //Divisino by zero?
+	       		fr2=xdist/kad_distal_distance
+	       		insert kad
+	       		insert Ks
+	       		if (xdist < kap_distal_distance ) {
+	          		gkabar_kad(x) = kad_init*kap_distal_maxfactor
+	          		gKsbar_Ks(x) = soma_kdBG*kap_distal_maxfactor  
+		       	} else if (xdist < kad_distal_distance ) {
+	          		gkabar_kad(x) = kad_distal_maxfactor*kad_init*fr1
+	          		gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor*fr1     
+	       		} else {
+	          		gkabar_kad(x) = kad_distal_maxfactor*kad_init
+	          		gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor  
+		       }
+	    	}
+	      	insert cad       
+		insert car	
+		insert nap
+		insert cal
+		insert can
+		insert cat
+		insert kca
+		insert mykca
+	 	for (x) {  
+	         	xdist = distance(x)
+		 	fr = xdist/200
+	         	if (xdist < 200) {       
+	       			gcabar_car(x) = soma_car*0.5 	
+				gnabar_nap(x) = soma_nap
+				gcalbar_can(x) = soma_caN/30
+	     	    		gcalbar_cal(x) = soma_caL
+				gcatbar_cat(x) = soma_caT
+				gbar_kca = soma_kca*0.1
+				gkbar_mykca = mykca_init*0.05
+	         	} else {
+				gcabar_car(x) = soma_car*fr  
+				gnabar_nap(x) = soma_nap*fr*5
+				gcalbar_can(x) = soma_caN*fr*3.2
+		   		gcalbar_cal(x) = soma_caL/(30*fr)
+				gcatbar_cat(x) = soma_caT*fr  			
+				gbar_kca = soma_kca*0.001
+				gkbar_mykca = mykca_init *0.001
+	         	}
+		}
+	          	
+			                   
+		insert ican
+	        gbar_ican  = gCAN*0.1
+		
+		max_ar2=0.95
+		min_ar2=0.30
+		decay_end=300.0
+		decay_start=50.0
+	        m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
+	        for (x) {
+		                xdist = distance(x)
+		                if (xdist < decay_start) { 
+		                  	ar2_Naf(x) = max_ar2 
+		                } else if (xdist > decay_end) {               
+		                  	ar2_Naf(x) = min_ar2 
+		                } else {               
+		               		ar2_Naf(x) = max_ar2 + m_ar2*xdist
+		                }
+		//ar2_log("linear", "min_ar2*max_ar2*m_ar2*decay_start*decay_end",$o1)
+		}
+	}
+
+	access soma//was [0]
+	distance()
+
+	forsec basal {
+		//nseg = 7//20
+	       	insert pas 
+	       	e_pas          = v_init
+		Ra             = Ra_default  
+		cm             = Cm_dend
+		Rm_sigmoid_basal() 
+	
+		insert Naf
+		gnafbar_Naf = gna_default*0.1
+			
+		insert kdr
+		gkdrbar_kdr=gkdrbar_default*0.09  
+
+	       	insert ican
+	       	gbar_ican  = gCAN*0.1
+	              
+		// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
+		max_ar2=0.95
+	        min_ar2=0.30 
+	        decay_end=50.0
+	        decay_start=20.0
+	       	m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
+		for (x) {
+		    	xdist = distance(x)
+		               	if (xdist < decay_start) { 
+		               		ar2_Naf(x) = max_ar2 
+		               	} else if (xdist > decay_end) {               
+		               		ar2_Naf(x) = min_ar2 
+		               	} else {               
+		       			ar2_Naf(x) = max_ar2 + m_ar2*xdist
+		               	}
+		}
+		insert h   //no gradient in somatosensory according to schiller
+		gbar_h = soma_hbar
+	 	insert kad
+	       	insert can
+	       	insert cad
+		insert nap	
+		gnabar_nap=soma_nap
+		for (x) {  
+			xdist = distance(x)
+	 		fr = xdist/50
+	               	if (xdist < 50) {        
+	       			gcalbar_can(x) = soma_caN/30
+				gkabar_kad(x) = kad_init*2 
+	       		} else {
+				gcalbar_can(x) = soma_caN*0.1
+				gkabar_kad(x) = kad_init*5  
+	       		}
+	 	}
+	}
+  
+	forsec somatic { g_pas=1/Rm_default }
+	forall {
+		if (ismembrane("Naf")) {ena = 55}
+		if (ismembrane("k_ion")) {ek=-85}    
+		if(ismembrane("ca_ion")) {
+		eca = 140
+		cai0_ca_ion =  2.4e-6  
+		cao = 2
+		ion_style("ca_ion",3,2,1,1,1)
+		}
+	}
+	forall {
+	       	for (x) {
+	       		if (x > 0 && x < 1) {
+	               		diam(x)=diam(x)*1.0
+	}}}
+	
+}
+
+//init() 
+
+endtemplate Pcell
+
+nPcells=4
+objref Pcells[nPcells]
+
+for i = 0, (nPcells-1) {
+Pcells[i] = new Pcell(i)
+}
+xopen ("../../lib/current-balance.hoc")
+current_balance(v_init)
+
+//Create a list with segments for all neurons
+objref soma_list, basal_list, apical_list, dend_list, pcell_list, cell0_list
+
+soma_list = new SectionList()
+for i=0, (nPcells-1) {
+Pcells[i].soma soma_list.append()
+}
+
+basal_list = new SectionList()
+for i=0, (nPcells-1) {
+	forsec Pcells[i].basal {
+	basal_list.append()
+	}
+}
+
+apical_list = new SectionList()
+for i=0, (nPcells-1) {
+	forsec Pcells[i].apical {
+	apical_list.append()
+	}
+}
+
+dend_list = new SectionList()
+for i=0, (nPcells-1) {
+	forsec Pcells[i].basal {
+	dend_list.append()
+	}
+}
+for i=0, (nPcells-1) {
+	forsec Pcells[i].apical {
+	dend_list.append()
+	}
+}
+
+pcell_list = new SectionList()
+for i=0, (nPcells-1) {
+	forsec Pcells[i].all {
+		pcell_list.append()
+	}
+}
+
+cell0_list=new SectionList()
+Pcells[0].soma cell0_list.append()
+forsec Pcells[0].basal {
+	cell0_list.append()
+	}
+forsec Pcells[0].apical {	
+	cell0_list.append()
+}

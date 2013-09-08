@@ -1,0 +1,26 @@
+//Define objects and stirings used in the hoc files....
+init_of_objects=300
+//For intial parameters
+strdef accstr, tmpstr, tmp_str, cell_name  
+
+//For membrane noise, Random processes
+//objref w[10][init_of_objects], sinw[init_of_objects]
+objref w[init_of_objects], sinw,rpid, rsid, rtid 
+
+//---For synaptic stimulation
+//Basal
+objref auxlist_basal, original_list_basal, cluster_list_basal, asec_basal
+objref ampab[init_of_objects], nmdab[init_of_objects], conampab[init_of_objects], connmdab[init_of_objects]
+//proximal-Apical(<200)
+objref auxlist_proximal, original_list_proximal, cluster_list_proximal, asec_proximal
+objref ampap[init_of_objects], nmdap[init_of_objects], conampap[init_of_objects], connmdap[init_of_objects]
+//distal-Apical(>200)
+objref auxlist_distal, original_list_distal, cluster_list_distal, asec_distal
+objref ampad[init_of_objects], nmdad[init_of_objects], conampad[init_of_objects], connmdad[init_of_objects]
+//---For graphics
+objref splot, shape
+//Define objects for recording
+objref vsoma
+strdef temp, data_dir
+objref somaref
+

@@ -1,0 +1,46 @@
+// Numbers of cells
+nPCcells=14// //110 // 56 // 7
+nPVcells = 5//int(nPCcells/5) //MUST BE 1 FOR VALIDATION RUNS!!!
+nCBcells = 0//int(nPCcells/5)
+nCRcells = 0//int(nPCcells/5)
+nAllCells = nPCcells + nPVcells + nCBcells + nCRcells
+
+// Size of area, after Migliore 2010
+len = 1000 // size of the linear domain, mitral positions range from 0 to len
+
+// Experimental setup
+tstop=5000
+steps_per_ms=10
+dt=0.1
+n=int(tstop/dt)
+celsius=34
+PLOT = 1
+DEBUG = 0
+
+//-------------------Set synaptic weights
+//ampaweightpr=	0.00013			//Initial stimulus
+//nmdaweightpr=	0.00018			//Initial stimulus
+//ampaweight=	0.00019		//According to Wang(2008)
+//nmdaweight=	0.52//51//0.41			//ratio inmda/iampa in basal dendrites:1 (Wang,Gao,2008)
+gabaweight=	  6.9e-4 *0.3	//0.00075 kiki		//According to Woo(2007)
+//gabaweightb=	0.654e-4
+ampaweightin=	7.5e-4			//according to Wang,Gao,2009
+nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+autogabaweight=	5.1e-4			//According to Bacci (2003) 
+//------------------Set # of synapses
+inmaxsyn=	100//70//150//200//30//90//80//200 //was 90 in Nassi's experiment			//initial stimulation
+maxsyn=		5//noise////6//5	 //was5		//PC-PC connections
+automaxsyn=	1			//autosynapses (one third, Lubke, 1996)
+maxsyn1=	12			//IN-IN connections
+maxsyn2=	2			//PC-IN connections (Thomson, 2007)
+maxsyn3=	13//+-noise gaussian//4			//IN-PC connections (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)
+
+// Scale NMDA to AMPA ratio (NOT recommended! run validation script instead):
+NMDAfactor = 1
+AMPAfactor = 1
+
+//-----Objects for record data
+objref cv
+cv=new CVode(0)
+objref PCv[nPCcells], PCt[nPCcells], PVv[nPVcells], PVt[nPVcells]
+

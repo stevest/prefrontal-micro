@@ -1,0 +1,19 @@
+//calculates distance
+
+objref current_section, fvd_vec
+strdef fvd_str
+
+func find_vector_distance_precise() {
+current_section = $o1
+print current_section
+
+access soma[0]
+distance()
+
+access current_section
+
+distance(x)
+
+//print distance
+print "distance"
+}

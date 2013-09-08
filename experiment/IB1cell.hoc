@@ -1,0 +1,582 @@
+/* ---------------------   PROCEEDURES USED IN CELL SETUP  -------------------------*/
+/*-----------------------------------PFC-cell---------------------------------------*/
+//cell-setup.hocnaf
+//Rm is sigmoidally decreased by half along the basal and apical dendrites and Cm is doubled, Ra is constant, kiki july 2008
+
+/*  To make the distal membrane less conductive, vis-a-vis Stuart G.
+and Spruston N., J. Neuroscience 18(10) 3501-3510, 1998, we deceay Rm 
+from proximal to distal sigmoidally
+*/
+
+proc Rm_sigmoid_basal() { local rm
+	Rm_soma = Rm_default
+	Rm_end=  Rm_default*0.5
+	Rm_dhalf=10 //was 500
+	Rm_steep=5
+
+     for (x) {  
+	
+       xdist = distance(x)    // calc. path distance     
+	//print secname(), xdist
+       rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
+       g_pas(x) = 1.0/rm
+     }
+}
+
+proc Rm_sigmoid_apical() { local rm
+	Rm_soma = Rm_default
+	Rm_end=  Rm_default*0.5
+	Rm_dhalf=300 //was 500
+	Rm_steep=50
+
+     for (x) {  
+       xdist = distance(x)    // calc. path distance  
+	//print secname(), xdist    
+       rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
+       g_pas(x) = 1.0/rm
+     }
+
+}
+
+
+/* Changing Ra sigmoidally along the apical trunk*/
+
+proc Ra_sigmoid() {  
+
+	Ra_soma=Ra_default
+	Ra_end=Ra_default*10
+	dhalf=10
+	steep=5
+
+     for (x) {  
+       xdist = distance()  //calc. perpedicular distance
+       Ra = Ra_soma + (Ra_end - Ra_soma)/(1.0 + exp((dhalf-xdist)/steep))
+     }
+}
+
+//==================================================================
+//June 2006
+//In Day et al, 2005, J Neuroscience,  25(38):8776-8787
+// Ih was increased by a factor of 10 towards the apical and basilar dendrites
+
+/* 
+===================================================================
+April 10, 2006// Kiki Sidiropoulou
+In cortical layer V neurons, it is reported that K+ currents (A, D, and K) 
+decrease with increasing distance 
+based on Korngreen and Sakmann, 2000
+All three types of K+ currents decrease with distance from the soma
+The decrease is linear with a slope of -0.9pA and a regression coefficient of -0.3
+*/
+
+
+/* Inserting K(Ca++)-type channels and calcium pumps along the
+apical trunk with maximum conductances in 50 < xdist < 200 
+For cortical cell, that would correspond to 100<xdist<500
+*/
+
+
+/* Inserting LVA Ca++ T-type channels along the apical trunk in
+a linearly increasing manner, for xdist > 100 um 
+*/
+
+
+/* Inserting HVAm Ca++ R-type and HVA L-type channesls along
+the apical trunk. The R-type current is distributed in a fixed
+conductance while the L-type current is distributed in a
+maximum fixed conductance for distances xdist > 50 um and in a very
+small conductance for xdist < 50 um
+*/
+
+//cortical cells do not have the same kind of calcium electrogenesis, so remove it, April 3, 2006....no calH in pfc neurons
+//also include persistent sodium
+
+
+proc apical_mechanisms(){
+
+
+	//Insert h-current, sigmoidally increasing in the dendrites
+	gh_soma=soma_hbar
+	gh_end=soma_hbar*10
+	H_dhalf=300
+	H_steep=50
+
+     for (x) {  
+       xdist = distance(x)  //calc. perpedicular distance
+       insert h
+       gbar_h(x) = gh_soma + (gh_end - gh_soma)/(1.0 + exp((H_dhalf-xdist)/H_steep))
+	}
+
+	kap_distal_maxfactor=1
+	kap_distal_distance=100
+	kad_distal_maxfactor=0.1
+	kad_distal_distance=300  //changed kiki may23
+
+//for cortical cell, data is up to 400um
+	for (x) {  
+       xdist=distance(x)
+       fr1= kad_distal_distance/xdist
+       fr2=xdist/kad_distal_distance
+       insert kad
+       insert Ks
+     
+ 
+       if (xdist < kap_distal_distance ) {
+          gkabar_kad(x) = kad_init*kap_distal_maxfactor
+          gKsbar_Ks(x) = soma_kdBG*kap_distal_maxfactor  
+	
+
+       } else if (xdist < kad_distal_distance ) {
+          gkabar_kad(x) = kad_distal_maxfactor*kad_init*fr1
+          gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor*fr1
+	
+          
+       } else {
+          gkabar_kad(x) = kad_distal_maxfactor*kad_init
+          gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor  
+	
+       }
+     }
+
+      
+      	insert cad    // calsium pump/buffering mechanism
+       
+//insert calcium mechanisms and persistent sodium
+        
+	insert car	
+	insert nap
+	insert cal
+	insert can
+	insert cat
+	insert kca
+	insert mykca
+
+ for (x) {  
+         xdist = distance(x)
+	 fr = xdist/200
+       
+         if (xdist < 200) {        //increase the xdist for proximal, sept 18    
+        	
+		gcabar_car(x) = soma_car*0.5 	
+		gnabar_nap(x) = soma_nap
+		gcalbar_can(x) = soma_caN/30
+     	    	gcalbar_cal(x) soma_caL
+		gcatbar_cat(x) = soma_caT
+		gbar_kca = soma_kca*0.1
+		gkbar_mykca = mykca_init*0.05
+
+         } else {
+		
+		gcabar_car(x) = soma_car*fr  //*5 
+		gnabar_nap(x) = soma_nap*fr*5
+		gcalbar_can(x) = soma_caN*fr*3.2
+	   	gcalbar_cal(x) = soma_caL/(30*fr)
+		gcatbar_cat(x) = soma_caT*fr  //*10			
+		gbar_kca = soma_kca*0.001
+		gkbar_mykca = mykca_init *0.001
+         }
+     		//ar2_Naf = 0.5*fr
+	}
+		
+}
+
+
+/* Seting conductance values in all basal dendrites to be the
+same as the values in the soma, except for the A
+current conductance which is 0.6 times higher.  
+*/
+
+proc khbasal_fixed() { local i,x,d
+
+forsec basal {
+
+
+//increase H along the basal dendrites	
+	
+       insert h   //no gradient in somatosensory according to schiller
+	   gbar_h = soma_hbar
+	
+ 	insert kad
+        insert can
+        insert cad
+	insert nap	
+	gnabar_nap=soma_nap
+	
+
+	
+
+for (x) {  
+         xdist = distance(x)
+	 fr = xdist/50
+       
+         if (xdist < 50) {        
+        	
+		gcalbar_can(x) = soma_caN/30
+ 		gkabar_kad(x) = kad_init*2 
+
+         } else {
+		
+ 		gkabar_kad(x) = kad_init*5  //*0.6
+		gcalbar_can(x) = soma_caN*0.1
+         }
+     		//ar2_Naf = 0.5*fr
+	}
+  }
+}
+
+
+/* The Na channels developed Mel and modified by Brannon,
+Poirazi (hha2 and hha_old) both reduce activation as function
+of voltage. In other words, they show actvity-dependent
+attenuation of conductance.  Within both of these mechanisms,
+ar2 ([0..1]) is used to inversely describe the intensity of
+voltage-dependent attenuation. 0 is maximum attenuation, 1 is
+no attenuation.
+
+Within the cell model, we vary the amount of attenuation along
+the apical trunk as a function of distance from the cell body
+such that proximal sections show little attenuation and distal
+sections show comparably more (with the exception of distal
+obliques).
+
+We typically decay ar2 linearly from proximal to distal with
+the maximum and minimum values of decay as
+parameters. Initialize these parameters: 
+*/
+
+max_ar2=0
+min_ar2=0
+decay_start=0 /* The distance at which decay starts. 
+              The distance at which decay ends.
+              */
+decay_end=0
+
+strdef ar24_tmp_str
+objref  strobj, ar24_f
+strobj=new StringFunctions()
+ar2_firsttime=1
+
+proc ar2_log() {
+
+  if (!ar2_firsttime) { return }
+
+  ar24_f=new File() 
+  sprint($o3.tmp_str3, "%s/ar2_log", $o3.generic_dir)
+  ar24_f.wopen($o3.tmp_str3)
+  ar24_f.printf("%s:",$s1)
+
+  while (strobj.substr($s2, "*") > -1) {
+    //printf("substr:%d\n", strobj.substr($s2, "*"))
+
+      index=strobj.head($s2, "\\*", ar24_tmp_str)
+    //printf("index:%d\n", index)
+
+      strobj.right($s2, 1+index)
+     //printf("%s ... %s \n", ar24_tmp_str, $s2)
+
+      $o3.create_variable("ar24_val", ar24_tmp_str)
+      ar24_f.printf("%s:%g:", ar24_tmp_str, ar24_val)
+     //printf("%s:%g", ar24_tmp_str, ar24_val)
+  }
+
+  $o3.create_variable("ar24_val", $s2)
+  ar24_f.printf("%s:%g\n", $s2, ar24_val)
+  //printf("%s:%g\n", $s2, ar24_val)
+
+  ar24_f.close()
+  ar2_firsttime=0
+}
+
+
+
+/*_______ END OF PROCEEDURES ROUTINELY USED IN CELL SETUP______*/
+
+//__________________________________________________________________________________________________________
+
+
+/* ____________      CELL SET-UP PROCEEDURE      _____________ */
+
+maximum_segment_length=75
+strdef sectype
+objref CAN_temp, CAL_temp, CAT_temp, KAD_temp, KAP_temp, NA_temp
+
+proc cell_setup() {
+
+  // Set passive membrane properties
+ 	Rm_default=30000 
+	Rm_dend=30000*0.5    //23900*0.5
+	Ra_default= 100			//(CA1 was 50, 150 from spurston, 250 for proper bpaps)
+ 	Cm_default = 1.2	//specifical capacitance 
+	Cm_dend = 1.0*2
+	v_init = -66		//initial voltage
+	
+  // SEVERELY affects experiment results
+    $o1.defvar("general", "celsius", "34","Temperature of slice.")        
+    $o1.xopen_library("Terrence","cut-sections")
+    cut_sections(maximum_segment_length)
+
+// make 3-d mapping of cell sections
+    $o1.xopen_library("Terrence","map-segments-to-3d")
+    map_segments_to_3d()
+
+// prepare to make a graph with cell configuration
+    $o1.tmpo2=new Shape()
+        
+// Set initial conductance values 
+      
+  // Set HH Sodium - Potassium properties
+	gna_default = 0.031 	
+	gkdrbar_default=0.045  //*0.7  //*0.9	//increase kdr (aug2), increase sept 18 (0.011=>0.012)
+ 
+//Calcium currents
+	soma_caN = 0.3e-4
+	soma_caL = 3e-4  //*2  //keep dendrites at more depolarized level	
+	soma_car = 3e-5*25  //*0.5 //FOR RS	
+	soma_caT = 1e-5*10 //no effect	
+    
+//Calcium activated K+ currents
+	soma_kca =  0.005*5*0.5  //*4  //increase spike train accomodation  		
+ 	mykca_init =0.006*5*0.001   //no effect on IBtype  
+
+//Potassium current
+	soma_km = 0.00022*0
+	kad_init = 0.00075*1.2  //*3  //for RS5	 	
+	soma_kdBG = 0.0012*4.4  //*1.2 //for RS3, RS4 //FOR COCAINE ANIMALS, DECREASE BY 0.65  
+ 	soma_hbar = 1.872e-5*0.5    //change for input resistance	
+	
+//Persistent sodium
+	soma_nap = 1.2e-5  //*0.5 //for RS1, RS2 //repetitive bursting
+
+//----------------------------------------------------------------------------    
+//for sadp induction	  
+    gCAN = 0.0001 	 		 	
+//=====================================================================================
+ 
+// Start inserting mechanisms in cell
+	   
+      forsec somatic {
+		nseg = 21
+            		
+		insert Naf
+			gnafbar_Naf = gna_default*5  //changed july 23, 2007
+		insert kdr
+			gkdrbar_kdr = gkdrbar_default
+
+            insert pas    // leak conductance
+                    g_pas =  1/Rm_default
+                    e_pas = v_init
+                    Ra    = Ra_default
+		    cm = Cm_default
+
+            insert h     // h current 
+                   gbar_h  = soma_hbar
+                   K_h     = 8.8
+                   vhalf_h = -82
+
+  	     insert km
+			gbar_km=soma_km
+
+	      insert kad  // proximal A current
+                   gkabar_kad = kad_init
+                  
+            insert cal // HVAl Ca++-L type current with delayed activation corresponding to alpha1D type
+		gcalbar_cal=soma_caL
+
+            insert can
+		gcalbar_can=soma_caN   //30
+            insert kca
+		gbar_kca = soma_kca
+            insert mykca 
+		gkbar_mykca = mykca_init
+            insert cad
+	    insert Ks
+		gKsbar_Ks = soma_kdBG
+		    
+            insert cat // LVA Ca++-T type current
+                   gcatbar_cat = soma_caT   //2
+
+	    insert car
+		gcabar_car=soma_car
+	    insert nap	
+		gnabar_nap=soma_nap*0.1
+ 
+	    insert ican
+                 gbar_ican  = gCAN
+		//mystart_ican=1000
+		//==========================================
+	
+            $o1.tmpo2.color(2)            
+      }
+
+//  Configure Axon
+
+        forsec axonal {
+		nseg=5
+
+		insert Naf
+			gnafbar_Naf = gna_default*10
+		insert kdr
+			gkdrbar_kdr = gkdrbar_default  //*5
+
+              insert pas  // leak conductance
+                    g_pas       = 1/Rm_default
+                    e_pas       = v_init
+                    Ra          = Ra_default
+                    cm          = Cm_default
+		                                           
+               $o1.tmpo2.color(1)
+      }
+	
+    
+//Include all apical dendrites
+
+
+//  Configure apical trunk
+ //FINAL FORM, MAY 24, 2009
+access soma[0]
+distance()
+
+       
+       forsec apical {
+	
+             	insert Naf
+			gnafbar_Naf = gna_default*0.2 //*0.22
+		insert kdr 
+			gkdrbar_kdr=gkdrbar_default*0.001   //*0.001   //*0.09  //*1.15
+
+                    
+          insert pas // leak conductance
+                   //g_pas          = 1/Rm_dend
+		    e_pas          = v_init                    
+		    Ra             = Ra_default*0.5	//was *0.5 //*2.5
+                    cm             = 1.2  //Cm_default  //was 1.2  //1.7
+
+         Rm_sigmoid_apical($o1)   // configure Rm along apical trunk
+      	 
+	//add ICAN  in dendrites but smaller
+	 insert ican
+         gbar_ican  = gCAN*0.1
+	  
+	apical_mechanisms()   
+
+           
+// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
+
+
+         $o1.defvar("channel:na", "max_ar2", "0.95", "Somatic value of ar2")  //original 0.95
+         $o1.defvar("channel:na", "min_ar2", "0.30", "Minimum value of ar2")
+         $o1.defvar("channel:na", "decay_end", "300.0", "Distance beyond which all values are min_ar2") //800 for pfc
+         $o1.defvar("channel:na", "decay_start", "50.0", "Distance at which ar2 starts to decrease")
+         m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
+            for (x) {
+                xdist = distance(x)
+                if (xdist < decay_start) { 
+                  ar2_Naf(x) = max_ar2 
+                } else if (xdist > decay_end) {               
+                  ar2_Naf(x) = min_ar2 
+                } else {               
+               ar2_Naf(x) = max_ar2 + m_ar2*xdist
+                }
+            }
+            ar2_log("linear", "min_ar2*max_ar2*m_ar2*decay_start*decay_end",$o1)
+	}
+
+	
+
+// Configure the basal dendrites
+
+	access soma[0]
+	distance()
+   forsec basal {
+            
+		insert Naf
+			gnafbar_Naf = gna_default*0.1
+		insert kdr
+			gkdrbar_kdr=gkdrbar_default*0.09  //*0.09
+
+            insert pas // passive properties
+                    //g_pas          = 1/Rm_dend
+                    e_pas          = v_init
+                    Ra             = Ra_default  //oct18
+                    cm             = Cm_dend
+
+	//add ICAN  in dendrites but smaller
+	 insert ican
+         gbar_ican  = gCAN*0.1
+	  
+
+                
+// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
+//Not sure if such a thing exists for cortical cells
+
+         $o1.defvar("channel:na", "max_ar2", "0.95", "Somatic value of ar2")  //original 0.95
+         $o1.defvar("channel:na", "min_ar2", "0.30", "Minimum value of ar2")
+         $o1.defvar("channel:na", "decay_end", "50.0", "Distance beyond which all values are min_ar2") 
+         $o1.defvar("channel:na", "decay_start", "20.0", "Distance at which ar2 starts to decrease")
+         m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
+            for (x) {
+                xdist = distance(x)
+                if (xdist < decay_start) { 
+                  ar2_Naf(x) = max_ar2 
+                } else if (xdist > decay_end) {               
+                  ar2_Naf(x) = min_ar2 
+                } else {               
+               ar2_Naf(x) = max_ar2 + m_ar2*xdist
+                }
+            }
+            ar2_log("linear", "min_ar2*max_ar2*m_ar2*decay_start*decay_end",$o1)
+             
+
+	Rm_sigmoid_basal($o1)  //Rm
+        $o1.tmpo2.color(5)
+     } 
+   
+	khbasal_fixed($o1) // Configure basal dendrites         
+   
+  
+
+  forsec somatic { g_pas=1/Rm_default } // force Rm at all soma sections
+
+    
+forall {
+	if (ismembrane("Naf")) {ena = 55}
+	if (ismembrane("k_ion")) { ek 		= -85     
+	//ek         = -77 
+     }
+     
+     if(ismembrane("ca_ion")) {
+      eca = 140
+     cai0_ca_ion =  2.4e-6 // for pump  
+     cao = 2
+     //ion_style("ca_ion",0,1,0,0,0)
+     ion_style("ca_ion",3,2,1,1,1)
+     // vshift_ca = 0
+    }
+
+  }
+
+  // Account for spines (obsolete in this case) 
+
+   forall {
+        for (x) {
+          if (x > 0 && x < 1) {
+                diam(x)=diam(x)*1.0
+                }
+        }
+   }
+
+   // Print a postcript file in the generic directory with the cell configuration
+
+   //print the cell shape in the experiment folder
+   sprint($o1.tmp_str2, "%s/configure_sections.eps", $o1.generic_dir)
+   $o1.tmpo2.printfile($o1.tmp_str2)
+  
+   $o1.xopen_library("Terrence","current-balance") // balance current to -66 mV
+   current_balance(v_init)
+
+}
+proc init() {
+finitialize(v_init)
+fcurrent()
+}
+

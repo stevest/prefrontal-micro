@@ -1,0 +1,9 @@
+//procedure for induction of sadp
+//In cell-setup, gip3 = 0.0001, gCAN=0.0001
+proc sadp() {
+forall {
+for(x) {
+	fi2=1.043*0 //factor for ican, 0.0001 in cellsetup
+	if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fi2 } 
+	}}}
+

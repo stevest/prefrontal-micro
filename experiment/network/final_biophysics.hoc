@@ -1,0 +1,160 @@
+//--------------Set parameters and run this for the net (4 Pcells and 1 Interneuron)
+//--------------Written 8-5-08, modified 10-09-2010, Nassi
+load_file("nrngui.hoc")			//load main NEURON library
+cvode.active(0)
+xopen ("net.hoc")                    	//load net structure
+
+//----------------------------------------Set parameters--------------------------------------------------------------//
+tstop=5000
+steps_per_ms=10
+dt=0.1
+
+//-------------------Set synaptic weights
+ampaweightpr=	0.00008			//Initial stimulus
+ampaweight=	0.000065		//According to Nevian(2007)
+nmdaweight=	ampaweight*35		//ratio inmda/iampa in basal dendrites:1 (Wang,Gao,2009)
+/*for ratio 0.5 nmdaweight=ampaweight*2.4
+for ratio 1 nmdaweight=ampaweight*8
+for ratio 1.25 nmdaweight=ampaweight*15
+for ratio 1.5 nmdaweight=ampaweight*35
+for ratio 1.5&time nmdaweight=ampaweight*50*/
+gabaweight=	0.00083			//According to Woo(2007)
+gabaweightb=gabaweight*0.78
+ampaweightin=	0.000085		//according to Angulo,Audiant,1999
+nmdaweightin=	ampaweightin*0.6	//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+autogabaweight=	0.00073*11		//According to Bacci (2003)
+
+//------------------Set # of synapses
+inmaxsyn=120				//initial stimulation
+maxsyn=24				//PC-PC connections
+automaxsyn=8				//autosynapses (one third, Lubke, 1996)
+maxsyn1=1				//IN-IN connections
+maxsyn2=12				//PC-IN connections (Thomson, 2007)
+maxsyn3=15				//IN-PC connections (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)
+
+//------------------------------------Pharmacological procedures
+fi1=0//0.044
+proc sadp_soma() {
+forsec soma_list{
+for(x) {
+	if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.001*fi1 } 
+	}}
+}
+proc sadp_dend() {
+
+forsec dend_list{
+for(x) {
+	if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.001*0.1*fi1} 
+	}}
+}
+
+forsec soma_list {
+	if (ismembrane("kad")) for(x) { gbar_kca = 0.0007*0.1}
+}
+forsec dend0_list {
+	if (ismembrane("kad")) for(x) { gbar_kca = 0.0007*0.1}
+}
+forsec dend1_list {
+	if (ismembrane("kad")) for(x) { gbar_kca = 0.0007*0.1}
+}
+
+forsec dend2_list {
+	if (ismembrane("kad")) for(x) { gbar_lca = 0.0007*0.1*0.1}
+}
+//--------------------------------------Graphs
+xopen("../bash_templates/basic-graphics.hoc") 	
+//for j=0, (nPcells-1) {addgraph_2("Pcells[j].soma.v(0.5)", 0,tstop, -70, 50)}
+addgraph_2("INcells[0].soma.v(0.5)",0,tstop, -70, 50)
+addgraph_2("Pcells[0].soma.v(0.5)",0,tstop, -70, 50)
+/*addgraph_2("Pcells[0].soma.ina_Nap(0.5)",0,tstop,-1,1)
+addgraph_2("Pcells[0].dend[0].cai(0.5)",0,tstop,0,0.1)
+addgraph_2("Pcells[0].soma.cai(0.5)",0,tstop,0,0.1)
+addgraph_2("Pcells[0].soma.ica_cal(0.5)",0,tstop,-1,1)
+addgraph_2("Pcells[0].soma.ica_can(0.5)",0,tstop,-1,1)
+addgraph_2("Pcells[0].soma.ica_cat(0.5)",0,tstop,-1,1)*/
+
+//---------------------------------------------Multiple Experiments/Runs---------------------------------------------//
+//---For many experiments
+strdef syscmd, data_dir, running 
+//-----Variables
+n=int(tstop/dt)
+//-----Objects for record data
+objref cv
+cv=new CVode(0)
+objref PCv[nPcells], PCt[nPcells], INv[nINcells], INt[nINcells]
+strdef temp
+objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, curampa, curnmda, curgabaa, curgabab
+objref campa[maxsyn+automaxsyn], campat[maxsyn+automaxsyn], cnmda[maxsyn+automaxsyn], cnmdat[maxsyn+automaxsyn], cgabaa[maxsyn3], cgabaat[maxsyn3], cgabab[maxsyn3], cgababt[maxsyn3], ampac, nmdac, gabaac, gababc	
+objref gabaweights
+//----record total cell population spike activity
+objref timevec, idvec, recncs, tobj, nil, total_activity
+
+
+for experiments=0,0 {				// Run as many experiments as gabab values are evaluated
+sprint(running,"Number of experiment %d",experiments)
+print running		
+sprint(data_dir,"data%d",experiments)		//This is done so as to save many experiments in different folders of data
+sprint(syscmd,"mkdir -p %s",data_dir) 		// make the data directory
+system(syscmd)
+
+//xopen("values_gabaweight.hoc")			//For each experiment the only that changes is the value of gabab
+//gabaweightb=gabaweights.get[experiments]
+//print gabaweightb
+
+for runs = 0, 9 {
+//------------------------------------Call procedures
+stimulation(runs)
+pyramidals(runs)
+interneurons(runs)
+pyrin(runs)
+inpyr(runs)
+noise(runs) 
+sadp_soma()
+sadp_dend()
+print runs
+
+
+//----Record spiking activity
+/*timevec = new Vector()
+idvec = new Vector()
+recncs = new List()
+i=0
+forsec soma_list {
+for (x) {
+i=i+1
+  tobj = new NetCon(&v(0.5), nil)
+  tobj.threshold=0
+  tobj.record(timevec, idvec, i+1) 
+  recncs.append(tobj)
+}
+}*/
+
+//-------------------------------------Record & Save data data
+xopen("recordandsave/record.hoc")
+xopen("recordandsave/save_data.hoc")
+//xopen("recordandsave/rec_total_currents.hoc")
+
+rec_membrane_voltage()
+//rec_synaptic_currents()
+
+//--------------------------------------Add synaptic graphs
+//addgraph_2("nmda[0][0].iNMDA",0,tstop,-1,1)
+run()
+
+//add_syn_currents()
+save_membrane_voltage()
+//save_currents()
+
+//----Save spiking activity
+/*total_activity = new File()		
+sprint(temp,"%s/total%d.dat", data_dir, runs+1)
+total_activity.wopen(temp)
+for j=0,timevec.size()-1 {
+total_activity.printf ("%f\n",timevec.x[j])
+}
+total_activity.close()
+*/
+
+}
+}
+//That's the end

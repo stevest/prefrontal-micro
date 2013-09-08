@@ -1,0 +1,119 @@
+//Populates the network by choosing from real RS/IB morphologies
+//Percentage of IB cells is given as an argument
+//The final morphology ID is NOT scrambled:
+//First are RS then IB (for later use i.e. in localization)
+
+objref PcellIDlist
+PcellIDlist = new Vector(nPCcells)
+
+objref IBlist, RSlist
+objref rRS, rIB
+
+proc chooseMorphologies(){
+	//argument: percentage of IB cells morphologies in network
+	nIB = nPCcells * $1 / 100	
+	nIB = int(nIB)
+	nRS = nPCcells - nIB
+	printf("Number of RS: %d\n\n", nRS)
+	printf("Number of IB: %d\n\n", nIB)
+	//get lists of IDs for IB and RS (HARDCODED!)
+	IBlist = new Vector(1)
+	IBlist.x[0] = 32
+	
+
+
+	RSlist = new Vector(54)
+	RSlist.x[0] = 0
+	RSlist.x[1] = 1
+	RSlist.x[2] = 2
+	RSlist.x[3] = 3
+	RSlist.x[4] = 4
+	RSlist.x[5] = 5
+	RSlist.x[6] = 6
+	RSlist.x[7] = 7
+	RSlist.x[8] = 8
+	RSlist.x[9] = 9
+	RSlist.x[10] = 10
+	RSlist.x[11] = 11
+	RSlist.x[12] = 12
+	RSlist.x[13] = 13
+	RSlist.x[14] = 14
+	RSlist.x[15] = 0//15 //EPILEPTIC!
+	RSlist.x[16] = 16
+	RSlist.x[17] = 17
+	RSlist.x[18] = 18
+	RSlist.x[19] = 19
+	RSlist.x[20] = 20
+	RSlist.x[21] = 21
+	RSlist.x[22] = 22
+	RSlist.x[23] = 23
+	RSlist.x[24] = 24
+	RSlist.x[25] = 25
+	RSlist.x[26] = 26
+	RSlist.x[27] = 27
+	RSlist.x[28] = 28
+	RSlist.x[29] = 29
+	RSlist.x[30] = 30
+	RSlist.x[31] = 31
+	RSlist.x[32] = 33
+	RSlist.x[33] = 34
+	/*RSlist.x[34] = 35
+	RSlist.x[35] = 36
+	RSlist.x[36] = 37
+	RSlist.x[37] = 38
+	RSlist.x[38] = 39
+	RSlist.x[39] = 40
+	RSlist.x[40] = 41
+	RSlist.x[41] = 42
+	RSlist.x[42] = 43
+	RSlist.x[43] = 44
+	RSlist.x[44] = 45
+	RSlist.x[45] = 46
+	RSlist.x[46] = 47
+	RSlist.x[47] = 48
+	RSlist.x[48] = 49
+	RSlist.x[49] = 50
+	RSlist.x[50] = 51
+	RSlist.x[51] = 52
+	RSlist.x[52] = 53
+	RSlist.x[53] = 54
+	RSlist.x[54] = 55*/
+	RSlist.x[34] = 36
+	RSlist.x[35] = 37
+	RSlist.x[36] = 38
+	RSlist.x[37] = 39
+	RSlist.x[38] = 40
+	RSlist.x[39] = 41
+	RSlist.x[40] = 42
+	RSlist.x[41] = 43
+	RSlist.x[42] = 44
+	RSlist.x[43] = 45
+	RSlist.x[44] = 46
+	RSlist.x[45] = 47
+	RSlist.x[46] = 48
+	RSlist.x[47] = 49
+	RSlist.x[48] = 50
+	RSlist.x[49] = 51
+	RSlist.x[50] = 52
+	RSlist.x[51] = 53
+	RSlist.x[52] = 54
+	RSlist.x[53] = 55
+	
+
+
+	//Populate the network with RS cells:
+	rRS = new Random($2 + 1)
+	rIB = new Random($2 + 2)
+	rRS.uniform(0,RSlist.size()-1)
+	rIB.uniform(0,IBlist.size()-1)
+
+	for n=0,(nRS-1){
+		PcellIDlist.x[n] = int(RSlist.x[rRS.repick()])
+		print PcellIDlist.x[n]
+	}
+	for n=nRS,(nIB+nRS-1){
+		PcellIDlist.x[n] = int(IBlist.x[rIB.repick()])
+		print PcellIDlist.x[n]
+	}
+	
+}

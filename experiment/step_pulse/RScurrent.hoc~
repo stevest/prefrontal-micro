@@ -1,0 +1,131 @@
+// The goal of this experiment is to insure that our cell responses
+// are reasonably similar to the data on back propagating action potentials
+// where the site of current injection is either at the soma 
+
+load_proc("nrnmainmenu")             // load main NEURON library
+cvode.active(0)
+//load_template("ExperimentControl")   // load a custom made library function that centralizes parameters so as to 
+xopen("../../template/ExperimentControl.hoc")
+xopen("define_objects.hoc")
+show_errs=1
+debug_lev=1
+
+//econ=new ExperimentControl(show_errs,debug_lev)
+//econ.self_define(econ) // points the object at itself
+//econ.morphology_dir = "../../morphology/"
+//econ.generic_dir = "../../experiment"                                    // Setup directory with cell-setup file
+//econ.add_lib_dir("Terrence","../../lib")                                  // Setup directory with library functions 
+
+//econ.data_dir       = "data"                       // Define directory to save produced data 
+//sprint(econ.syscmd, "mkdir -p %s", econ.data_dir)  // make the data directory
+//system(econ.syscmd)
+
+//econ.xopen_geometry_dependent("ratpfc22")  //enter filename of morhpology, C3_5
+//econ.xopen_library("Terrence","distance")
+
+//econ.xopen_generic("RS1cell")                   // load the cell-setup file (define specific 
+
+printf("Opened. Setting up cell\n")                // channels, membrane properties etc)
+//cell_setup(econ)
+xopen("../../lib/basic-graphics.hoc")
+xopen("../define_objects.hoc")
+xopen("../RS1cell.hoc") 
+//====================================================================================
+//procedure for induction of sadp
+//In cell-setup, gip3 = 0.0001, gCAN=0.0005
+proc sadp() {
+forall {
+for(x) {
+	fi1=0  //factor for ip3, 0.0001 in cellsetup
+	fi2=1.043//*0 //factor for ican, 0.0001 in cellsetup
+	//if(ismembrane("ip3")) for(x) { gcabar_ip3(x)= gcabar_ip3(x)*fi1 }
+	if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fi2 } 
+	}}}
+//------------------------------------------------------------------------------
+//Call pharmacological procedures
+//cadmium()
+//ttxdend()
+//d1()
+//mglur5()
+sadp()	//need to run this procedure to have sadp zero
+//=============================================================================================
+// Set simulation parameters for the experiment 
+
+tstop=5000
+dt=0.1
+steps_per_ms=10
+setdt()
+
+// Insert current clamp into soma (in pfc the middle of the real soma is apical dendrite[14] or dendritic section
+access Pcells[0].soma[0]
+objref ic
+proc steppulse() {
+//step pulse
+ic = new IClamp(0.5)
+ic.del=100
+ic.dur=500
+ic.amp=0.25
+}
+//5 spikes at 20hz frequency
+objref ic1, ic2, ic3, ic4, ic5, ic6, ic7, ic8, ic9, ic10
+amp=1
+proc train() {
+ic1 = new IClamp(0.5)
+ic1.del=250
+ic1.dur=5
+ic1.amp=amp
+
+ic2 = new IClamp(0.5)
+ic2.del=300
+ic2.dur=5
+ic2.amp=amp
+
+ic3 = new IClamp(0.5)
+ic3.del=350
+ic3.dur=5
+ic3.amp=amp
+
+ic4 = new IClamp(0.5)
+ic4.del=400
+ic4.dur=5
+ic4.amp=amp
+
+ic5 = new IClamp(0.5)
+ic5.del=250
+ic5.dur=5
+ic5.amp=amp
+}
+
+//=========================================================================================
+// Create basic graphics
+
+xopen("../../lib/basic-graphics.hoc")                            
+
+addgraph_2("Pcells[0].soma[0].v(0.5)",0,tstop,-70,50) //soma
+//addgraph_2("soma.in_ican(0.5)",0, tstop, -1, 1)
+
+//basal dendrites
+/*addgraph_2("dend[17].v(0.75)",0,tstop,-75,60) //basal 17um
+addgraph_2("dend[3].v(0.5)",0,tstop,-75,60) //basal 33um
+addgraph_2("dend[4].v(0.5)",0,tstop,-75,60) //basal 55um
+addgraph_2("dend[9].v(0.5)",0,tstop,-75,60) //basal 92um
+addgraph_2("dend[9].v(0.833333)",0,tstop,-75,60) //basal 145um
+addgraph_2("dend[16].v(0.25)",0,tstop,-75,60) //basal 62um
+addgraph_2("dend[16].v(0.75)",0,tstop,-75,60) //basal 123um*/
+
+
+//call procedures
+steppulse()
+//train()
+
+// Initialize and run the experiment
+//nrnallsectionmenu()
+finitialize(v_init)
+fcurrent()
+run()
+
+
+
+
+
+

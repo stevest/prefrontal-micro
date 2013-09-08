@@ -1,0 +1,84 @@
+//Interneuron for PFC 
+//Based on Durstewitz and Gabriel 2006
+//"Irregular spiking in NMDA-driven prefrontal cortex neurons"
+
+begintemplate PVcell
+
+public soma, axon
+create soma, axon
+
+proc init () {
+
+create soma, axon
+
+soma {
+     nseg=1
+     L=53 //207.7
+     diam=42
+
+	//insert kdyn
+	insert pas
+	cm=1.2            //microF/cm2
+	g_pas =1/15000   //mho/cm2	
+	e_pas = -70
+	Ra=150
+
+	insert Naf
+     	gnafbar_Naf= 0.045*5 
+
+     	insert kdr
+     	gkdrbar_kdr=0.018//*0.8
+
+     	insert IKs	//slowly inactivating potassium (D-type?)
+     	gKsbar_IKs = 0.000725*0.1	//Nassi, 25/06/09
+}
+
+axon {
+	nseg=1
+	L=113.22
+	diam=0.7
+
+	//insert kdyn
+	insert pas
+	cm=1.2            //microF/cm2
+	g_pas =1/15000   //mho/cm2
+	e_pas = -70
+	Ra=150
+	
+	insert Naf
+	gnafbar_Naf=0.045*12//13
+
+	insert kdr
+	gkdrbar_kdr=0.018//*0.7
+}
+
+	
+connect axon(0), soma(0.5)	
+
+ko0_k_ion = 3.82   //mM
+ki0_k_ion = 140    //mM
+celsius   = 34//23
+}
+
+endtemplate PVcell
+
+//Creating new interneurons
+//nPVcells = 1//int(nPcells/5)
+
+objref PVcells[nPVcells]
+
+for i = 0, nPVcells-1 {
+PVcells[i] = new PVcell()
+}
+
+
+//Create list with segments
+objref PVsoma_list
+
+PVsoma_list = new SectionList()
+for i=0, nPVcells-1 {
+PVcells[i].soma PVsoma_list.append()
+}
+
+xopen("../current-balancein.hoc")
+current_balancein(-70) 

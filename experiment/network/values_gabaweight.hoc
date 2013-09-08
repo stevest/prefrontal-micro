@@ -1,0 +1,14 @@
+// Make a vector of values for the gabab weight, to be loaded for each experiment.
+//Written by Nassi, 10.09.2010
+//According to Thomson(1999)
+
+
+gababweights = new Vector(4)
+gababweights.x[0]=1.05e-4 	*0.3	//0.000225//1.05e-4//1.05e-4		//0.2
+gababweights.x[1]=2.22e-4		//0.4
+gababweights.x[2]=3.38e-4		//0.6
+gababweights.x[3]=4.65e-4		//0.8
+
+
+
+

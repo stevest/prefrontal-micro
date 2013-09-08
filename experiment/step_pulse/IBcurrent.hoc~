@@ -1,0 +1,600 @@
+// The goal of this experiment is to insure that our cell responses
+// are reasonably similar to the data on back propagating action potentials
+// where the site of current injection is either at the soma or the apical trunk
+
+
+load_proc("nrnmainmenu")             // load main NEURON library
+cvode.active(0)
+load_template("ExperimentControl")   // load a custom made library function that centralizes parameters so as to 
+
+strdef accstr, tmpstr, tmp_str         // not confuse experimental variable bindings with neurophysiological variable bindings
+objref denddist, distvec, diamfile
+objref econ                          // Create an experiment object
+show_errs=1
+debug_lev=1
+
+econ=new ExperimentControl(show_errs,debug_lev)
+econ.self_define(econ) // points the object at itself
+econ.morphology_dir = "../../morphology"
+econ.generic_dir = "../../experiment"                                    // Setup directory with cell-setup file
+econ.add_lib_dir("Terrence","../../lib")                                  // Setup directory with library functions 
+
+econ.data_dir       = "data"                       // Define directory to save produced data 
+sprint(econ.syscmd, "mkdir -p %s", econ.data_dir)  // make the data directory
+system(econ.syscmd)
+
+// Setup cell
+
+econ.xopen_geometry_dependent("ratpfc22")  //enter filename of morhpology, C3_5
+
+econ.xopen_library("Terrence","distance")
+
+printf("Opening cell-setup\n")
+econ.xopen_generic("IB1cell")                   // load the cell-setup file (define specific 
+
+printf("Opened. Setting up cell\n")                // channels, membrane properties etc)
+
+
+cell_setup(econ)
+/*
+//correct diameters at basal dendrites
+forsec basal_tree_list {
+	diam = diam *2
+	}
+*/
+
+//====================================================================================
+//Blockade procedures used
+
+proc cadmium() {  // Block all calcium channels
+f = 0.9
+
+forall {
+for(x) {
+   	//if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*f }
+	//if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*f }
+	if(ismembrane("can")) for(x) {  gcalbar_can(x)= gcalbar_can(x)*f }
+	//if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*f }
+	//if(ismembrane("Ks")) for(x) {  gKsbar_Ks(x)= gKsbar_Ks(x)*f }
+	//if(ismembrane("kap")) for(x) {  gkabar_kap(x)= gkabar_kap(x)*f }
+	//if(ismembrane("mykca")) for(x) {  gkbar_mykca(x)= gkbar_mykca(x)*f }
+	//if(ismembrane("kad")) for(x) {  gkabar_kad(x)= gkabar_kad(x)*f }   
+} 
+}
+}
+
+//-----------------------------------------------------------------------------
+//Dendritic TTX
+proc ttxdend() {
+sectype "apical_dendrites_list"
+      forall {
+	ft = 0
+	for(x) {
+      if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*ft }
+	if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*ft }	
+	}}
+	
+	/*forsec basal_tree_list {
+	for(x) {
+      if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*ft }
+	}}*/
+	}
+//-------------------------------------------------------------------------------
+//D1 activation procedure
+proc d1() {
+//mimick dopamine effects
+//decrease calcium current (L-type) (*0.8)
+//decrease slow type K+ current (*0.6)
+//decrease sodium??
+
+fd1 = 0.95
+fd2 = 0.6
+fd3=1.1
+	forall {
+	for(x) {
+	//if(ismembrane("Ks")) for(x) {  gKsbar_Ks(x)= gKsbar_Ks(x)*fd2}
+	if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*fd1 }
+	//if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*fd1 }
+	}
+	}
+}
+	
+//-----------------------------------------------------------------------
+
+//mglur procedure
+
+proc mglur5() {
+
+forall {
+for(x) {
+	fm=1.0*0
+	if(ismembrane("kca")) for(x) { gbar_kca(x)= gbar_kca(x)*fm }
+	if(ismembrane("mykca"))  for(x) { gkbar_mykca(x)= gkbar_mykca(x)*fm } 
+	}}}
+
+//----------------------------------------------------------------------------
+//procedure for induction of sadp
+//In cell-setup, gip3 = 0.0001, gCAN=0.0005
+proc sadp() {
+forall {
+for(x) {
+	fi1=0  //factor for ip3, 0.0001 in cellsetup
+	fi2=1.043*0 //factor for ican, 0.0001 in cellsetup
+	if(ismembrane("ip3")) for(x) { gcabar_ip3(x)= gcabar_ip3(x)*fi1 }
+	if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fi2 } 
+	}}}
+
+//------------------------------------------------------------------------------
+//Call pharmacological procedures
+//cadmium()
+//ttxdend()
+//d1()
+//mglur5()
+sadp()	//need to run this procedure to have sadp zero
+//=============================================================================================
+
+denddist =new File()
+sprint(tmpstr, "%s/dend_distance", econ.data_dir)    // define file to save cell firing rate  
+denddist.wopen(tmpstr)  // open file to store the vertical distance of dendrites from the soma
+
+forall   {
+xdist = distance(x)
+denddist.printf("%s   	%g\n", secname(), xdist)
+}
+
+denddist.close()
+//print "newfile" 
+
+//-------------------------------------------------------
+
+diamfile =new File()
+sprint(tmpstr, "%s/diameters", econ.data_dir)    // define file to save cell firing rate  
+diamfile.wopen(tmpstr)  // open file to store the vertical distance of dendrites from the soma
+
+forall   {
+diamfile.printf("%s %g\n", secname(), diam)
+}
+
+diamfile.close()
+//print "newfile" 
+
+
+// Set simulation parameters for the experiment 
+tstop=1000
+dt=0.1
+steps_per_ms=10
+setdt()
+
+// Insert current clamp into soma (in pfc the middle of the real soma is apical dendrite[14] or dendritic section
+
+access soma[0]
+objref ic
+
+proc steppulse() {
+//step pulse
+
+ic = new IClamp(0.5)
+ic.del=100
+ic.dur=500
+ic.amp=-0.1
+
+}
+
+
+//INSERT MOD FILE FOR SINE WAVE
+objref sinw, w, ramp
+
+proc sinnoise() {
+w = new Random()
+w.poisson(0.05)  //0.02
+
+sinw  =  new SinClamp(0.5)
+sinw.del=50
+sinw.pkamp=0.2
+sinw.dur=tstop
+sinw.freq =5  //100
+w.play(&sinw.pkamp)
+
+}
+
+//5 spikes at 20hz frequency
+objref ic1, ic2, ic3, ic4, ic5, ic6, ic7, ic8, ic9, ic10
+amp=0.35
+
+proc train() {
+ic1 = new IClamp(0.5)
+ic1.del=50
+ic1.dur=5
+ic1.amp=amp
+
+ic2 = new IClamp(0.5)
+ic2.del=100
+ic2.dur=5
+ic2.amp=amp
+
+ic3 = new IClamp(0.5)
+ic3.del=150
+ic3.dur=5
+ic3.amp=amp
+
+ic4 = new IClamp(0.5)
+ic4.del=200
+ic4.dur=5
+ic4.amp=amp
+
+ic5 = new IClamp(0.5)
+ic5.del=250
+ic5.dur=5
+ic5.amp=amp
+/*
+ic6 = new IClamp(0.5)
+ic6.del=300
+ic6.dur=5
+ic6.amp=amp
+
+ic7 = new IClamp(0.5)
+ic7.del=350
+ic7.dur=5
+ic7.amp=amp
+
+ic8 = new IClamp(0.5)
+ic8.del=350
+ic8.dur=5
+ic8.amp=amp
+
+ic9 = new IClamp(0.5)
+ic9.del=350
+ic9.dur=5
+ic9.amp=amp
+
+
+ic10 = new IClamp(0.5)
+ic10.del=350
+ic10.dur=5
+ic10.amp=amp
+*/
+}
+
+//==============================================================================================
+//Save data in vectors
+objref vsoma, cairec, icanrec, apic20, apic150, apic300, apic475, basal33, basal92, basal123, basal145
+
+
+vsoma = new Vector(tstop/dt)  //record voltage at the soma
+vsoma.record(&soma.v(0.5))
+
+apic20 = new Vector(tstop/dt)  //record voltage at apical dendrite at branch point of turft, 
+apic20.record(&apic[1].v(0.5))
+
+apic150 = new Vector(tstop/dt)  //record voltage at the trunk, 350um from the soma
+apic150.record(&apic[2].v(0.75))
+
+apic300 = new Vector(tstop/dt)  //record voltage at the apical tuft, 855um from the soma
+apic300.record(&apic[3].v(0.75))
+
+apic475 = new Vector(tstop/dt)  //record voltage at the apical tuft, 855um from the soma
+apic475.record(&apic[7].v(0.75))
+
+basal33 = new Vector(tstop/dt)  //record voltage at the apical tuft, 855um from the soma
+basal33.record(&dend[2].v(0.5))
+
+basal92 = new Vector(tstop/dt)  //record voltage at the apical tuft, 855um from the soma
+basal92.record(&dend[5].v(0.25))
+
+basal123 = new Vector(tstop/dt)  //record voltage at the apical tuft, 855um from the soma
+basal123.record(&dend[15].v(0.25))
+
+basal145 = new Vector(tstop/dt)  //record voltage at the apical tuft, 855um from the soma
+basal145.record(&dend[5].v(0.75))
+
+
+cairec = new Vector(tstop/dt)  //record voltage at the soma
+cairec.record(&soma.cai(0.5))
+
+icanrec = new Vector(tstop/dt)  //record voltage at the soma
+icanrec.record(&soma.in_ican(0.5))
+
+
+//=========================================================================================
+
+
+// Create basic graphics
+
+econ.xopen_library("Terrence","basic-graphics")                            // open graphics library file   
+
+//sections used in BPAP figure
+
+//addgraph_2("soma.in_ican(0.5)", 0,tstop,0e-05,0.015)  //soma
+addgraph("soma.cai(0.5)",0, tstop, 0,1)
+
+//addgraph_2("soma.ica_car(0.5)", 0,tstop,0e-05,0.015)  //soma
+//addgraph_2("soma.ica_can(0.5)", 0,tstop,0e-05,0.015)  //soma
+//addgraph_2("soma.ica_cal(0.5)", 0,tstop,0e-05,0.015)  //soma
+//addgraph_2("soma.ica_cat(0.5)", 0,tstop,0e-05,0.015)  //soma
+addgraph_2("soma[0].v(0.5)",0,tstop,-70,50) //soma
+addgraph_2("soma.in_ican(0.5)",0, tstop, -1, 1)
+//addgraph_2("soma.ina_nap(0.5)",0,tstop, -1, 1)
+
+//for ratpfc22
+//addgraph_2("apic[0].v(0.5)",0,tstop,-75,60) //20um
+///addgraph_2("apic[2].v(0.25)",0,tstop,-75,60) //60um
+//addaddgraph_2("soma.ik_mykca(0.5)", 0,tstop,0e-05,0.015)  //somagraph_2("apic[2].v(0.75)",0,tstop,-75,60) //124um
+addgraph_2("apic[4].v(0)",0,tstop,-75,60) //157um
+//addgraph_2("apic[4].v(0.25)",0,tstop,-75,60) //192um
+//addgraph_2("apic[4].v(0.75)",0,tstop,-75,60) //264um
+//addgraph_2("apic[4].v(1)",0,tstop,-75,60) //300um
+//addgraph_2("apic[5].v(0.5)",0,tstop,-75,60) //317um
+//addgraph_2("apic[10].v(0.25)",0,tstop,-75,60) //325um
+//addgraph_2("apic[10].v(0.75)",0,tstop,-75,60) //475um
+//addgraph_2("apic[7].v(0)",0,tstop,-75,60) //470um
+//addgraph_2("apic[16].v(0.5)",0,tstop,-75,60) //530um
+
+//basal dendrites
+
+addgraph_2("dend[17].v(0.75)",0,tstop,-75,60) //basal 17um
+addgraph_2("dend[3].v(0.5)",0,tstop,-75,60) //basal 33um
+addgraph_2("dend[4].v(0.5)",0,tstop,-75,60) //basal 55um
+addgraph_2("dend[9].v(0.5)",0,tstop,-75,60) //basal 92um
+addgraph_2("dend[9].v(0.833333)",0,tstop,-75,60) //basal 145um
+addgraph_2("dend[16].v(0.25)",0,tstop,-75,60) //basal 62um
+addgraph_2("dend[16].v(0.75)",0,tstop,-75,60) //basal 123um
+
+
+//call procedures
+steppulse()
+//sinnoise()
+//train()
+
+// Initialize and run the experiment
+//nrnallsectionmenu()
+finitialize(v_init)
+fcurrent()
+run()
+
+
+// Dump the graphical output to .eps files
+/*
+econ.xopen_library("Terrence","verbose-system")
+for i=0,windex {
+
+  sprint(econ.tmp_str, "%s/graph-%d.eps",econ.data_dir, i)    // define the name of the .eps file  
+   win[i].printfile(econ.tmp_str)
+    
+}	
+
+	//sprint(econ.tmp_str, "%s/shape.eps", econ.data_dir)  // print the shape graph
+	//splot.printfile(econ.tmp_str)   
+	//for shape plot file look in the experiment folder, sections file
+*/
+
+//Make folder to store recorded waves into text files   
+strdef wave_vectors
+wave_vectors="data/waves"
+sprint(econ.syscmd, "mkdir -p %s",wave_vectors)
+system(econ.syscmd) 
+
+//vsoma.printf()
+strdef temp
+objref somaref, cairef, apic20ref, apic150ref,apic300ref, apic475ref, icanref, ip3ref, calcref, ksref
+objref basal33ref,basal92ref, basal123ref, basal145ref
+
+somaref = new File()
+sprint(temp, "%s/soma.dat", wave_vectors)
+somaref.wopen(temp)
+vsoma.printf(somaref, "%f\n")
+somaref.close() 
+
+apic20ref = new File()
+sprint(temp, "%s/apic20.dat", wave_vectors)
+apic20ref.wopen(temp)
+apic20.printf(apic20ref, "%f\n")
+apic20ref.close() 
+
+apic150ref = new File()
+sprint(temp, "%s/apic150.dat", wave_vectors)
+apic150ref.wopen(temp)
+apic150.printf(apic150ref, "%f\n")
+apic150ref.close() 
+
+apic300ref = new File()
+sprint(temp, "%s/apic300.dat", wave_vectors)
+apic300ref.wopen(temp)
+apic300.printf(apic300ref, "%f\n")
+apic300ref.close() 
+
+apic475ref = new File()
+sprint(temp, "%s/apic475.dat", wave_vectors)
+apic475ref.wopen(temp)
+apic475.printf(apic475ref, "%f\n")
+apic475ref.close() 
+
+basal33ref = new File()
+sprint(temp, "%s/basal33.dat", wave_vectors)
+basal33ref.wopen(temp)
+basal33.printf(basal33ref, "%f\n")
+basal33ref.close() 
+
+basal92ref = new File()
+sprint(temp, "%s/basal92.dat", wave_vectors)
+basal92ref.wopen(temp)
+basal92.printf(basal92ref, "%f\n")
+basal92ref.close() 
+
+basal123ref = new File()
+sprint(temp, "%s/basal123.dat", wave_vectors)
+basal123ref.wopen(temp)
+basal123.printf(basal123ref, "%f\n")
+basal123ref.close() 
+
+basal145ref = new File()
+sprint(temp, "%s/basal145.dat", wave_vectors)
+basal145ref.wopen(temp)
+basal145.printf(basal145ref, "%f\n")
+basal145ref.close() 
+
+cairef = new File()
+sprint(temp, "%s/cai.dat",  wave_vectors)
+cairef.wopen(temp)
+cairec.printf(cairef, "%f\n")
+cairef.close()
+
+icanref = new File()
+sprint(temp, "%s/ican.dat",  wave_vectors)
+icanref.wopen(temp)
+icanrec.printf(icanref, "%f\n")
+icanref.close() 
+
+
+
+
+apic[0]13.378996
+apic[0]20.016066
+apic[0]26.653135
+apic[1]26.653135
+apic[1]48.999061
+apic[1]93.690912
+apic[1]116.03684
+apic[2]26.653135
+apic[2]59.292327
+apic[2]124.57071
+apic[2]157.2099
+apic[3]157.2099
+apic[3]186.5609
+apic[3]245.26289
+apic[3]274.61388
+apic[4]157.2099
+apic[4]192.98575
+apic[4]264.53745
+apic[4]300.31329
+apic[5]300.31329
+apic[5]317.27248
+apic[5]334.23167
+apic[6]334.23167
+apic[6]337.85515
+apic[6]341.47863
+apic[7]341.47863
+apic[7]369.05985
+apic[7]424.2223
+apic[7]451.80352
+apic[8]341.47863
+apic[8]376.16357
+apic[8]445.53344
+apic[8]480.21838
+apic[9]334.23167
+apic[9]353.01837
+apic[9]371.80508
+apic[10]300.31329
+apic[10]322.0143
+apic[10]365.41632
+apic[10]387.11733
+apic[11]387.11733
+apic[11]404.27542
+apic[11]421.4335
+apic[12]421.4335
+apic[12]447.03542
+apic[12]498.23926
+apic[12]523.84118
+apic[13]421.4335
+apic[13]430.59388
+apic[13]439.75425
+apic[14]439.75425
+apic[14]452.83369
+apic[14]465.91314
+apic[15]465.91314
+apic[15]470.83116
+apic[15]475.74918
+apic[16]475.74918
+apic[16]495.46626
+apic[16]534.90042
+apic[16]554.6175
+apic[17]475.74918
+apic[17]496.45192
+apic[17]537.8574
+apic[17]558.56014
+apic[18]558.56014
+apic[18]586.1178
+apic[18]641.2331
+apic[18]668.79076
+apic[19]558.56014
+apic[19]582.23821
+apic[19]605.91628
+apic[20]465.91314
+apic[20]474.37347
+apic[20]482.8338
+apic[21]439.75425
+apic[21]452.13334
+apic[21]464.51242
+apic[22]464.51242
+apic[22]488.01786
+apic[22]511.5233
+apic[23]464.51242
+apic[23]485.64596
+apic[23]506.77949
+apic[24]387.11733
+apic[24]420.5733
+apic[24]487.48524
+apic[24]554.39718
+apic[24]621.30911
+apic[24]654.76508
+dend[0]13.378996
+dend[0]17.594172
+dend[0]21.809349
+dend[1]21.809349
+dend[1]24.439867
+dend[1]27.070385
+dend[2]27.070385
+dend[2]47.934259
+dend[2]68.798132
+dend[3]27.070385
+dend[3]33.732261
+dend[3]40.394136
+dend[4]40.394136
+dend[4]56.38481
+dend[4]72.375483
+dend[5]40.394136
+dend[5]66.636555
+dend[5]119.12139
+dend[5]145.36381
+dend[6]21.809349
+dend[6]26.49947
+dend[6]31.189592
+dend[7]31.189592
+dend[7]59.656584
+dend[7]116.59057
+dend[7]145.05756
+dend[8]31.189592
+dend[8]54.428402
+dend[8]77.667213
+dend[9]13.378996
+dend[9]39.691834
+dend[9]92.317509
+dend[9]144.94318
+dend[9]171.25602
+dend[10]13.378996
+dend[10]33.473661
+dend[10]73.662992
+dend[10]93.757657
+dend[11]13.378996
+dend[11]20.328734
+dend[11]27.278472
+dend[12]13.378996
+dend[12]17.525498
+dend[12]21.672
+dend[13]21.672
+dend[13]27.793652
+dend[13]33.915305
+dend[14]21.672
+dend[14]26.637871
+dend[14]31.603741
+dend[15]31.603741
+dend[15]58.605742
+dend[15]112.60974
+dend[15]139.61174
+dend[16]31.603741
+dend[16]62.211524
+dend[16]123.42709
+dend[16]154.03487
+dend[17]13.378996
+dend[17]43.808894
+dend[17]104.66869
+dend[17]135.09859

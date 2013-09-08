@@ -1,0 +1,811 @@
+
+//Kiki initial experiment
+// 30 March 2006 
+//use corrected diameters for basal dendrites
+
+
+//BACK_GROUND = 0 // set to 1 when using background synapses
+synch = 0        // synapses are stimulated randomly (NOT synchronously), set to 1 for synchronous stimulation
+
+load_proc("nrnmainmenu")
+load_template("ExperimentControl")         // load needed templates
+load_template("EPSPTuning")
+load_template("RangeRef")
+cvode_active(0)
+
+objref econ                               // initialize template parameters
+show_errs=1
+debug_lev=1
+econ=new ExperimentControl(show_errs,debug_lev)
+econ.self_define(econ)
+econ.morphology_dir = "../../morphology/pfc"                // set location for morphology files
+econ.add_lib_dir("Terrence","../../lib")                    // set location for library files
+econ.generic_dir    = "../../experiment"                   // set location for cell-setup file
+econ.data_dir       = "data"                               // set directory to store data
+
+actual_resolution=75                                        // maximum nseg number 
+desired_resolution=1
+
+//Load morphology files
+
+econ.xopen_geometry_dependent("ratpfc22")     //C3_5, regular spiking   
+
+printf ("morphology file opened")
+
+//econ.xopen_geometry_dependent("cell-analysis")         // load user-defined semantics on morphology 
+//cell_analysis(econ) 
+//print "cell-anaylysis"
+
+econ.xopen_generic("cell-setup")                       // load cell-setup to
+printf("Opened. Setting up cell\n")                   // specify all mechanisms,
+maximum_segment_length=actual_resolution              // membrane properties etc	 
+cell_setup(econ)
+
+
+//correct diameters at basal dendrites
+forsec basal {
+	diam = diam *1
+	}
+
+
+//Set duration of the run and dt
+econ.defvar("Simulation Control", "tstop", "5000", "Defines when the simulation stops.") 
+econ.defvar("Simulation Control", "dt", "0.1", "Timestep")econ.defvar("Simulation Control", "steps_per_ms", "10", "How many points are plotted per ms")
+setdt()
+
+/*
+// --------------------------------------------------------------------------------------------
+//Current clamp for correcting membrane potential when needed under blockade conditions
+proc current_correct() {
+access soma
+objref ic
+ic = new IClamp(0.5)
+ic.del = 300
+ic.dur = tstop-ic.del
+ic.amp = 0.025
+
+access apical_dendrite[71]
+objref ic2
+ic2 = new IClamp(0.5)
+ic2.del = 300
+ic2.dur = tstop-ic.del
+ic2.amp = 0.035
+}
+//-------------------------------------------------------------------------------------------------
+*/
+
+
+
+//Noise procedure
+
+//INSERT MOD FILE FOR SINE WAVE
+
+
+objref sinw, w, ramp
+
+proc noise() {
+
+forsec somatic {
+w = new Random()
+w.poisson(0.1)
+
+sinw  =  new SinClamp(0.5)
+sinw.del=0
+sinw.dur=tstop
+sinw.freq = 100
+w.play(&sinw.pkamp)
+}}
+
+
+
+// Open library functions that will be needed
+econ.xopen_library("Terrence","choose-secs")    // used to randomly select sections from a list
+econ.xopen_library("Terrence","basic-graphics") // used to plot graphics 
+//econ.xopen_library("Terrence","spikecount")     // used to count spikes
+econ.xopen_library("Terrence","salloc")         // used to allocate synapses on sections
+
+load_template("SynapseBand")                    // template for making bands of synapses
+
+print "library_functions_loaded" 
+//----------------------------------------------------------------------------------------------------
+//set number of branches and number of synapses to be put on
+//-----------------------------------------------------------
+init_cluster_number =5 //5    //number of branches to place synapses on 
+init_cluster_size = 18  //30   //synapses in each branch for basal
+basal_synapses= init_cluster_number * init_cluster_size
+all_synapses = init_cluster_number * init_cluster_size
+trunk_cluster_number =10
+trunk_cluster_size = 1
+trunk_synapses = trunk_cluster_number*trunk_cluster_size
+//for ratpfc22, ratio2=18, ratio1=10, 23 for 2.5,27 for 3 
+ratio = 3
+
+inh_cluster_number=1
+inh_cluster_size= 10  //3
+inh_synapses=inh_cluster_number*inh_cluster_size
+
+max_synapses=1000
+//--------------------------------------------------------------- 
+
+//Define all objects used in the procedures
+//------------------------------------------
+
+objref cluster_list, trunk_list, AS_list, splot, rpid, band1,band2, band3, band4, ns1[trunk_synapses], nc1[trunk_synapses], ns2[all_synapses], nc2[trunk_synapses], ampat[trunk_synapses], nmdat[trunk_synapses], nc3[basal_synapses], ampab[basal_synapses], nmdab[basal_synapses], nc4[basal_synapses], ns4[inh_synapses], nc6[inh_synapses], nc7[inh_synapses], gabaan[inh_synapses], gababn[inh_synapses]
+objref stepp
+objref vf
+strdef tmpstr
+
+//set values for different variables
+//-----------------------------------
+delstima=5
+delstimb =50  //50
+delstims= 5  // 300
+delsecond =0
+delstim_inh=2000
+
+//----------------------------------------------------------------------------------------------------
+//procedure to place ampa and nmda on apical trunk...used as procedure for second stimulus on proximal apical dendrites
+//-----------------------------------------------------------------------------------------------------
+proc synapse_location_trunk() {local b, b1, k, cluster_number, cluster_size, delstim1, total_apicalsynapses
+	
+
+
+	cluster_number = $2			//number of branches
+	cluster_size = $3			//number of synapses per branch
+	delstim1 = $4
+	k=$5
+	total_apicalsynapses = $6
+
+	//Randomly pick different branches to put synapses on it
+
+	cluster_list = new SectionList()  //needs to be outside the loop
+	
+	for b = 0, cluster_number-1 {
+	
+		$o1.pick_and_remove()	//select the branch
+		cluster_list.append()
+		//print cluster_list
+		}
+	
+
+	//Distribute the synapses uniformly
+
+	forsec cluster_list {
+
+		//nseg = cluster_size
+ 
+
+		for b1 = 1, cluster_size {
+
+		posn1 = (2* b1 - 1)/(2 * cluster_size)
+
+		k = trunk_synapses  
+
+		ampaweight1 = 0.00015             
+ 	  	nmdaweight1 = ampaweight1*ratio*0.5
+		
+		ampat[k] = new GLU(posn1) 
+		nmdat[k] = new NMDA(posn1)
+
+	
+		ns1[k] = new NetStim(0.5)
+		ns1[k].start = kiki
+		ns1[k].number = tstop/200	//number of APs
+		ns1[k].interval = 200    //interval in ms between AP
+		ns1[k].noise = 0
+		
+			
+
+		nc1[k] = new NetCon(ns1[k], ampat[k])
+		nc1[k].delay = delsecond   //ms
+		nc1[k].weight = ampaweight1
+
+
+		nc2[k] = new NetCon(ns1[k], nmdat[k])
+		nc2[k].delay = delsecond  
+		nc2[k].weight = nmdaweight1
+
+ 		splot.point_mark(ampat[k],COLOR+5)
+		//trunk_synapses = trunk_synapses + 1
+		k = k+1	
+		//trunk_synapses = trunk_synapses + 1
+	}
+}
+}
+//close procedure
+
+objref bsyn
+
+bsyn =new File()
+sprint(tmpstr, "%s/bsyn", econ.data_dir)    // define file to save cell firing rate  
+bsyn.wopen(tmpstr)  // open file to store the vertical distance of dendrites from the soma
+
+
+//============================================================================================
+// procedure to place ampa, nmda on basal dendrites
+proc synapse_location_basal() {local b, b1, l, cluster_number, cluster_size, delstim1, total_synapses
+	
+
+
+	cluster_number = $2			//number of branches
+	cluster_size = $3			//number of synapses per branch
+	delstim1 = $4
+	l = $5
+	total_synapses = $6
+
+	//Randomly pick different branches to put synapses on it
+
+	cluster_list = new SectionList()
+	
+	for b = 0, cluster_number-1 {
+		$o1.pick_and_remove()	//select the branch
+		print secname(),	xdist,	L	
+		cluster_list.append()
+		//cluster_list.printnames()
+		//print secname(), xdist
+		bsyn.printf("%s    %g	%g	%g\n", secname(), diam, L, runs)
+		}
+	
+
+	//Distribute the synapses uniformly
+
+	
+	forsec cluster_list {
+
+		nseg = cluster_size
+ 	
+		
+		for b1 = 1, cluster_size {
+
+		posn1 = (2*b1-1)/(2 * cluster_size)
+		//posn1=0.5
+	
+		//5/2/08 validation based on Schiller paper, nat neuro 2007, 0.12mV at the soma
+		//ampaweight = 0.0003       //5 for apical
+		ampaweight = 0.00015  //*18         //for ratpfc22, multiply for apical *18
+
+
+ 	  	nmdaweight = ampaweight*ratio  //*0
+		
+		ampab[l] = new GLU(posn1) 
+		nmdab[l] = new NMDA(posn1)
+	
+		ns2[l] = new NetStim(0.5)
+		ns2[l].start = 0
+		ns2[l].number =10  //10  	//number of APs
+		ns2[l].interval =50      //interval in ms between AP
+		ns2[l].noise=0   //0.05
+		
+			
+	
+		nc3[l] = new NetCon(ns2[l], ampab[l])
+		nc3[l].delay = delstimb    //ms
+		nc3[l].weight = ampaweight*2
+			
+		nc4[l] = new NetCon(ns2[l], nmdab[l])
+		nc4[l].delay = delstimb  
+		nc4[l].weight = nmdaweight*0.9  //*0.1
+	
+		splot.point_mark(ampab[l],COLOR+1)
+	
+		l=l+1
+	
+	}
+}
+	
+}
+//close procedure
+
+//procedure to place inhibition (gaba-a, gaba-b)
+
+proc inhibitory_synapses() {local b, b1, m, cluster_number, cluster_size, delstim3, total_inhsynapses
+	
+
+
+	cluster_number = $2			//number of branches
+	cluster_size = $3			//number of synapses per branch
+	delstim3 = $4
+	m = $5
+	total_inhsynapses = $6
+
+
+	//Distribute the synapses uniformly
+
+		//nseg = cluster_size
+ 
+
+		for b1 = 1, cluster_size {
+
+		posn1 = (2* b1 -1)/(2 * cluster_size)
+	
+ 	  	gabaaweight = 0.00075
+		gababweight = gabaaweight*0.3
+		//*1.8 for 0.5 of gabaa, *3.5 for 1 of gabaa, *2.7 for 0.8 of gabaa, *0.9 for 0.2 of gabaa
+		//with 40pulses at 100Hz, 0.9--> 60% gabaa; 0.5--> 33%; 0.3 --> 20%
+				
+
+		gabaan[n] = new GABAa(posn1) 
+		gababn[n] = new GABAb(0.5)
+		
+
+		ns4[n] = new NetStimm(0.5)
+		ns4[n].start = 0
+		ns4[n].number = 20	//number of APs
+		ns4[n].interval = 20    //interval in ms between AP
+		ns4[n].noise=0  //0.05
+
+		nc6[n] = new NetCon(ns4[n], gabaan[n])
+		nc6[n].delay = delstimb    //ms
+		nc6[n].weight = gabaaweight
+			
+		nc7[n] = new NetCon(ns4[n], gababn[n])
+		nc7[n].delay = delstimb  
+		nc7[n].weight = gababweight  //*10
+	
+
+		splot.point_mark(gabaan[n],COLOR+3)
+		
+		n=n+1
+	
+	
+	
+}
+	
+}
+
+
+//=====================================================================
+//Pharmacological procedures
+//values and sadp
+//1==> 5mV
+//0.95==> 2mV
+//0.97==>3mV
+
+
+
+gcanvalue= 1.065*0
+//procedure for induction of sadp
+//In cell-setup, gip3 = 0.0001, gCAN=0.0001
+proc sadp() {
+forsec apical {
+for(x) {
+	fi1=1.1*0     //factor for ip3
+	fi2=gcanvalue	//factor for ican
+	if(ismembrane("ip3")) for(x) { gcabar_ip3(x)= gcabar_ip3(x)*fi1 }
+	if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fi2 } 
+	}}}
+
+proc sadpsoma() {
+forsec somatic {
+for(x) {
+	fi1=1.1*0     //factor for ip3
+	fi2=gcanvalue   	//factor for ican
+	if(ismembrane("ip3")) for(x) { gcabar_ip3(x)= gcabar_ip3(x)*fi1 }
+	if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fi2 } 
+	}}}
+
+proc sadpbasal() {
+forsec basal {
+for(x) {
+	fb=gcanvalue
+	if(ismembrane("ican")) for(x) {gbar_ican(x)=gbar_ican(x)*fb}
+	}}}
+
+
+//---------------------------------------------------------------------------
+
+//TTX
+proc ttx() {
+ft=0.1
+forall {
+	for(x) {
+      	if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*ft }
+	if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*ft }	
+	}}}
+//-------------------------------------
+proc d1() {
+f = 0.9
+//forall if(ismembrane("calc")) { for(x) {  pcabar_calc(x)= pcabar_calc(x)*f }}
+//forall if(ismembrane("cal")) { for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*f }}
+//forall if(ismembrane("can")) { for(x) {  gcalbar_can(x)= gcalbar_can(x)*f }}
+//forall if(ismembrane("car")) { for(x) {  gcabar_car(x)= gcabar_car(x)*f }}
+//forall if(ismembrane("cat")) { for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*f }}
+forall if(ismembrane("Ks")) { for(x) {  gKsbar_Ks(x)= gKsbar_Ks(x)*f }} 
+//forall if(ismembrane("kdr")) { for(x) {  gkdrbar_kdr(x)= gkdrbar_kdr(x)*f }} 
+//forall if(ismembrane("kca")) { for(x) {  gbar_kca(x)= gbar_kca(x)*f }} 
+//forall if(ismembrane("mykca")) { for(x) {  gk_mykca(x)= gk_mykca(x)*f }} 
+//forall if(ismembrane("h")) { for(x) {  gbar_h(x)= gbar_h(x)*f }} 
+}
+//--------------------------------------------------------------------------------
+
+
+//Call pharamacological procedures
+sadp()
+sadpsoma()
+sadpbasal()
+//d1()
+//ttx()
+//----------------------------------------------------------------------------------------------------
+
+//Graphics in the experiments
+
+econ.xopen_library("Terrence","basic-graphics")   // open library file for graphics
+addgraph("soma[0].v(0.5)",-70,50)	//soma
+//addgraph("soma[0].cai(0.5)",-70,50)	//soma
+addgraph("soma[0].in_ican(0.5)",-1,1)	//soma
+// for ratpfc22
+//addgraph_2("dend[7].cai(0.5)",0,tstop,-75,60) 
+/*addgraph_2("dend[3].v(0.5)",0,tstop,-75,60) //basal 33um
+addgraph_2("dend[4].v(0.5)",0,tstop,-75,60) //basal 55um
+addgraph_2("dend[9].v(0.5)",0,tstop,-75,60) //basal 92um
+addgraph_2("dend[9].v(0.833333)",0,tstop,-75,60) //basal 145um
+addgraph_2("dend[16].v(0.25)",0,tstop,-75,60) //basal 62um
+addgraph_2("dend[16].v(0.75)",0,tstop,-75,60) //basal 123um
+*/
+
+/*addgraph("soma[0].ik_kca(0.5)",-1,1)	//soma
+addgraph("soma[0].ik_mykca(0.5)",-1,1)	//soma
+addgraph("soma[0].ik_Ks(0.5)",-1,1)	//soma
+addgraph("soma[0].ica_cat(0.5)",-1,1)	//soma
+addgraph("soma[0].ica_cal(0.5)",-1,1)	//soma
+addgraph("soma[0].ica_calc(0.5)",-1,1)	//soma
+addgraph("soma[0].ica_can(0.5)",-1,1)	//soma
+addgraph("soma[0].ica_car(0.5)",-1,1)	//soma
+addgraph("soma[0].ina_nap(0.5)",-1,1)	//soma
+addgraph("soma[0].in_h(0.5)",-1,1)	//soma
+*/
+
+//Define objects for recording
+objref vsoma, ip3rec, icanrec, cairec,vtrunk100, vtrunk200, vtrunk300, vtrunk400, vtrunk500, vtrunk600
+objref vb906, vb888, vb1032, vb1089, vb840, vb827
+objref basalcairec, vb884cairec, basalvrec, vb1089cairec, vb840cairec
+objref	vb961, vb990
+objref inarec
+
+//define objects for files
+strdef temp
+objref somaref, cairef, icanref, ip3ref,t100ref, t200ref, t300ref, t400ref, t500ref, t600ref
+objref vb906ref, vb1032ref, vb1089ref, vb840ref, vb888ref, vb827ref
+objref basalcairef,  basalvref, vb1089cai, vb840cai, vb884cai
+objref vb961ref, vb990ref
+objref inaref
+
+//define objects for filenames
+
+//Make folder to store recorded waves into text files   
+strdef wave_vectors
+wave_vectors="data/waves"
+sprint(econ.syscmd, "mkdir -p %s",wave_vectors)
+system(econ.syscmd) 
+
+
+//==================================================================================================
+//Run Experiment -----------------------------------------------------------------------------------
+//===================================================================================================
+//econ.xopen_library("Terrence","verbose-system")
+
+for runs = 0,9 {
+
+ 	splot=new Shape()   
+      	COLOR=1+runs
+      	rpid=new Random(runs)
+      	PID=int(rpid.uniform(1,10000))  // random seed for AMPA/NMDA synapses
+      	PID=-PID // choose branchwise  
+      	//rpid=new Random(runs+eiter+1)
+      	//PIDh=int(rpid.uniform(1,10000)) // random seed for GABA synapses
+ 
+      	lo=0                           // smallest distance of selected obliques from soma
+      	hi=10000                        // maximum  distance of selected obliques from soma
+	actual_resolution = 75
+	desired_resolution = 1
+	
+
+	//Record and save waveforms
+	//Define objects outside the run procedure
+	
+	for i = 0,9{
+		
+		vsoma = new Vector()
+		vsoma.record(&soma[0].v(0.5))
+
+
+		cairec = new Vector(tstop/dt)  //record cai at the soma
+		cairec.record(&soma[0].cai(0.5))
+
+//currents
+
+		icanrec = new Vector(tstop/dt)  //record ican at the soma
+		icanrec.record(&soma[0].in_ican(0.5))
+		
+		inarec = new Vector(tstop/dt)  //record ican at the soma
+		inarec.record(&soma[0].ina(0.5))
+
+		
+//cai in stimulated dendrites by run
+		
+		basalcairec = new Vector()
+		basalcairec.record(&dend[7].cai(0.5))
+		
+		basalvrec = new Vector()
+		basalvrec.record(&dend[7].v(0.5))
+/*
+		vb1089cairec = new Vector()
+		vb1089cairec.record(&apical_dendrite[1089].cai(0.5))
+
+		vb840cairec = new Vector()
+		vb840cairec.record(&apical_dendrite[840].cai(0.5))
+
+		vb884cairec = new Vector()
+		vb884cairec.record(&apical_dendrite[884].cai(0.5))
+
+
+//voltage in stimulated dendrites
+		vb906 = new Vector()
+		vb906.record(&apical_dendrite[906].v(0.5))
+		
+		vb1032 = new Vector()
+		vb1032.record(&apical_dendrite[1032].v(0.5))
+
+		vb1089 = new Vector()
+		vb1089.record(&apical_dendrite[1089].v(0.5))
+
+		vb840 = new Vector()
+		vb840.record(&apical_dendrite[840].v(0.5))
+
+		vb888 = new Vector()
+		vb888.record(&apical_dendrite[888].v(0.5))
+
+		
+		vtrunk100 = new Vector(tstop/dt)  //record voltage at the trunk, 100um from the soma
+		vtrunk100.record(&apical_dendrite[43].v(0.5))
+
+		vtrunk200 = new Vector(tstop/dt)  //record voltage at the trunk, 200um from the soma
+		vtrunk200.record(&apical_dendrite[112].v(0.5))
+
+		vtrunk300 = new Vector(tstop/dt)  //record voltage at the trunk, 300um from the soma
+		vtrunk300.record(&apical_dendrite[172].v(0.5))
+
+		vtrunk400 = new Vector(tstop/dt)  //record voltage at the trunk, 400um from the soma
+		vtrunk400.record(&apical_dendrite[176].v(0.5))
+
+		vtrunk500 = new Vector(tstop/dt)  //record voltage at the trunk, 500um from the soma
+		vtrunk500.record(&apical_dendrite[180].v(0.5))
+
+		vtrunk600 = new Vector(tstop/dt)  //record voltage at the trunk, 600um from the soma
+		vtrunk600.record(&apical_dendrite[183].v(0.5))
+*/
+	
+
+	//List for sadp validation
+	trunk_list = new SectionList()
+		apic[0] trunk_list.append()	
+		apic[2] trunk_list.append()
+		apic[4] trunk_list.append()
+		apic[5] trunk_list.append()		//first branch off
+		apic[10] trunk_list.append()		//first branch off
+
+//list for validation synaptic currents on basal dendrites
+		AS_list = new SectionList()
+		
+//for ratpfc22
+		//dend[0] AS_list.append() //basal 17um
+		  //dend[3] AS_list.append() //basal 33um	
+		dend[4] AS_list.append() //basal 55um
+		//dend[9] AS_list.append() //basal 92um
+		//dend[9]  AS_list.append() //basal 145um
+		//dend[16] AS_list.append() //basal 62um
+		//dend[16] AS_list.append() //basal 123um	
+
+//for C3_4
+		//dend[0] AS_list.append() //basal 14um
+		dend[1] AS_list.append() //basal 34um	
+		//dend[4] AS_list.append() //basal 47um
+		//dend[3] AS_list.append() //basal 55um
+		//dend[7]  AS_list.append() //basal 78um
+		//dend[8] AS_list.append() //basal 114um
+		//dend[20] AS_list.append() //basal 154um
+
+
+	//make a band (list) of randomly selected obliques within lo and hi microns from soma
+       	band1 = new SynapseBand(apical,lo,hi,actual_resolution,desired_resolution,PID)  //only apical trunk
+	band2 = new SynapseBand(basal,lo,hi,actual_resolution,desired_resolution,PID) //basal_tree
+	band3 = new SynapseBand(all,lo,hi,actual_resolution,desired_resolution,PID)
+	band4 = new SynapseBand(somatic,lo,hi,actual_resolution,desired_resolution,PID)
+	
+}
+
+
+//Run procedure to place ampa and nmda
+
+        
+     	k=0
+	m=0
+	l=0 //initialize the nubmer of synapses used in each run
+	n=0
+
+	trunk_synapses=trunk_synapses+1
+	basal_synapses= basal_synapses+1
+	inh_synapses=inh_synapses+1
+
+	
+     
+//place synapses on apical trunk...now used as second stimulus for basal dendrites
+	//synapse_location_trunk(band3, trunk_cluster_number, trunk_cluster_size, delsecond, k, trunk_synapses)  
+//activate inhibitory synapses on the soma
+	inhibitory_synapses(band4, inh_cluster_number, inh_cluster_size, delstimb, n, inh_synapses)
+//activate synapses on basal_tree
+	synapse_location_basal(band2, init_cluster_number, init_cluster_size, delstimb, l, basal_synapses) 
+//activate synapses on apical trunk (use same procedure as for basal)
+	//synapse_location_basal(band3, init_cluster_number, init_cluster_size, delstimb, l, basal_synapses) 
+	noise()
+
+print runs
+
+
+finitialize(v_init)
+run()
+
+		somaref = new File()
+		sprint(temp, "%s/soma-%d.dat", wave_vectors, runs)
+		somaref.wopen(temp)
+		somaref.printf("soma-%d", runs, "%s\n")
+		somaref.printf("\n")
+		vsoma.printf(somaref, "%f\n")
+		somaref.close()
+		
+		cairef = new File()
+		sprint(temp, "%s/cai-%d.dat",  wave_vectors, runs)
+		cairef.wopen(temp)
+		cairec.printf(cairef, "%f\n")
+		cairef.close()
+
+		icanref = new File()
+		sprint(temp, "%s/ican-%d.dat",  wave_vectors, runs)
+		icanref.wopen(temp)
+		icanrec.printf(icanref, "%f\n")
+		icanref.close() 
+
+		inaref = new File()
+		sprint(temp, "%s/ina-%d.dat",  wave_vectors, runs)
+		inaref.wopen(temp)
+		inarec.printf(inaref, "%f\n")
+		inaref.close() 
+
+		basalcairef = new File()
+		sprint(temp, "%s/dend7cai-%d.dat", wave_vectors, runs)
+		basalcairef.wopen(temp)
+		basalcairef.printf("basalcairef-%d", runs, "%s\n")
+		basalcairef.printf("\n")
+		basalcairec.printf(basalcairef, "%f\n")
+		basalcairef.close()
+
+		basalvref = new File()
+		sprint(temp, "%s/dend7v-%d.dat", wave_vectors, runs)
+		basalvref.wopen(temp)
+		basalvref.printf("basalvref-%d", runs, "%s\n")
+		basalvref.printf("\n")
+		basalvrec.printf(basalvref, "%f\n")
+		basalvref.close()
+
+/*		vb1089ref = new File()
+		sprint(temp, "%s/basal1089-%d.dat", wave_vectors, runs)
+		vb1089ref.wopen(temp)
+		vb1089ref.printf("vb1089-%d", runs, "%s\n")
+		vb1089ref.printf("\n")
+		vb1089.printf(vb1089ref, "%f\n")
+		vb1089ref.close()
+
+		vb1089cai = new File()
+		sprint(temp, "%s/caibasal1089-%d.dat", wave_vectors, runs)
+		vb1089cai.wopen(temp)
+		vb1089cai.printf("vb1089cai-%d", runs, "%s\n")
+		vb1089cai.printf("\n")
+		vb1089cairec.printf(vb1089cai, "%f\n")
+		vb1089cai.close()
+	
+
+
+		bsalref = new File()
+		sprint(temp, "%s/basal906-%d.dat", wave_vectors, runs)
+		vb906ref.wopen(temp)		
+		vb906ref.printf("vb906-%d", runs, "%s\n")
+		vb906ref.printf("\n")
+		vb906.printf(vb906ref, "%f\n")
+		vb906ref.close()
+
+		vb888ref = new File()
+		sprint(temp, "%s/basal888-%d.dat", wave_vectors, runs)
+		vb888ref.wopen(temp)
+		vb888ref.printf("vb888-%d", runs, "%s\n")
+		vb888ref.printf("\n")
+		vb888.printf(vb888ref, "%f\n")
+		vb888ref.close()
+
+		vb840ref = new File()
+		sprint(temp, "%s/basal840-%d.dat", wave_vectors, runs)
+		vb840ref.wopen(temp)
+		vb840ref.printf("vb840-%d", runs, "%s\n")
+		vb840ref.printf("\n")
+		vb840.printf(vb840ref, "%f\n")
+		vb840ref.close()
+
+
+		vb906cai = new File()
+		sprint(temp, "%s/basal906cai-%d.dat", wave_vectors, runs)
+		vb906cai.wopen(temp)		
+		vb906cai.printf("vb906cai-%d", runs, "%s\n")
+		vb906cai.printf("\n")
+		vb906cairec.printf(vb906cai, "%f\n")
+		vb906cai.close()
+
+		vb884cai = new File()
+		sprint(temp, "%s/basal884cai-%d.dat", wave_vectors, runs)
+		vb884cai.wopen(temp)
+		vb884cai.printf("vb884cai-%d", runs, "%s\n")
+		vb884cai.printf("\n")
+		vb884cairec.printf(vb884cai, "%f\n")
+		vb884cai.close()
+
+		vb840cai = new File()
+		sprint(temp, "%s/basal840cai-%d.dat", wave_vectors, runs)
+		vb840cai.wopen(temp)
+		vb840cai.printf("vb840cai-%d", runs, "%s\n")
+		vb840cai.printf("\n")
+		vb840cairec.printf(vb840cai, "%f\n")
+		vb840cai.close()
+
+
+		vb827ref = new File()
+		sprint(temp, "%s/basal827-%d.dat", wave_vectors, runs)
+		vb827ref.wopen(temp)
+		vb827ref.printf("vb827-%d", runs, "%s\n")
+		vb827ref.printf("\n")
+		vb827.printf(vb827ref, "%f\n")
+		vb827ref.close()
+
+		t100ref = new File()
+		sprint(temp, "%s/trunk100-%d.dat", wave_vectors, runs)
+		t100ref.wopen(temp)
+		vtrunk100.printf(t100ref, "%f\n")
+		t100ref.close() 
+
+
+		t200ref = new File()
+		sprint(temp, "%s/trunk200-%d.dat", wave_vectors, runs)
+		t200ref.wopen(temp)
+		vtrunk200.printf(t200ref, "%f\n")
+		t200ref.close() 
+
+
+		t300ref = new File()
+		sprint(temp, "%s/trunk300-%d.dat", wave_vectors, runs)
+		t300ref.wopen(temp)
+		vtrunk300.printf(t300ref, "%f\n")
+		t300ref.close()
+
+
+		t400ref = new File()
+		sprint(temp, "%s/trunk400-%d.dat", wave_vectors, runs)
+		t400ref.wopen(temp)
+		vtrunk400.printf(t400ref, "%f\n")
+		t400ref.close() 
+
+
+		t500ref = new File()
+		sprint(temp, "%s/trunk500-%d.dat", wave_vectors, runs)
+		t500ref.wopen(temp)
+		vtrunk500.printf(t500ref, "%f\n")
+		t500ref.close() 
+
+		t600ref = new File()
+		sprint(temp, "%s/trunk600-%d.dat", wave_vectors, runs)
+		t600ref.wopen(temp)
+		vtrunk600.printf(t600ref, "%f\n")
+		t600ref.close() 
+
+	
+*/
+
+}
+
+//=====================Finish Running Experiment===================================================

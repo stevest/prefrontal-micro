@@ -1,0 +1,20 @@
+//-----------------Record total synaptic current
+
+proc add_syn_currents() {
+
+ampac=new Vector(n)
+nmdac=new Vector(n)
+gabaac=new Vector(n)
+gababc=new Vector(n)
+
+for i=0, (maxsyn-1){ampac=ampac.add(campa[i])}
+for i=0, (automaxsyn-1){ampac=ampac.add(campaa[i])}
+//for i=0, (inmaxsyn-1){ampac=ampac.add(campain[i])}
+
+for i=0, (maxsyn-1){nmdac=nmdac.add(cnmda[i])}
+for i=0, (automaxsyn-1){nmdac=nmdac.add(cnmdaa[i])}
+//for i=0, (inmaxsyn-1){nmdac=nmdac.add(cnmdain[i])}
+
+for i=0, (maxsyn3-1){gabaac=gabaac.add(cgabaa[i])}
+for i=0, (maxsyn3-1){gababc=gababc.add(cgabab[i])}
+}

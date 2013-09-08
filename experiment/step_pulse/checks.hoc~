@@ -1,0 +1,159 @@
+//Checks for experiments with networks of neurons. Written by Nassi, 02/05/12. 
+
+load_file("nrngui.hoc")
+cvode_active(0)
+xopen("../../lib/basic-graphics.hoc")
+xopen("define_objects.hoc")
+xopen("../RS1cell.hoc") 
+xopen("sadp.hoc")
+data_dir       = "data"                               	// set directory to store data
+sprint(temp, "mkdir -p %s", data_dir)
+system(temp)
+
+//----------------------------------------------------------------------------------------------------
+//--Set parameters
+tstop=1000
+dt=0.1
+steps_per_ms=10
+setdt()
+
+ratio = 1.2 	//iNMDA-to-iAMPA 
+ratiop=	0.7
+ratiod=	0.45
+ampaweight = 0.00015       
+nmdaweight = ampaweight*ratio
+ampaweightp = 0.00015      
+nmdaweightp = ampaweightp*ratiop
+ampaweightd=0.00017
+nmdaweightd=ampaweightd*ratiod
+//----------------------------------------------------------------------------------------------------
+//Graphics in the experiments
+addgraph("Pcell[4].soma[0].v(0.5)",-70,50)	
+addgraph("Pcell[4].dend[9].v(0.5)",-70,50)
+addgraph("Pcell[0].soma[0].v(0.5)",-70,50)
+//==================================================================================================
+//---------------------------------------Run Experiment---------------------------------------//===================================================================================================
+proc validateNMDA () {
+forall {
+	for(x) {
+	if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+	if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+	//if(ismembrane("kdr")) for(x) {  gkdrbar_kdr(x)= gkdrbar_kdr(x)*0 }
+	if(ismembrane("Ks")) for(x) {  gKsbar_Ks(x)= gKsbar_Ks(x)*0 }
+	if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*0 }
+	if(ismembrane("kca")) for(x) {  gbar_kca(x)= gbar_kca(x)*0}
+	if(ismembrane("mykca"))  for(x) { gkbar_mykca(x)= gkbar_mykca(x)*0}
+    }}}
+proc calcium_block() {
+forall{
+	for(x) {
+	if(ismembrane("can")) for(x) {  gcalbar_can(x)= gcalbar_can(x)*0 }
+	if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 }			
+	if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
+	//if(ismembrane("calc")) for(x) {  gcabar_calc(x)= gcabar_calc(x)*0 }
+	if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
+	}}}
+proc ttx() {
+forall {
+	for(x) {
+	if(ismembrane("Naf")) for(x) { gnafbar_Naf (x)= gnafbar_Naf (x)*0 }
+	if(ismembrane("Nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+	}}}
+splot=new Shape()   
+COLOR=2
+rpid=new Random(5)
+//PID=rpid.uniform(0,1)  	// random seed for AMPA/NMDA synapses
+//lo=0                           // smallest distance of selected obliques from soma
+//hi=10000                        // maximum  distance of selected obliques from soma
+
+objref ns
+ns=new NetStimm(0.5)
+ns.start=10
+ns.number=1
+ns.interval=20
+ns.noise=0
+proc synapse_location_basal_difussed() {
+original_list_basal = $o1
+	synapses_number = $2			//number of branches
+	l = 0
+	auxlist_basal = new List()
+        forsec original_list_basal {
+		//for (x) {
+			//if (distance(x)>304) {
+			auxlist_basal.append(new SectionRef())
+			//auxlist_basal print "Selceted ", secname()
+			//print distance(x)
+			//break
+			//} else {
+			//continue
+			//}
+		//}
+	}
+	cluster_list_basal=new SectionList()
+	for gaga=0, synapses_number-1 {
+		num = rpid.uniform(0,auxlist_basal.count())
+		num=int(num)
+		asec_basal = auxlist_basal.o(num)
+		asec_basal.sec cluster_list_basal.append()
+		//asec_basal.sec print "Selceted ", secname()
+		//auxlist.remove(num)
+	}
+	PID=rpid.uniform(0,1)
+	forsec cluster_list_basal {
+		PID=rpid.repick()
+		ampab[l] = new GLU(PID) 
+		nmdab[l] = new NMDA(PID)
+		//conampab[l] = new NetCon(ns, ampab[l], -20, 0, ampaweight)
+		connmdab[l] = new NetCon(ns, nmdab[l], -20, 0, ampaweight*4)
+		splot.point_mark(ampab[l],COLOR+1)
+		l=l+1
+	}
+
+}
+//synapse_location_basal_difussed(basal, 5)
+objref vc, vcdend
+proc vclamp() {
+access Pcell[0].soma
+vc = new VClamp(0.5)
+vc.amp[0]=60
+vc.dur[0]=tstop
+/*vc.amp[1]=10
+vc.dur[1]=1
+vc.amp[2]=-70
+vc.dur[2]=100*/
+}
+objref ic1
+proc IClump() {
+access Pcell[0].soma[0]
+amp=0.3//0.21//0.2//(nA)
+Pcell[0].soma ic1=new IClamp(0.5)
+ic1.del=100
+ic1.dur=500
+ic1.amp=amp
+}
+//IClump()
+
+/*PID=rpid.uniform(0,1)
+access dend[10]
+nseg=5
+	for l=0,290 {
+		PID=rpid.repick()
+		//print PID
+		ampab[l] = new GLU(PID) 
+		nmdab[l] = new nmda_segev(PID)
+		conampab[l] = new NetCon(ns, ampab[l], -20, 0, ampaweight)
+		connmdab[l] = new NetCon(ns, nmdab[l], -20, 0, ampaweight*2000)//1500)
+		splot.point_mark(ampab[l],COLOR+1)
+		l=l+1
+	}
+*/
+sadp()
+IClump()
+//vclamp()
+//validateNMDA()
+//calcium_block()
+//ttx()
+//addgraph_2("vc.i",0,tstop,33.5,34)
+finitialize(v_init)
+fcurrent()
+run()

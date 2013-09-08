@@ -1,0 +1,64 @@
+// This HOC file was generated with MATLAB
+
+// Object decleration:
+objref nmdaArr
+nmdaArr = new Vector(56)
+
+// Validated Weights:
+nmdaArr.x[0] = NMDAfactor * 0.000572	//current is 0.049874
+nmdaArr.x[1] = NMDAfactor * 0.000496	//current is 0.049172
+nmdaArr.x[2] = NMDAfactor * 0.000610	//current is 0.049577
+nmdaArr.x[3] = NMDAfactor * 0.000610	//current is 0.048106
+nmdaArr.x[4] = NMDAfactor * 0.000763	//current is 0.048530
+nmdaArr.x[5] = NMDAfactor * 0.000496	//current is 0.051415
+nmdaArr.x[6] = NMDAfactor * 0.001068	//current is 0.050780
+nmdaArr.x[7] = NMDAfactor * 0.000648	//current is 0.050328
+nmdaArr.x[8] = NMDAfactor * 0.000763	//current is 0.051235
+nmdaArr.x[9] = NMDAfactor * 0.000839	//current is 0.048863
+nmdaArr.x[10] = NMDAfactor * 0.000534	//current is 0.051039
+nmdaArr.x[11] = NMDAfactor * 0.000572	//current is 0.050220
+nmdaArr.x[12] = NMDAfactor * 0.000687	//current is 0.048460
+nmdaArr.x[13] = NMDAfactor * 0.000839	//current is 0.051582
+nmdaArr.x[14] = NMDAfactor * 0.000572	//current is 0.051309
+nmdaArr.x[15] = NMDAfactor * 0.000648	//current is 0.050813
+nmdaArr.x[16] = NMDAfactor * 0.000534	//current is 0.051776
+nmdaArr.x[17] = NMDAfactor * 0.000610	//current is 0.050232
+nmdaArr.x[18] = NMDAfactor * 0.000763	//current is 0.051045
+nmdaArr.x[19] = NMDAfactor * 0.000610	//current is 0.048482
+nmdaArr.x[20] = NMDAfactor * 0.000496	//current is 0.050995
+nmdaArr.x[21] = NMDAfactor * 0.000534	//current is 0.049272
+nmdaArr.x[22] = NMDAfactor * 0.000610	//current is 0.049340
+nmdaArr.x[23] = NMDAfactor * 0.000534	//current is 0.049302
+nmdaArr.x[24] = NMDAfactor * 0.000610	//current is 0.048725
+nmdaArr.x[25] = NMDAfactor * 0.000381	//current is 0.048401
+nmdaArr.x[26] = NMDAfactor * 0.000534	//current is 0.050811
+nmdaArr.x[27] = NMDAfactor * 0.000381	//current is 0.049161
+nmdaArr.x[28] = NMDAfactor * 0.000534	//current is 0.048743
+nmdaArr.x[29] = NMDAfactor * 0.000381	//current is 0.048238
+nmdaArr.x[30] = NMDAfactor * 0.000763	//current is 0.051281
+nmdaArr.x[31] = NMDAfactor * 0.000534	//current is 0.049756
+nmdaArr.x[32] = NMDAfactor * 0.000420	//current is 0.049752
+nmdaArr.x[33] = NMDAfactor * 0.000992	//current is 0.049538
+nmdaArr.x[34] = NMDAfactor * 0.000916	//current is 0.050620
+nmdaArr.x[35] = NMDAfactor * 0.000610	//current is 0.050537
+nmdaArr.x[36] = NMDAfactor * 0.000610	//current is 0.048083
+nmdaArr.x[37] = NMDAfactor * 0.000420	//current is 0.050486
+nmdaArr.x[38] = NMDAfactor * 0.000496	//current is 0.051489
+nmdaArr.x[39] = NMDAfactor * 0.000534	//current is 0.049387
+nmdaArr.x[40] = NMDAfactor * 0.000496	//current is 0.050447
+nmdaArr.x[41] = NMDAfactor * 0.000687	//current is 0.049649
+nmdaArr.x[42] = NMDAfactor * 0.000610	//current is 0.048732
+nmdaArr.x[43] = NMDAfactor * 0.000610	//current is 0.048346
+nmdaArr.x[44] = NMDAfactor * 0.000381	//current is 0.049187
+nmdaArr.x[45] = NMDAfactor * 0.000763	//current is 0.049472
+nmdaArr.x[46] = NMDAfactor * 0.000763	//current is 0.048434
+nmdaArr.x[47] = NMDAfactor * 0.000572	//current is 0.049408
+nmdaArr.x[48] = NMDAfactor * 0.000687	//current is 0.050955
+nmdaArr.x[49] = NMDAfactor * 0.000458	//current is 0.051273
+nmdaArr.x[50] = NMDAfactor * 0.000610	//current is 0.050752
+nmdaArr.x[51] = NMDAfactor * 0.000362	//current is 0.050309
+nmdaArr.x[52] = NMDAfactor * 0.000496	//current is 0.050089
+nmdaArr.x[53] = NMDAfactor * 0.000534	//current is 0.051694
+nmdaArr.x[54] = NMDAfactor * 0.000343	//current is 0.051504
+nmdaArr.x[55] = NMDAfactor * 0.000458	//current is 0.050507
+// END OF FILE
