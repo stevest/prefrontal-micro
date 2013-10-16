@@ -1,0 +1,7 @@
+# compiled mexs
+*.mexa32
+*.mexa64
+
+# temp files
+*.*~
+
