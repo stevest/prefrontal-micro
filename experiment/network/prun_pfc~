@@ -1,1 +1,1 @@
-../../mechanism/x86_64/special final.hoc -
+../../mechanism/x86_64/special -nobanner final.hoc -

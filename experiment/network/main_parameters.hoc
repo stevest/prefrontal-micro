@@ -1,9 +1,9 @@
 // Numbers of cells
-nPCcells=14// //110 // 56 // 7
-nPVcells = 5//int(nPCcells/5) //MUST BE 1 FOR VALIDATION RUNS!!!
-nCBcells = 0//int(nPCcells/5)
-nCRcells = 0//int(nPCcells/5)
-nAllCells = nPCcells + nPVcells + nCBcells + nCRcells
+nPCcells=40
+nPVcells=7
+nCBcells=3
+nCRcells=3
+nAllCells=53
 
 // Size of area, after Migliore 2010
 len = 1000 // size of the linear domain, mitral positions range from 0 to len
@@ -17,23 +17,47 @@ celsius=34
 PLOT = 1
 DEBUG = 0
 
+
 //-------------------Set synaptic weights
-//ampaweightpr=	0.00013			//Initial stimulus
-//nmdaweightpr=	0.00018			//Initial stimulus
-//ampaweight=	0.00019		//According to Wang(2008)
-//nmdaweight=	0.52//51//0.41			//ratio inmda/iampa in basal dendrites:1 (Wang,Gao,2008)
-gabaweight=	  6.9e-4 *0.3	//0.00075 kiki		//According to Woo(2007)
-//gabaweightb=	0.654e-4
-ampaweightin=	7.5e-4			//according to Wang,Gao,2009
-nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
-autogabaweight=	5.1e-4			//According to Bacci (2003) 
+////ampaweightpr=	0.00013			//Initial stimulus
+////nmdaweightpr=	0.00018			//Initial stimulus
+////ampaweight=	0.00019		//According to Wang(2008)
+////nmdaweight=	0.52//51//0.41			//ratio inmda/iampa in basal dendrites:1 (Wang,Gao,2008)
+//gabaweight=	  6.9e-4 *0.3	//0.00075 kiki		//According to Woo(2007)
+////gabaweightb=	0.654e-4
+//ampaweightin=	7.5e-4			//according to Wang,Gao,2009
+//nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+//autogabaweight=	5.1e-4			//According to Bacci (2003) 
+
 //------------------Set # of synapses
-inmaxsyn=	100//70//150//200//30//90//80//200 //was 90 in Nassi's experiment			//initial stimulation
-maxsyn=		5//noise////6//5	 //was5		//PC-PC connections
-automaxsyn=	1			//autosynapses (one third, Lubke, 1996)
-maxsyn1=	12			//IN-IN connections
-maxsyn2=	2			//PC-IN connections (Thomson, 2007)
-maxsyn3=	13//+-noise gaussian//4			//IN-PC connections (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)
+//inmaxsyn=	100//70//150//200//30//90//80//200 //was 90 in Nassi's experiment			//initial stimulation
+//maxsyn=		5//noise////6//5	 //was5		//PC-PC connections
+//automaxsyn=	1			//autosynapses (one third, Lubke, 1996)
+//maxsyn1=	12			//IN-IN connections
+//maxsyn2=	2			//PC-IN connections (Thomson, 2007)
+//maxsyn3=	13//+-noise gaussian//4			//IN-PC connections (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)
+
+//-------------------------------------------------------------
+//Primary synapses (Xenia)
+Stim_MaxSyn=200//120	//initial stimulation
+PC2PC_MaxSyn=5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
+PC_MaxAutosyn=1//8 //Xenia had 8?!?	//autosynapses (one third, Lubke, 1996)
+PV2PV_MaxSyn=12//1	//IN-IN connections
+PC2PV_MaxSyn=2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
+PV2PC_MaxSyn=13//15//Xenia had 15	//IN-PC connections to soma (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)(15-Tamas 1997, Markram 2004)
+PC2CB_MaxSyn=14	//PC-CB connections - 8.2+-5 According to Markram, 2004 sup2
+PC2CR_MaxSyn=8//7	//PC-CR connections - to be changed
+CR2CB_MaxSyn=2	//CR-CB connections - to be changed
+CB2PC_MaxSyn=12	+4+4 //CB-PC connections to d2- 11.2+-5 .5 According to Markram, 2004 sup2, Tamas, 1997 ~12.5
+CR2PC_MaxSyn=1	//CR-PC connections to d2 - Tamas, 1997 for cat visual cortex 10
+
+//secondary synapses
+//maxsyn10=4				//cb-pc connections to d0
+//maxsyn11=4				//cb-pc connections to d1
+maxsyn12=5				//cr-pc connections to d1
+maxsyn4=15				//IN-PC connections to d0
+//-------------------------------------------------------------
+
 
 // Scale NMDA to AMPA ratio (NOT recommended! run validation script instead):
 NMDAfactor = 1
@@ -43,4 +67,45 @@ AMPAfactor = 1
 objref cv
 cv=new CVode(0)
 objref PCv[nPCcells], PCt[nPCcells], PVv[nPVcells], PVt[nPVcells]
+//...............
+ampaweightin=	7.5e-4			//according to Wang,Gao,2009
+nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+autogabaweight =	0.0073*0.85	//0.00073*11		//0.0073*0.75	xenia//According to Bacci (2003) validated 31/05/2010
+ampaweight_pc2cb = 0.000029		//Angulo/Wang validated 28/05/2010
+nmdaweight_pc2cb = ampaweight_pc2cb*0.86		//Wang validated me 50 pyrcb synapses gia ratio 0.8 28/05/2010
+ampaweight_pc2cr = 0.000046			//20pA sta -72 --> 28/05/2010	
+nmdaweight_pc2cr = ampaweight_pc2cr*2.2	//validated gia 30pyrcr synapses 28/05/2010
+gabaweight_pv2pc_a = 6.9e-4 *0.3	//0.00075 kiki		//According to Woo(2007)
+gabaweight_pv2pc_b = gabaweight_pv2pc_a 	* 0.7//STEFANOS
+gabaweight_cb2pc = 0.0006*1.5          *0.3        	//cb-pc connections - according to Xiang, 2009
+gabaweight_cr2pc = 0.00087*3           *0.3      	//cr-pc connections - validated na einai peripou sta idia epipeda me cr-cb & in-in
+gabaweight_cr2cb = 0.0083*0.25                	//cr-cb connections - according to Bacci, 2003b 31/05/2010
 
+
+objref PC
+strdef sout
+if (name_declared("PARALLEL")!=5) { // PARALLEL has not been assigned a numerical value from command line
+	PARALLEL = 0 //Default single core
+}
+if(PARALLEL){
+	PC=new ParallelContext()
+	if(PC.id==0){printf("Microcircuit running in %d CORES !\n\n", PC.nhost)}
+}else{
+	printf("Microcircuit running in 'SINGLE CORE' !\n\n")
+}
+
+
+
+// given a cell index ($1) and the type of cell ($2), return the gid
+// As for $2, 0 stands for pyramidal cells, 1 for INs, 2 for CBs, and 3 for CRs
+objref offsets
+{offsets = new Vector()}
+{offsets.append(0,nPCcells,nPVcells,nCBcells,nCRcells)}
+{offsets.append(offsets.sum(0,offsets.size()-1))}
+//global_gid=offsets.v[offsets.size()-1]  // points to the next available gid
+func ind2gid(){local i  
+  if(numarg()<2) { printf("wrong number of arguments to func ind2gid") }
+  i=$1+offsets.sum(0,$2)
+  if(i>=offsets.sum(0,$2+1)) { i-=1 }   
+  return i 
+}

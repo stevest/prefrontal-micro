@@ -6,7 +6,7 @@ proc current_balance() {
 print $1
 	  fcurrent()	
 	  printf("Balancing each PYRAMIDAL compartment to %d mV\n", $1)
-	  forall {
+	  forsec PCcell_list {
 	    	for (x) {
 	    		if (ismembrane("na_ion")) {e_pas(x)=v(x)+ina(x)/g_pas(x)} 
 	   		if (ismembrane("k_ion")) {e_pas(x)=e_pas(x)+ik(x)/g_pas(x)} 

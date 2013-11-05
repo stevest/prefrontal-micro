@@ -3,13 +3,10 @@
 //Based on Toledo-Rodriguez, 2004 (SK2, Kv3.4, Caa1B)
 
 
-load_file("main_parameters.hoc")	
-//objref CRcells[nCRcells]//, CRVec
-objref CRcells, CRgids
-
 begintemplate CRcell
-public position, x, y, z
+external PARALLEL
 
+public position, x, y, z
 public soma, axon, dend, gid
 
 create soma, axon, dend[2]
@@ -22,7 +19,7 @@ proc position() { local i
 }
 
 proc init () {
-gid=$1
+if(PARALLEL){gid=$1}
 x = y = z = 0 // only change via position
 
 create soma, axon, dend[2]
@@ -145,44 +142,62 @@ dend[1] {
 
 endtemplate CRcell
 
+//Creating new interneurons
+objref CRcells[nCRcells], CRgids
 
-//Creating new CR interneurons
 proc createCRs(){local i,gid_offset localobj cell,mynil
-  CRcells = new List() 
-  CRgids=new Vector()
-  if(PC.id==0) printf("initializing INs...\n")      
-    for i=0,nCRcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
-      host=i%PC.nhost
-      gid=ind2gid(i,3)
-      CRgids.append(gid)
-      if(host==PC.id){
-//        if(PC.id==0) { printf("initializing IN %d\n",i)  }
-        cell = new CRcell(gid)
-        cell.position((i+.5)*len/nINcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
-        PC.set_gid2node(gid,PC.id)
-        cell.axon {//synapse_source(gid)//,&v(1))
-          PC.cell(gid,new NetCon(&v(1), mynil),1)
-        }   
-        PC.threshold(gid,-20) 
-        CRcells.append(cell)        
-      }    
-  }
+if(PARALLEL){
+	CRcells = new List() 
+	CRgids=new Vector()
+	if(PC.id==0) printf("initializing CRs...\n")      
+	for i=0,nCRcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
+		host=i%PC.nhost
+		gid=ind2gid(i,3)
+		CRgids.append(gid)
+		if(host==PC.id){
+			//        if(PC.id==0) { printf("initializing IN %d\n",i)  }
+			cell = new CRcell(gid)
+			cell.position((i+.5)*len/nCRcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
+			PC.set_gid2node(gid,PC.id)
+			cell.axon {//synapse_source(gid)//,&v(1))
+			PC.cell(gid,new NetCon(&v(1), mynil),1)
+		}   
+		PC.threshold(gid,-20) 
+		CRcells.append(cell)        
+	}    
+	}
+}else{
+	for i = 0, nCRcells-1 {
+	CRcells[i] = new CRcell()
+	}
+}
 }
 
 createCRs()
 
 //Create list with segments
-objref crsoma_list, crcell_list
+objref CRsoma_list, CRcell_list
 
-crsoma_list = new SectionList()
-crcell_list = new SectionList()
-  for i=0,(CRcells.count()-1) {      
-      CRcells.o(i).soma crsoma_list.append()
-      CRcells.o(i).soma crcell_list.append()
-      CRcells.o(i).axon crcell_list.append()
-      CRcells.o(i).dend crcell_list.append()
+CRsoma_list = new SectionList()
+CRcell_list = new SectionList()
+
+if(PARALLEL){
+	for i=0,(CRcells.count()-1) {      
+		CRcells.o(i).soma CRsoma_list.append()
+		CRcells.o(i).soma CRcell_list.append()
+		CRcells.o(i).axon CRcell_list.append()
+		CRcells.o(i).dend CRcell_list.append()
+	}
+}else{
+	for i=0, nCRcells-1 {
+		CRcells[i].soma CRsoma_list.append()
+		CRcells[i].soma CRcell_list.append()
+		CRcells[i].axon CRcell_list.append()
+		CRcells[i].dend[0] CRcell_list.append()
+		CRcells[i].dend[1] CRcell_list.append()
+	}
 }
 
 
-xopen("../current-balancecr.hoc")
-current_balancecr(-70)  
+xopen("../../lib/current-balanceCR.hoc")
+current_balanceCR(-70)  

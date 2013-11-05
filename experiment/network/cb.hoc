@@ -3,19 +3,13 @@
 //"Irregular spiking in NMDA-driven prefrontal cortex neurons"
 
 
-load_file("main_parameters.hoc")	
-
-//objref CBcells
-//objref CBcells[nCBcells], CBVec
-objref CBcells, CBgids
-
 begintemplate CBcell
-public position, x, y, z
+external PARALLEL
 
+public position, x, y, z
 public soma, axon, dend, gid
 
 create soma, axon, dend
-
 
 proc position() { local i // taken from Migliore 2010
   soma for i = 0, n3d()-1 {
@@ -25,8 +19,8 @@ proc position() { local i // taken from Migliore 2010
 }
 
 
-proc init() {
-gid=$1
+proc init () {
+if(PARALLEL){gid=$1}
 x = y = z = 0 // only change via position
 
 create soma, axon, dend
@@ -141,50 +135,58 @@ dend {
 
 endtemplate CBcell
 
-
-//Creating new CB interneurons
+//Creating new interneurons
+objref CBcells[nCBcells], CBgids
 proc createCBs(){local i,gid_offset localobj cell,mynil
-  CBcells = new List() 
-  CBgids=new Vector()
-  if(PC.id==0) printf("initializing INs...\n")      
-    for i=0,nCBcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
-      host=i%PC.nhost
-      gid=ind2gid(i,2)
-      CBgids.append(gid)
-      if(host==PC.id){
-//        if(PC.id==0) { printf("initializing IN %d\n",i) }
-        cell = new CBcell(gid)
-        cell.position((i+.5)*len/nINcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
-        PC.set_gid2node(gid,PC.id)
-        cell.axon {//synapse_source(gid)//,&v(1))
-          PC.cell(gid,new NetCon(&v(1), mynil),1)
-        }   
-        PC.threshold(gid,-20) 
-        CBcells.append(cell)
-      }    
-  }
+	if(PARALLEL){
+		CBcells = new List() 
+		  CBgids=new Vector()
+		  if(PC.id==0) printf("initializing CBs...\n")      
+		    for i=0,nCBcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
+		      host=i%PC.nhost
+		      gid=ind2gid(i,2)
+		      CBgids.append(gid)
+		      if(host==PC.id){
+		//        if(PC.id==0) { printf("initializing IN %d\n",i) }
+			cell = new CBcell(gid)
+			cell.position((i+.5)*len/nCBcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
+			PC.set_gid2node(gid,PC.id)
+			cell.axon {//synapse_source(gid)//,&v(1))
+			  PC.cell(gid,new NetCon(&v(1), mynil),1)
+			}   
+			PC.threshold(gid,-20) 
+			CBcells.append(cell)
+		      }    
+		  }
+	}else{
+		for i = 0, nCBcells-1 {
+		CBcells[i] = new CBcell()
+		}
+	}
 }
 
 createCBs()
 
 //Create list with segments
-objref cbsoma_list, cbcell_list
+objref CBsoma_list, CBcell_list
+CBsoma_list = new SectionList()
+CBcell_list = new SectionList()
 
-cbsoma_list = new SectionList()
-cbcell_list = new SectionList()
-//  for i=0, CBcells.count-1{
-//      CBcells.o(i).soma cbsoma_list.append()
-//      CBcells.o(i).soma cbcell_list.append()
-//      CBcells.o(i).axon cbcell_list.append()
-//      CBcells.o(i).dend cbcell_list.append()
-//}
-//  for(i=PC.id;i<nCBcells;i+=PC.nhost) {      
-  for i=0,CBcells.count()-1{
-      CBcells.o(i).soma cbsoma_list.append()
-      CBcells.o(i).soma cbcell_list.append()
-      CBcells.o(i).axon cbcell_list.append()
-      CBcells.o(i).dend cbcell_list.append()
+if(PARALLEL){
+	for i=0,CBcells.count()-1{
+	CBcells.o(i).soma CBsoma_list.append()
+	CBcells.o(i).soma CBcell_list.append()
+	CBcells.o(i).axon CBcell_list.append()
+	CBcells.o(i).dend CBcell_list.append()
+	}
+}else{
+	for i=0, nCBcells-1 {
+	CBcells[i].soma CBsoma_list.append()
+	CBcells[i].soma CBcell_list.append()
+	CBcells[i].axon CBcell_list.append()
+	CBcells[i].dend CBcell_list.append()
+	}
 }
 
-xopen("../current-balancecb.hoc")
-current_balancecb(-64)  
+xopen("../../lib/current-balanceCB.hoc")
+current_balanceCB(-64)  

@@ -6,51 +6,117 @@ cvode.active(0)	     //Do NOT use CVODE solver!
 //----------------------------------------Set parameters--------------------------------------------------------------//
 if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}
 
-//procedure to choose which Pyramidal morphologies we want in network
-if(!xopen("chooseMorphologies.hoc")){print "ERROR	Failed to load choose morphologies!"}
-//argument: percentage of IB cells morphologies in network, random seed:
-chooseMorphologies(60,0)
-
-
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
 if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
 //xopen("importBasal_fAHP.hoc")
 //xopen("importBasal_sAHP.hoc")
 
+//procedure to choose which Pyramidal morphologies we want in network
+if(!xopen("chooseMorphologies.hoc")){print "ERROR	Failed to load choose morphologies!"}
+//argument: percentage of IB cells morphologies in network, random seed:
+chooseMorphologies(60,0)
 
 if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
 if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
 if(!xopen("../RS1cell.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
-if(!xopen("incell.hoc")){print "ERROR	Failed to load interneuron hoc!"}
-//{xopen("cb.hoc")} // Xenia's interneurons: load template for CB/LTS interneuron
-//{xopen("cr.hoc")} // Xenia's interneurons
+if(!xopen("pv.hoc")){print "ERROR	Failed to load interneuron hoc!"}
+{xopen("cb.hoc")} // Xenia's interneurons: load template for CB/LTS interneuron
+{xopen("cr.hoc")} // Xenia's interneurons
 
-if(!xopen("NMDA_Array_1_5.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
-if(!xopen("AMPA_Array_1_5.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
+if(!xopen("NMDA_Array_1_1.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
+if(!xopen("AMPA_Array_1_1.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
 if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
 
 
-//--------------------------------------Graphs
-for j=0, (nPCcells-1) {addgraph_2("Pcells[j].soma.v(0.5)", 0,tstop, -70, 50)}
-addgraph_2("INcells[0].soma.v(0.5)", 0,tstop, -70, 50)
-//addgraph_2("Pcells[0].axon[0].v(0.5)", 0,tstop, -70, 50)
-//addgraph_2("Pcells[0].soma.v(0.5)", 0,tstop, -70, 50)
-//addgraph_2("Pcells[2].soma.v(0.5)", 0,tstop, -70, 50)
-/*addgraph_2("Pcells[3].soma.v(0.5)", 0,tstop, -70, 50)
-addgraph_2("Pcells[4].soma.v(0.5)", 0,tstop, -70, 50)
-addgraph_2("Pcells[5].soma.v(0.5)", 0,tstop, -70, 50)
-addgraph_2("Pcells[6].soma.v(0.5)", 0,tstop, -70, 50)
-addgraph_2("Pcells[7].soma.v(0.5)", 0,tstop, -70, 50)*/
-//addgraph_2("Pcells[0].dend[7].v(0.5)", 0,tstop, -70, 50)
-//addgraph_2("Pcells[0].soma[0].cai(0.5)", 0,tstop, 0, 0.01)
-//addgraph("Pcell[0].soma.ik_kca(0.5)",-70,50)
-//addgraph("Pcell[0].soma.ik_Ks(0.5)",-70,50)
+proc report_gidvecs() { local i, rank
+	// reports distribution of cells across hosts
+	PC.barrier()  // wait for all hosts to get to this point
+	if (PC.id==0) printf("\ngidvecs on %d host(s)\n",PC.nhost)
+	for rank=0, PC.nhost-1 {  // host 0 first, then 1, 2, etc.
+		if (rank==PC.id) {
+			printf("@host %d: %dPC, %dPV, %dCB, %dCR\n",PC.id,PCcells.count(), PVcells.count(), CBcells.count(), CRcells.count() )
+			PCgids.printf()      
+			PVgids.printf()            
+			CBgids.printf()    
+			CRgids.printf()      
+		}
+	{ PC.barrier() } // wait for all hosts to get to this point
+	}
+}
 
+
+// returns true if a given gid is running on the current host
+func is_gid_here(){
+	gid=$1
+	if((gid%PC.nhost)==PC.id) {return(1)}
+	return(0)
+}
+
+//returns true if the given gid is running on the given host
+func is_gid_in_host(){local gid,hostid
+	gid=$1
+	hostid=$2
+	if ((gid%PC.nhost)==hostid) {return(1)}
+	return(0)
+}
+
+proc printallkbars(){localobj vfilePC
+	data_dir = "data"
+	strdef syscmd, vfilePC_filename
+	sprint(syscmd,"mkdir -p %s",data_dir)
+	system(syscmd)
+	vfilePC = new File()	
+	sprint(vfilePC_filename,"%s/kbsp_dist.dat", data_dir)  
+	vfilePC.wopen(vfilePC_filename)
+	printf("gkabar\n")
+	forsec cell0_list{//dend_list{
+		for(x){
+			if(ismembrane("kad")) { 
+				vfilePC.printf("%1.5f %1.5f\n",distance(), gkabar_kad(0.5))
+			}
+			if(ismembrane("kap")) { 
+				vfilePC.printf("%1.5f %1.5f\n",distance(), gkabar_kap(0.5))
+			}
+		}
+	}
+	vfilePC.close()
+}
+
+
+
+//--------------------------------------Graphs
+if(!PARALLEL){
+	//if(PLOT){for j=0, (nPCcells-) {addgraph_2("PCcells[j].soma.v(0.5)", 0,tstop, -70, 50)}}
+	addgraph_2("PCcells[0].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[1].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[2].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[3].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[4].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[5].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[6].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[7].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[8].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PCcells[9].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("PVcells[0].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("CBcells[0].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("CRcells[0].soma.v(0.5)", 0,tstop, -70, 50)
+	//addgraph_2("Pcells[0].soma.v(0.5)", 0,tstop, -70, 50)
+	//addgraph_2("Pcells[2].soma.v(0.5)", 0,tstop, -70, 50)
+	/*addgraph_2("Pcells[3].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("Pcells[4].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("Pcells[5].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("Pcells[6].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("Pcells[7].soma.v(0.5)", 0,tstop, -70, 50)*/
+	//addgraph_2("Pcells[0].dend[7].v(0.5)", 0,tstop, -70, 50)
+	//addgraph_2("Pcells[0].soma[0].cai(0.5)", 0,tstop, 0, 0.01)
+	//addgraph("Pcell[0].soma.ik_kca(0.5)",-70,50)
+	//addgraph("Pcell[0].soma.ik_Ks(0.5)",-70,50)
+}
 
 
 
 //addgraph_2("INcells[0].soma.v(0.5)", 0,tstop, -80, 50)
-splot=new Shape()
+if(PLOT){splot=new Shape()}
 //forsec Pcells[0].somatic {shape.color(2)}
 //forsec Pcells[0].axonal {shape.color(5)}
 //forsec Pcells[0].basal {shape.color(3)}
@@ -62,8 +128,8 @@ strdef syscmd, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr
 
 
 strdef temp
-objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, insomab, curampa, curnmda, curgabaa, curgabab, DendDist, Params
-objref campa[maxsyn], ct[8][inmaxsyn], cnmda[maxsyn], cnmdat[inmaxsyn], cgabaa[maxsyn3], campaa[automaxsyn], cnmdaa[automaxsyn], campain[inmaxsyn], cnmdain[inmaxsyn], cgabaat[maxsyn3], cgabab[maxsyn3], cgababt[maxsyn3], ampac, nmdac, gabaac, gababc	
+//objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, insomab, curampa, curnmda, curgabaa, curgabab, DendDist, Params
+//objref campa[PC2PC_MaxSyn], ct[8][Stim_MaxSyn], cnmda[PC2PC_MaxSyn], cnmdat[Stim_MaxSyn], cgabaa[PV2PC_MaxSyn], campaa[PC_MaxAutosyn], cnmdaa[PC_MaxAutosyn], campain[Stim_MaxSyn], cnmdain[Stim_MaxSyn], cgabaat[PV2PC_MaxSyn], cgabab[PV2PC_MaxSyn], cgababt[PV2PC_MaxSyn], ampac, nmdac, gabaac, gababc	
 objref gababweights, nmdaweights, adpweights
 //----record total cell population spike activity
 objref timevec, idvec, recncs, tobj, nil, total_activity
@@ -73,7 +139,7 @@ xopen("values_adp.hoc")
 
 			
 for adpvalues=0,0 {
-	fadp=1.0// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
+	fadp=0.99// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
 	sprint(data_dira,"adp%.3f",fadp)
 	sprint(syscmd,"mkdir -p %s",data_dira) 	
 	system(syscmd)
@@ -100,11 +166,19 @@ for adpvalues=0,0 {
 			//thinner_apical()
 
 			for runs = 0,100 {//0, TOTALRUNS {
+				
 				stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
-				initPC(runs)
-				initPV(runs)
-				initPC2PV(runs)
-				initPV2PC(runs)
+				//backgroundActivity(runs)
+				connectPC2PC(runs)
+				connectPV2PV(runs)
+				connectPC2PV(runs)
+				connectPC2CB(runs)
+				connectPC2CR(runs)
+				connectPV2PC(runs)
+				connectCB2PC(runs)
+				connectCR2PC(runs)
+				connectCR2CB(runs)
+
 				//noise(runs) 
 				//PV_NetStim()
 				//oneCellclamp()

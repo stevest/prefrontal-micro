@@ -1,24 +1,34 @@
 
 //Template for layer V prefrontal pyramidal neurons
 zindex=0
-xopen ("../../lib/current-balance.hoc")
+
 
 func num2ind(){ // a mapping from numbers to morphology file indices
     return ($1 % 56)
 }
 
 begintemplate PCcell
-
+external PARALLEL
 //external basal_fAHP
 //external basal_sAHP
 //external PcellIDlist
 
+public gid
+public ApicNo, DendNo //OBJECT: properties of the cell
+public position, x, y, z
 
 public all, somatic, axonal, basal, apical, soma, axon, dend, apic
 create soma[10], axon[100], dend[180], apic[250] // see page 372 of neuron book. In templates, the size of objects must be declared in the template 
 
-public PCsoma_list ,PCbasal_list,PCapical_list ,PCdend_list ,pcell_list
+public PCsoma_list ,PCbasal_list,PCapical_list ,PCdend_list ,PCcell_list, cell0_list
 objref all, somatic, axonal, basal, apical
+
+proc position() { local i // adapted from Migliore 2010
+  soma for i = 0, n3d()-1 {
+    pt3dchange(i, $1-x+x3d(i), $2-y+y3d(i), $3-z+z3d(i), diam3d(i))
+  }
+  x = $1  y = $2  z = $3
+}
 
 proc cut_sections() {  
 	forall {
@@ -349,10 +359,22 @@ objref CAN_temp, CAL_temp, CAT_temp, KAD_temp, KAP_temp, NA_temp
 
 proc init() {
 
+if(PARALLEL){gid=$1}
+x = y = z = 0 // only change via position
+
 maximum_segment_length=75
-zindex=$1*100
+//zindex=$1*100
 printf("loading morphology from file %s\n",$s2)
         {xopen($s2)}
+
+	//OBJECT: properties of the cell
+	//MUST BE INITIALIZED !!!
+	ApicNo=0
+	DendNo=0
+	max_ar2=0
+	min_ar2=0
+	decay_start=0   
+	decay_end=0
 
   // Set passive membrane properties
  	Rm_default=30000 
@@ -649,8 +671,6 @@ forall {
 
 endtemplate PCcell
 
-objref PCcells[nPCcells]
-
 objref FL[56]
   //printf("RS1cell: setting filenames\n")
   //FL[0]=new String("C3_5_axon.hoc") //OVERRIDE FOR CELL #32!!
@@ -711,68 +731,114 @@ objref FL[56]
   FL[54]=new String("q-4a_axon.hoc")
   FL[55]=new String("q-4_axon.hoc")
 
-proc createPyrs(){
-
-  strdef filename,basename
-  basename="../../morphology/smith_new_axon/"
-
-  for i = 0, (nPCcells-1) {
-	//printf("Picking Morphology #%d...\n",int(PcellIDlist.x[i]))
-	cc = int(PcellIDlist.x[i])//PYID
-      sprint(filename,"%s%s",basename,FL[num2ind(cc)].s)
-      PCcells[i] = new PCcell(cc,filename)
-  }
-
+objref PCcells[nPCcells], PCgids
+strdef filename,basename
+basename="../../morphology/smith_new_axon/"
+proc createPyrs(){ local i,host,gid localobj cell,mynil
+	if(PARALLEL){
+		  PCcells=new List()
+		  PCgids=new Vector()
+		  if(PC.id==0) printf("initializing PCs...\n")      
+		    for i=0,nPCcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
+		      host=i%PC.nhost
+		      gid=ind2gid(i,0)
+		      PCgids.append(gid)      
+		      if(host==PC.id){
+			//if(PC.id==0) { printf("initializing cell %d\n",i) }
+			sprint(filename,"%s%s",basename,FL[num2ind(i)].s)        
+			cell = new PCcell(gid,filename)
+			cell.position((i+.5)*len/nPCcells, 0, 0)
+			PC.set_gid2node(gid,PC.id)
+			cell.axon {//synapse_source(gid)//,&v(1))
+			  PC.cell(gid,new NetCon(&v(1), mynil),1)
+			}  
+			PC.threshold(gid,-20)          
+			PCcells.append(cell)  
+		      }    
+		  }
+	}else{
+		  for i = 0, (nPCcells-1) {
+			//printf("Picking Morphology #%d...\n",int(PcellIDlist.x[i]))
+			cc = int(PcellIDlist.x[i])//PYID
+		      sprint(filename,"%s%s",basename,FL[num2ind(cc)].s)
+		      PCcells[i] = new PCcell(cc,filename)
+		  }
+	}
 }
 
 createPyrs()
 
-
-
-
-
-printf("Applying current balance\n")
-
-current_balance(v_init)
-
 //Create a list with segments for all neurons
-objref PCsoma_list, PCbasal_list, PCapical_list, PCdend_list, pcell_list
+objref PCsoma_list, PCbasal_list, PCapical_list, PCdend_list, PCcell_list, cell0_list
 
 PCsoma_list = new SectionList()
 PCbasal_list = new SectionList()
 PCapical_list = new SectionList()
 PCdend_list = new SectionList()
-pcell_list = new SectionList()
-for(i=0;i<nPCcells;i=i+1) {
-  PCcells[i].soma PCsoma_list.append()
-
-  forsec PCcells[i].basal { 
-    PCbasal_list.append()
-  }
-
-  forsec PCcells[i].apical {
-    PCapical_list.append()
-  }
-
-  forsec PCcells[i].basal {
-    PCdend_list.append()
-  }
-
-  forsec PCcells[i].apical {
-    PCdend_list.append()
-  }
-
-  forsec PCcells[i].all {
-    pcell_list.append()
-  }
-}
-/*
-objref cell0_list
+PCcell_list = new SectionList()
 cell0_list=new SectionList()
-PCcells[0].soma cell0_list.append()
-forsec PCcells[0].basal {
-	cell0_list.append()
+
+if(PARALLEL){
+	for i=0,(PCcells.count()-1){
+
+	  PCcells.o(i).soma PCsoma_list.append()
+	PCcells.o(i).DendNo=0
+	  forsec PCcells.o(i).basal {
+		PCbasal_list.append()  
+		PCdend_list.append()
+		PCcells.o(i).DendNo+=1  
+	  }
+
+	  PCcells.o(i).ApicNo=0
+	  forsec PCcells.o(i).apical {
+	    PCapical_list.append()  
+	    PCdend_list.append()
+	    PCcells.o(i).ApicNo+=1  // as far as I know, there is no better way of counting members of a SectionList
+	  }
+
+	  forsec PCcells.o(i).all {
+	    PCcell_list.append()
+	  }
 	}
-forsec PCcells[0].apical {	
-	cell0_list.append()
-}*/
+
+	
+
+	if(PC.id==0){ // what's that for?
+	  PCcells.o(0).soma cell0_list.append()
+	  forsec PCcells.o(0).basal {
+	    cell0_list.append()
+	  }
+	  forsec PCcells.o(0).apical {	
+	    cell0_list.append()
+	  }
+	}
+}else{
+	for(i=0;i<nPCcells;i=i+1) {
+	  PCcells[i].soma PCsoma_list.append()
+
+	  forsec PCcells[i].basal { 
+	    PCbasal_list.append()
+	  }
+
+	  forsec PCcells[i].apical {
+	    PCapical_list.append()
+	  }
+
+	  forsec PCcells[i].basal {
+	    PCdend_list.append()
+	  }
+
+	  forsec PCcells[i].apical {
+	    PCdend_list.append()
+	  }
+
+	  forsec PCcells[i].all {
+	    PCcell_list.append()
+	  }
+	}
+}
+
+
+printf("Applying PC current balance\n")
+xopen ("../../lib/current-balance.hoc")
+current_balance(v_init)
