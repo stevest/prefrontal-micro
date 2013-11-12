@@ -8,32 +8,315 @@ func num2ind(){ // a mapping from numbers to morphology file indices
 }
 
 begintemplate PCcell
-external PARALLEL
+external PARALLEL,PLOT,DEBUG
+//external nPCcells
 //external basal_fAHP
 //external basal_sAHP
 //external PcellIDlist
-
+create soma[1], axon[7], dend[50], apic[27] 
 public gid
 public ApicNo, DendNo //OBJECT: properties of the cell
 public position, x, y, z
 
 public all, somatic, axonal, basal, apical, soma, axon, dend, apic
-create soma[10], axon[100], dend[180], apic[250] // see page 372 of neuron book. In templates, the size of objects must be declared in the template 
+//Objects initialized in size of CURRENT morphologies!!
+// see page 372 of neuron book. In templates, the size of objects must be declared in the template 
+//create soma[nPCcells], axon[7*nPCcells], dend[50*nPCcells], apic[27*nPCcells] 
+// HARDCODED BECAUSE OF THE F#&*#$ NEURON:
+//create soma[40], axon[280], dend[2000], apic[1080]
 
 public PCsoma_list ,PCbasal_list,PCapical_list ,PCdend_list ,PCcell_list, cell0_list
 objref all, somatic, axonal, basal, apical
 
+strdef sectype
+objref CAN_temp, CAL_temp, CAT_temp, KAD_temp, KAP_temp, NA_temp
+
+// Initializing Procedure:
+proc init() {
+	create soma[1], axon[7], dend[50], apic[27] 
+
+	if(PARALLEL){gid=$1}
+	x = y = z = 0 // only change via position
+
+	maximum_segment_length=75
+	//zindex=$1*100
+	if(1){printf("loading morphology from file %s\n",$s2)}
+	xopen($s2)
+
+	//OBJECT: properties of the cell
+	//MUST BE INITIALIZED !!!
+	ApicNo=0
+	DendNo=0
+	max_ar2=0
+	min_ar2=0
+	decay_start=0   
+	decay_end=0
+
+	// Set passive membrane properties
+	Rm_default=30000 
+	Rm_dend=15000
+	Ra_default= 100	//MARIA 210	
+	Cm_default = 1.2	
+	Cm_dend = 2.0
+	v_init = -66
+
+	// SEVERELY affects experiment results
+
+	//$o1.defvar("general", "celsius", "34","Temperature of slice.")    
+	celcius = 34    
+
+	//$o1.xopen_library("Terrence","cut-sections")
+	cut_sections(maximum_segment_length)
+
+	// make 3-d mapping of cell sections
+	//$o1.xopen_library("Terrence","map-segments-to-3d")
+
+	map_segments_to_3d()
+
+	// prepare to make a graph with cell configuration
+	//$o1.tmpo2=new Shape()
+
+	// Set initial conductance values 
+
+	//Sodium - Potassium properties
+	gna_default = 0.031 	 //STEFANOS
+	gkdrbar_default=0.045      //*0.12//STEFANOS :DONG, WHITE, 2003 
+
+	//Calcium currents
+	soma_caN = 0.3e-4        //STEFANOS
+	soma_caL = 3e-4 //20
+	soma_car = 3e-5*25  *0.5 //FOR RS	//MARIA 3e-5
+	soma_caT = 1e-5*10 //MARIA 1e-5	
+
+	//Calcium activated K+ currents
+	soma_kca =   0.005*5*0.5      //*3.5//STEFANOS:villalobos 2005 //*6 	//MARIA 0.025	
+	mykca_init = 0.006*5*0.001  //* 0.1//STEFANOS EDIT    //MARIA 0.003
+
+	//Potassium current
+
+	kad_init =  0.00075*1.2    //*8 //STEFANOS:DONG,WHITE,2003  //MARIA 0.00075 	 	
+	soma_kdBG =  0.0012*4.4      //*0.003 //STEFANOS:DONG,WHITE,2003  //MARIA 0.0012
+	soma_hbar =  1.872e-5*0.5    	//MARIA 1.872e-5
+
+	//Persistent sodium
+	soma_nap =  1.2e-5  *0.5      //for RS  //MARIA 1e-5
+	//----------------------------------------------------------------------------    
+	//for sadp induction	  
+	gCAN = 0.0001 	 		 	
+	//=====================================================================================
+ 
+	// Start inserting mechanisms in cell
+	forsec somatic {
+		//nseg = 21
+
+		insert Naf
+		gnafbar_Naf = gna_default*5  
+		insert kdr
+		gkdrbar_kdr = gkdrbar_default
+
+		insert pas    // leak conductance
+		g_pas =  1/Rm_default
+		e_pas = v_init
+		Ra    = Ra_default *1.35
+		cm = Cm_default
+
+		insert h     // h current 
+		gbar_h  = soma_hbar
+		K_h     = 8.8
+		vhalf_h = -82
+
+
+		insert kad  // proximal A current
+		gkabar_kad = kad_init
+
+		insert cal 
+		gcalbar_cal=soma_caL
+
+		insert can
+		gcalbar_can=soma_caN  
+
+		insert kca
+		gbar_kca = soma_kca
+
+		insert mykca 
+		gkbar_mykca = mykca_init
+
+		insert cad
+
+		insert Ks
+		gKsbar_Ks = soma_kdBG
+
+		insert cat 
+		gcatbar_cat = soma_caT   
+
+		insert car
+		gcabar_car=soma_car
+		insert nap	
+		gnabar_nap=soma_nap*0.1
+
+		insert ican
+		gbar_ican  = gCAN
+	}
+
+
+	//  Configure Axon
+	forsec axonal {
+		//nseg=5
+
+		insert Naf
+		gnafbar_Naf = gna_default*10
+		insert kdr
+		gkdrbar_kdr = gkdrbar_default  
+		insert pas  // leak conductance
+		g_pas       = 1/Rm_default
+		e_pas       = v_init
+		Ra          = Ra_default
+		cm          = Cm_default
+
+		//$o1.tmpo2.color(1)
+
+		//MARIA:
+		/*
+		insert kad  
+		gkabar_kad     = kad_init*10
+		insert Ks
+		gKsbar_Ks = soma_kdBG
+		*/
+	}
+
+	//Include all apical dendrites
+	//  Configure apical trunk
+	access soma
+	distance()
+
+
+	forsec apical {
+		insert Naf
+		gnafbar_Naf = gna_default*0.2 
+		insert kdr 
+		gkdrbar_kdr=gkdrbar_default*0.001   
+
+		insert pas // leak conductance
+
+		e_pas          = v_init                 
+		Ra             = Ra_default*0.5	//MARIA Ra_default
+		cm             = 1.2  
+		Rm_sigmoid_apical()         	 
+
+		//add ICAN  in dendrites but smaller
+		insert ican
+		gbar_ican  = gCAN*0.1
+
+		apical_mechanisms()   
+
+		// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
+		max_ar2=0.95
+		min_ar2=0.30
+		decay_end=300.0
+		decay_start=50.0
+		m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
+		for (x) {
+			xdist = distance(x)
+			if (xdist < decay_start) { 
+				ar2_Naf(x) = max_ar2 
+			} else if (xdist > decay_end) {               
+				ar2_Naf(x) = min_ar2 
+			} else {               
+				ar2_Naf(x) = max_ar2 + m_ar2*xdist
+			}
+		}
+	}
+
+	
+
+	// Configure the basal dendrites
+
+	access soma
+	distance()
+
+	/*if (basal_fAHP.x[$1] != 0){
+	printf("Basal fAHP in PC#%d, mykca is: %f\n",$1,basal_fAHP.x[$1])
+	}
+	if (basal_sAHP.x[$1] != 0){
+	printf("Basal sAHP in PC#%d, kca is: %f\n",$1,basal_sAHP.x[$1])
+	}*/
+
+	forsec basal {
+		/*if (basal_fAHP.x[$1] != 0){
+		insert mykca
+		gkbar_mykca = basal_fAHP.x[$1]
+		}
+		if (basal_sAHP.x[$1] != 0){
+		insert kca
+		gbar_kca = basal_sAHP.x[$1]
+		}*/
+
+		insert Naf
+		gnafbar_Naf = gna_default*0.1
+		insert kdr
+		gkdrbar_kdr=gkdrbar_default*0.09  
+
+		insert pas // passive properties
+		e_pas          = v_init
+		Ra             = Ra_default  
+		cm             = Cm_dend
+		Rm_sigmoid_basal()  
+
+		//add ICAN  in dendrites but smaller
+		insert ican
+		gbar_ican  = gCAN*0.1
+
+		// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
+		max_ar2=0.95
+		min_ar2=0.30
+		decay_end=50.0
+		decay_start=20.0
+
+		m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
+		for (x) {
+			xdist = distance(x)
+			if (xdist < decay_start) { 
+				ar2_Naf(x) = max_ar2 
+			} else if (xdist > decay_end) {               
+				ar2_Naf(x) = min_ar2 
+			} else {               
+				ar2_Naf(x) = max_ar2 + m_ar2*xdist
+			}
+		}
+	} 
+   
+	khbasal_fixed() // Configure basal dendrites //Outside of the basal loop???!?        
+
+	forsec somatic { g_pas=1/Rm_default } // force Rm at all soma sections
+    
+	forall {
+		if (ismembrane("Naf")) {ena = 55}
+		if (ismembrane("k_ion")) { ek = -85}
+
+		if(ismembrane("ca_ion")) {
+			eca = 140
+			cai0_ca_ion =  2.4e-6 // for pump  
+			cao = 2
+			ion_style("ca_ion",3,2,1,1,1)
+		}
+	}
+
+} //END INIT() PROC
+
+
 proc position() { local i // adapted from Migliore 2010
-  soma for i = 0, n3d()-1 {
-    pt3dchange(i, $1-x+x3d(i), $2-y+y3d(i), $3-z+z3d(i), diam3d(i))
-  }
-  x = $1  y = $2  z = $3
+	soma for i = 0, n3d()-1 {
+		pt3dchange(i, $1-x+x3d(i), $2-y+y3d(i), $3-z+z3d(i), diam3d(i))
+	}
+	x = $1  y = $2  z = $3
 }
 
 proc cut_sections() {  
 	forall {
-      		nseg=1+int(L/$1)
-}}
+		nseg=1+int(L/$1)
+	}
+}
+
 
 /* ---------------------   PROCEEDURES USED IN CELL SETUP  -------------------------*/
 /*-----------------------------------PFC-cell---------------------------------------*/
@@ -61,29 +344,23 @@ proc fracpt() { local posn, A
 }
 
 proc map_segments_to_3d() {
-
-    forall {
-    
-    insert d3
-    i=0
-    endpt(0)
-
-    for (x) if (x > 0 && x < 1) {
-
-      while (arc3d(i)/L < x) {
-        i += 1
-      }
-      D=arc3d(i) - arc3d(i-1)
-      if (D <= 0) {
-      printf("\t\t * %s had a D < 0\n", secname())
-      }
-      alpha = (x*L - arc3d(i-1))/D
-      fracpt(alpha,x)
-
-    }
-    endpt(1)
-
-  }
+	forall {
+		insert d3
+		i=0
+		endpt(0)
+		for (x) if (x > 0 && x < 1) {
+			while (arc3d(i)/L < x) {
+				i += 1
+			}
+			D=arc3d(i) - arc3d(i-1)
+			if (D <= 0) {
+				printf("\t\t * %s had a D < 0\n", secname())
+			}
+			alpha = (x*L - arc3d(i-1))/D
+			fracpt(alpha,x)
+		}
+		endpt(1)
+	}
 }
 
 proc Rm_sigmoid_basal() { local rm
@@ -92,12 +369,11 @@ proc Rm_sigmoid_basal() { local rm
 	Rm_dhalf=10 
 	Rm_steep=5
 
-     for (x) {  
-	
-       xdist = distance(x)    // calc. path distance     
-	  rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
-       g_pas(x) = 1.0/rm
-     }
+	for (x) {  
+		xdist = distance(x)    // calc. path distance     
+		rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
+		g_pas(x) = 1.0/rm
+	}
 }
 
 proc Rm_sigmoid_apical() { local rm
@@ -106,12 +382,11 @@ proc Rm_sigmoid_apical() { local rm
 	Rm_dhalf=300 //was 500
 	Rm_steep=50
 
-     for (x) {  
-       xdist = distance(x)    
-	 rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
-       g_pas(x) = 1.0/rm
-     }
-
+	for (x) {  
+		xdist = distance(x)    
+		rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
+		g_pas(x) = 1.0/rm
+	}
 }
 
 
@@ -147,18 +422,16 @@ small conductance for xdist < 50 um
 */
 
 proc apical_mechanisms(){
-
-
 	//Insert h-current, sigmoidally increasing in the dendrites
 	gh_soma=soma_hbar
 	gh_end=soma_hbar*10
 	H_dhalf=300
 	H_steep=50
 
-     for (x) {  
-       xdist = distance(x)  //calc. perpedicular distance
-       insert h
-       gbar_h(x) = gh_soma + (gh_end - gh_soma)/(1.0 + exp((H_dhalf-xdist)/H_steep))
+	for (x) {  
+		xdist = distance(x)  //calc. perpedicular distance
+		insert h
+		gbar_h(x) = gh_soma + (gh_end - gh_soma)/(1.0 + exp((H_dhalf-xdist)/H_steep))
 	}
 
 	kap_distal_maxfactor=1
@@ -166,36 +439,31 @@ proc apical_mechanisms(){
 	kad_distal_maxfactor=0.1
 	kad_distal_distance=300  
 
-//for cortical cell, data is up to 400um
+	//for cortical cell, data is up to 400um
 	for (x) {  
-       xdist=distance(x) + 0.0000001 //Division by zero...
-       fr1= kad_distal_distance/xdist
-       insert kad
-       insert Ks
-     
- 
-       if (xdist < kap_distal_distance ) {
-          gkabar_kad(x) = kad_init*kap_distal_maxfactor
-          gKsbar_Ks(x) = soma_kdBG*kap_distal_maxfactor  
-	
+		xdist=distance(x) + 0.0000001 //Division by zero...
+		fr1= kad_distal_distance/xdist
+		insert kad
+		insert Ks
 
-       } else if (xdist < kad_distal_distance ) {
-          gkabar_kad(x) = kad_distal_maxfactor*kad_init*fr1
-          gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor*fr1
-	
-          
-       } else {
-          gkabar_kad(x) = kad_distal_maxfactor*kad_init
-          gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor  
-	
-       }
-     }
 
-      
-      	insert cad    // calsium pump/buffering mechanism
-       
-//insert calcium mechanisms and persistent sodium
-        
+		if (xdist < kap_distal_distance ) {
+			gkabar_kad(x) = kad_init*kap_distal_maxfactor
+			gKsbar_Ks(x) = soma_kdBG*kap_distal_maxfactor  
+		} else if (xdist < kad_distal_distance ) {
+			gkabar_kad(x) = kad_distal_maxfactor*kad_init*fr1
+			gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor*fr1
+		} else {
+			gkabar_kad(x) = kad_distal_maxfactor*kad_init
+			gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor  
+		}
+	}
+
+
+	insert cad    // calsium pump/buffering mechanism
+
+	//insert calcium mechanisms and persistent sodium
+
 	insert car	
 	insert nap
 	insert cal
@@ -204,32 +472,28 @@ proc apical_mechanisms(){
 	insert kca
 	insert mykca
 
- for (x) {  
-         xdist = distance(x)
-	 fr = xdist/200 //+ 0.00000001 //ivision by zerooo
-       
-         if (xdist < 200) {                	
-		gcabar_car(x) = soma_car*0.5 	
-		gnabar_nap(x) = soma_nap
-		gcalbar_can(x) = soma_caN/30
-     	    	gcalbar_cal(x) soma_caL
-		gcatbar_cat(x) = soma_caT
-		gbar_kca = soma_kca*0.1
-		gkbar_mykca = mykca_init*0.05
+	for (x) {  
+		xdist = distance(x)
+		fr = xdist/200 //+ 0.00000001 //ivision by zerooo
 
-         } else {
-		
-		gcabar_car(x) = soma_car*fr   
-		gnabar_nap(x) = soma_nap*fr*5
-		gcalbar_can(x) = soma_caN*fr*3.2
-	   	gcalbar_cal(x) = soma_caL/(30*fr)
-		gcatbar_cat(x) = soma_caT*fr  			
-		gbar_kca = soma_kca*0.001
-		gkbar_mykca = mykca_init *0.001
-         }
-     		
+		if (xdist < 200) {                	
+			gcabar_car(x) = soma_car*0.5 	
+			gnabar_nap(x) = soma_nap
+			gcalbar_can(x) = soma_caN/30
+			gcalbar_cal(x) soma_caL
+			gcatbar_cat(x) = soma_caT
+			gbar_kca = soma_kca*0.1
+			gkbar_mykca = mykca_init*0.05
+		} else {
+			gcabar_car(x) = soma_car*fr   
+			gnabar_nap(x) = soma_nap*fr*5
+			gcalbar_can(x) = soma_caN*fr*3.2
+			gcalbar_cal(x) = soma_caL/(30*fr)
+			gcatbar_cat(x) = soma_caT*fr  			
+			gbar_kca = soma_kca*0.001
+			gkbar_mykca = mykca_init *0.001
+		}
 	}
-		
 }
 
 
@@ -240,40 +504,28 @@ current conductance which is 0.6 times higher.
 
 proc khbasal_fixed() { local i,x,d
 
-forsec basal {
-
-
-//increase H along the basal dendrites	
-	
-       insert h   //no gradient in somatosensory according to schiller
-	   gbar_h = soma_hbar
-	
- 	insert kad
-        insert can
-        insert cad
-	insert nap	
+	forsec basal {
+		//increase H along the basal dendrites	
+		insert h   //no gradient in somatosensory according to schiller
+		gbar_h = soma_hbar
+		insert kad
+		insert can
+		insert cad
+		insert nap	
 		gnabar_nap=soma_nap
-	
 
-	
-
-for (x) {  
-         xdist = distance(x)
-	 fr = xdist/50
-       
-         if (xdist < 50) {        
-        	
-		gcalbar_can(x) = soma_caN/30
- 		gkabar_kad(x) = kad_init*2 
-
-         } else {
-		
- 		gkabar_kad(x) = kad_init*5  
-		gcalbar_can(x) = soma_caN*0.1
-         }
-     		
+		for (x) {  
+			xdist = distance(x)
+			fr = xdist/50
+			if (xdist < 50) {        
+				gcalbar_can(x) = soma_caN/30
+				gkabar_kad(x) = kad_init*2 
+			} else {
+				gkabar_kad(x) = kad_init*5  
+				gcalbar_can(x) = soma_caN*0.1
+			}
+		}
 	}
-  }
 }
 
 
@@ -296,378 +548,17 @@ the maximum and minimum values of decay as
 parameters. Initialize these parameters: 
 */
 
+/*
 max_ar2=0
 min_ar2=0
-decay_start=0 /* The distance at which decay starts. 
-              The distance at which decay ends.
-              */
+decay_start=0 
 decay_end=0
 
 strdef ar24_tmp_str
 objref  strobj, ar24_f
 strobj=new StringFunctions()
 ar2_firsttime=1
-
-proc ar2_log() {
-
-  if (!ar2_firsttime) { return }
-
-  ar24_f=new File() 
-  sprint($o3.tmp_str3, "%s/ar2_log", $o3.generic_dir)
-  ar24_f.wopen($o3.tmp_str3)
-  ar24_f.printf("%s:",$s1)
-
-  while (strobj.substr($s2, "*") > -1) {
-    //printf("substr:%d\n", strobj.substr($s2, "*"))
-
-      index=strobj.head($s2, "\\*", ar24_tmp_str)
-    //printf("index:%d\n", index)
-
-      strobj.right($s2, 1+index)
-     //printf("%s ... %s \n", ar24_tmp_str, $s2)
-
-      $o3.create_variable("ar24_val", ar24_tmp_str)
-      ar24_f.printf("%s:%g:", ar24_tmp_str, ar24_val)
-     //printf("%s:%g", ar24_tmp_str, ar24_val)
-  }
-
-  $o3.create_variable("ar24_val", $s2)
-  ar24_f.printf("%s:%g\n", $s2, ar24_val)
-  
-
-  ar24_f.close()
-  ar2_firsttime=0
-}
-
-
-
-/*_______ END OF PROCEEDURES ROUTINELY USED IN CELL SETUP______*/
-
-//__________________________________________________________________________________________________________
-
-
-/* ____________      CELL SET-UP PROCEEDURE      _____________ */
-
-
-
-
-
-
-strdef sectype
-objref CAN_temp, CAL_temp, CAT_temp, KAD_temp, KAP_temp, NA_temp
-
-
-proc init() {
-
-if(PARALLEL){gid=$1}
-x = y = z = 0 // only change via position
-
-maximum_segment_length=75
-//zindex=$1*100
-printf("loading morphology from file %s\n",$s2)
-        {xopen($s2)}
-
-	//OBJECT: properties of the cell
-	//MUST BE INITIALIZED !!!
-	ApicNo=0
-	DendNo=0
-	max_ar2=0
-	min_ar2=0
-	decay_start=0   
-	decay_end=0
-
-  // Set passive membrane properties
- 	Rm_default=30000 
-	Rm_dend=15000
-	Ra_default= 100	//MARIA 210	
- 	Cm_default = 1.2	
-	Cm_dend = 2.0
-	v_init = -66
-	
-  // SEVERELY affects experiment results
-	
-    //$o1.defvar("general", "celsius", "34","Temperature of slice.")    
-celcius = 34    
-
-    //$o1.xopen_library("Terrence","cut-sections")
-    cut_sections(maximum_segment_length)
-
-// make 3-d mapping of cell sections
-    //$o1.xopen_library("Terrence","map-segments-to-3d")
-
-    map_segments_to_3d()
-
-// prepare to make a graph with cell configuration
-    //$o1.tmpo2=new Shape()
-        
-// Set initial conductance values 
-      
-  //Sodium - Potassium properties
-	gna_default = 0.031 	 //STEFANOS
-	gkdrbar_default=0.045      //*0.12//STEFANOS :DONG, WHITE, 2003 
- 
-//Calcium currents
-	soma_caN = 0.3e-4        //STEFANOS
-	soma_caL = 3e-4 //20
-	soma_car = 3e-5*25  *0.5 //FOR RS	//MARIA 3e-5
-	soma_caT = 1e-5*10 //MARIA 1e-5	
-    
-//Calcium activated K+ currents
-	soma_kca =   0.005*5*0.5      //*3.5//STEFANOS:villalobos 2005 //*6 	//MARIA 0.025	
- 	mykca_init = 0.006*5*0.001  //* 0.1//STEFANOS EDIT    //MARIA 0.003
-
-//Potassium current
-	
-	kad_init =  0.00075*1.2    //*8 //STEFANOS:DONG,WHITE,2003  //MARIA 0.00075 	 	
-	soma_kdBG =  0.0012*4.4      //*0.003 //STEFANOS:DONG,WHITE,2003  //MARIA 0.0012
- 	soma_hbar =  1.872e-5*0.5    	//MARIA 1.872e-5
-	
-//Persistent sodium
-	soma_nap =  1.2e-5  *0.5      //for RS  //MARIA 1e-5
-//----------------------------------------------------------------------------    
-//for sadp induction	  
-    gCAN = 0.0001 	 		 	
-//=====================================================================================
- 
-// Start inserting mechanisms in cell
-	   
-      forsec somatic {
-		//nseg = 21
-            		
-		insert Naf
-			gnafbar_Naf = gna_default*5  
-		insert kdr
-			gkdrbar_kdr = gkdrbar_default
-
-           insert pas    // leak conductance
-                    g_pas =  1/Rm_default
-                    e_pas = v_init
-                    Ra    = Ra_default *1.35
-		         cm = Cm_default
-
-           insert h     // h current 
-                   gbar_h  = soma_hbar
-                   K_h     = 8.8
-                   vhalf_h = -82
-
-  	    	
-	   insert kad  // proximal A current
-                   gkabar_kad = kad_init
-                  
-            insert cal 
-  	      		gcalbar_cal=soma_caL
-
-            insert can
-			gcalbar_can=soma_caN  
- 
-            insert kca
-			gbar_kca = soma_kca
-     
-            insert mykca 
-			gkbar_mykca = mykca_init
-         
-	    insert cad
-	    
-	    insert Ks
-			gKsbar_Ks = soma_kdBG
-		    
-            insert cat 
-                   gcatbar_cat = soma_caT   
-	    
-	    insert car
-			gcabar_car=soma_car
-	    insert nap	
-		gnabar_nap=soma_nap*0.1
- 
-	    insert ican
-                 gbar_ican  = gCAN
-		
-		//==========================================
-	
-            //$o1.tmpo2.color(2)            
-      }
-
-//  Configure Axon
-
-        forsec axonal {
-		//nseg=5
-
-		insert Naf
-			gnafbar_Naf = gna_default*10
-		insert kdr
-			gkdrbar_kdr = gkdrbar_default  
-              insert pas  // leak conductance
-                    g_pas       = 1/Rm_default
-                    e_pas       = v_init
-                    Ra          = Ra_default
-                    cm          = Cm_default
-		                                           
-               //$o1.tmpo2.color(1)
-
-		//MARIA:
-/*
-		insert kad  
-                	gkabar_kad     = kad_init*10
-		insert Ks
-			gKsbar_Ks = soma_kdBG
 */
-
-      }
-	
-    
-//Include all apical dendrites
-
-
-//  Configure apical trunk
- access soma
-distance()
-
-      
-       forsec apical {
-	
-           insert Naf
-			gnafbar_Naf = gna_default*0.2 
-		insert kdr 
-			gkdrbar_kdr=gkdrbar_default*0.001   
-                    
-          insert pas // leak conductance
-                  
-		    e_pas          = v_init                 
-		    Ra             = Ra_default*0.5	//MARIA Ra_default
-                    cm             = 1.2  
-         	    Rm_sigmoid_apical()         	 
-	
-	//add ICAN  in dendrites but smaller
-	 insert ican
-         gbar_ican  = gCAN*0.1
-	  
-	apical_mechanisms()   
-
-           
-// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
-
-         //$o1.defvar("channel:na", "max_ar2", "0.95", "Somatic value of ar2")  //original 0.95
-         //$o1.defvar("channel:na", "min_ar2", "0.30", "Minimum value of ar2")
-         //$o1.defvar("channel:na", "decay_end", "300.0", "Distance beyond which all values are min_ar2") //800 for pfc
-         //$o1.defvar("channel:na", "decay_start", "50.0", "Distance at which ar2 starts to decrease")
-max_ar2=0.95
-min_ar2=0.30
-decay_end=300.0
-decay_start=50.0
-         m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
-            for (x) {
-                xdist = distance(x)
-                if (xdist < decay_start) { 
-                  ar2_Naf(x) = max_ar2 
-                } else if (xdist > decay_end) {               
-                  ar2_Naf(x) = min_ar2 
-                } else {               
-               ar2_Naf(x) = max_ar2 + m_ar2*xdist
-                }
-            }
-            //ar2_log("linear", "min_ar2*max_ar2*m_ar2*decay_start*decay_end",$o1)
-	}
-
-	
-
-// Configure the basal dendrites
-
-	access soma
-	distance()
-
-/*if (basal_fAHP.x[$1] != 0){
-printf("Basal fAHP in PC#%d, mykca is: %f\n",$1,basal_fAHP.x[$1])
-}
-if (basal_sAHP.x[$1] != 0){
-printf("Basal sAHP in PC#%d, kca is: %f\n",$1,basal_sAHP.x[$1])
-}*/
-
-   forsec basal {
-		/*if (basal_fAHP.x[$1] != 0){
-		insert mykca
-			gkbar_mykca = basal_fAHP.x[$1]
-		}
-		if (basal_sAHP.x[$1] != 0){
-		insert kca
-			gbar_kca = basal_sAHP.x[$1]
-		}*/
-			
-            
-		insert Naf
-			gnafbar_Naf = gna_default*0.1
-		insert kdr
-			gkdrbar_kdr=gkdrbar_default*0.09  
-
-            insert pas // passive properties
-                    e_pas          = v_init
-                    Ra             = Ra_default  
-                    cm             = Cm_dend
-			    Rm_sigmoid_basal()  
-
-	//add ICAN  in dendrites but smaller
-	 insert ican
-         gbar_ican  = gCAN*0.1
-	  
-
-                
-// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
-
-         //$o1.defvar("channel:na", "max_ar2", "0.95", "Somatic value of ar2")  //original 0.95
-         //$o1.defvar("channel:na", "min_ar2", "0.30", "Minimum value of ar2")
-         //$o1.defvar("channel:na", "decay_end", "50.0", "Distance beyond which all values are min_ar2") 
-         //$o1.defvar("channel:na", "decay_start", "20.0", "Distance at which ar2 starts to decrease")
-max_ar2=0.95
-min_ar2=0.30
-decay_end=50.0
-decay_start=20.0
-
-         m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
-            for (x) {
-                xdist = distance(x)
-                if (xdist < decay_start) { 
-                  ar2_Naf(x) = max_ar2 
-                } else if (xdist > decay_end) {               
-                  ar2_Naf(x) = min_ar2 
-                } else {               
-               ar2_Naf(x) = max_ar2 + m_ar2*xdist
-                }
-            }
-            //ar2_log("linear", "min_ar2*max_ar2*m_ar2*decay_start*decay_end",$o1)
-             
-	
-        //$o1.tmpo2.color(5)
-     } 
-   
-	khbasal_fixed() // Configure basal dendrites //Outside of the basal loop???!?        
-   
-  
-
-  forsec somatic { g_pas=1/Rm_default } // force Rm at all soma sections
-
-    
-forall {
-	if (ismembrane("Naf")) {ena = 55}
-	if (ismembrane("k_ion")) { ek = -85}
-     
-     if(ismembrane("ca_ion")) {
-      eca = 140
-     cai0_ca_ion =  2.4e-6 // for pump  
-     cao = 2
-     ion_style("ca_ion",3,2,1,1,1)
-     }
-
-  //}// ?!?
-
- 
-  //print the cell shape in the experiment folder
-   //sprint($o1.tmp_str2, "%s/configure_sections.eps", $o1.generic_dir)
-   //$o1.tmpo2.printfile($o1.tmp_str2)
-  
-   //$o1.xopen_library("Terrence","current-balance") // balance current to -66 mV
-
-}
-
-} //END INIT() PROC
 
 endtemplate PCcell
 
@@ -685,7 +576,7 @@ objref FL[56]
   FL[8]=new String("35-2_axon.hoc")
   FL[9]=new String("35-3a_axon.hoc")
   FL[10]=new String("35-3_axon.hoc")
-  FL[11]=new String("36-4a_axon.hoc")
+  FL[11]=new String("36-4a_axon.hoc") //changed to apic[1]!
   FL[12]=new String("36-4b_axon.hoc")
   FL[13]=new String("36-4_axon.hoc")
   FL[14]=new String("37-3_axon.hoc")
@@ -731,23 +622,26 @@ objref FL[56]
   FL[54]=new String("q-4a_axon.hoc")
   FL[55]=new String("q-4_axon.hoc")
 
-objref PCcells[nPCcells], PCgids
+
+objref PCcells, PCgids
+PCcells=new List()
+PCgids=new Vector()
 strdef filename,basename
 basename="../../morphology/smith_new_axon/"
 proc createPyrs(){ local i,host,gid localobj cell,mynil
 	if(PARALLEL){
-		  PCcells=new List()
-		  PCgids=new Vector()
-		  if(PC.id==0) printf("initializing PCs...\n")      
+		{PC.barrier()}
+		  if(PC.id==0) {printf("initializing PCs...\n") }     
 		    for i=0,nPCcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
 		      host=i%PC.nhost
 		      gid=ind2gid(i,0)
-		      PCgids.append(gid)      
+
 		      if(host==PC.id){
-			//if(PC.id==0) { printf("initializing cell %d\n",i) }
-			sprint(filename,"%s%s",basename,FL[num2ind(i)].s)        
+			PCgids.append(gid)  
+			sprint(filename,"%s%s",basename,FL[num2ind(int(PcellIDlist.x[i]))].s)   
+			print "@ ",host, "GID ", gid, " Creating morph:\n"     
 			cell = new PCcell(gid,filename)
-			cell.position((i+.5)*len/nPCcells, 0, 0)
+			//cell.position((i+.5)*len/nPCcells, 0, 0)
 			PC.set_gid2node(gid,PC.id)
 			cell.axon {//synapse_source(gid)//,&v(1))
 			  PC.cell(gid,new NetCon(&v(1), mynil),1)
@@ -758,12 +652,13 @@ proc createPyrs(){ local i,host,gid localobj cell,mynil
 		  }
 	}else{
 		  for i = 0, (nPCcells-1) {
-			//printf("Picking Morphology #%d...\n",int(PcellIDlist.x[i]))
-			cc = int(PcellIDlist.x[i])//PYID
-		      sprint(filename,"%s%s",basename,FL[num2ind(cc)].s)
-		      PCcells[i] = new PCcell(cc,filename)
+			sprint(filename,"%s%s",basename,FL[num2ind(int(PcellIDlist.x[i]))].s)
+			cell = new PCcell(i,filename)
+			PCcells.append(cell) 
+			PCgids.append(i)
 		  }
 	}
+
 }
 
 createPyrs()
@@ -778,67 +673,29 @@ PCdend_list = new SectionList()
 PCcell_list = new SectionList()
 cell0_list=new SectionList()
 
-if(PARALLEL){
-	for i=0,(PCcells.count()-1){
 
-	  PCcells.o(i).soma PCsoma_list.append()
+for i=0, PCcells.count()-1 {
+
+	PCcells.o(i).soma PCsoma_list.append()
 	PCcells.o(i).DendNo=0
-	  forsec PCcells.o(i).basal {
+	forsec PCcells.o(i).basal {
 		PCbasal_list.append()  
 		PCdend_list.append()
-		PCcells.o(i).DendNo+=1  
-	  }
-
-	  PCcells.o(i).ApicNo=0
-	  forsec PCcells.o(i).apical {
-	    PCapical_list.append()  
-	    PCdend_list.append()
-	    PCcells.o(i).ApicNo+=1  // as far as I know, there is no better way of counting members of a SectionList
-	  }
-
-	  forsec PCcells.o(i).all {
-	    PCcell_list.append()
-	  }
+		PCcells.o(i).DendNo+=1 
 	}
 
-	
-
-	if(PC.id==0){ // what's that for?
-	  PCcells.o(0).soma cell0_list.append()
-	  forsec PCcells.o(0).basal {
-	    cell0_list.append()
-	  }
-	  forsec PCcells.o(0).apical {	
-	    cell0_list.append()
-	  }
+	PCcells.o(i).ApicNo=0
+	forsec PCcells.o(i).apical {
+		PCapical_list.append()  
+		PCdend_list.append()
+		PCcells.o(i).ApicNo+=1 
 	}
-}else{
-	for(i=0;i<nPCcells;i=i+1) {
-	  PCcells[i].soma PCsoma_list.append()
-
-	  forsec PCcells[i].basal { 
-	    PCbasal_list.append()
-	  }
-
-	  forsec PCcells[i].apical {
-	    PCapical_list.append()
-	  }
-
-	  forsec PCcells[i].basal {
-	    PCdend_list.append()
-	  }
-
-	  forsec PCcells[i].apical {
-	    PCdend_list.append()
-	  }
-
-	  forsec PCcells[i].all {
-	    PCcell_list.append()
-	  }
+	forsec PCcells.o(i).all {
+		PCcell_list.append()
 	}
+
 }
 
-
-printf("Applying PC current balance\n")
-xopen ("../../lib/current-balance.hoc")
-current_balance(v_init)
+//printf("Applying PC current balance\n")
+{xopen ("../../lib/current-balance.hoc")}
+{current_balance(v_init)}
