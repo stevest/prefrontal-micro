@@ -136,20 +136,21 @@ dend {
 endtemplate CBcell
 
 //Creating new interneurons
-objref CBcells[nCBcells], CBgids
+objref CBcells, CBgids
+CBcells = new List() 
+CBgids=new Vector()
 proc createCBs(){local i,gid_offset localobj cell,mynil
 	if(PARALLEL){
-		CBcells = new List() 
-		  CBgids=new Vector()
-		  if(PC.id==0) printf("initializing CBs...\n")      
+		{PC.barrier()}
+		  if(PC.id==0) {printf("initializing CBs...\n")   }   
 		    for i=0,nCBcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
 		      host=i%PC.nhost
 		      gid=ind2gid(i,2)
-		      CBgids.append(gid)
+		     
 		      if(host==PC.id){
-		//        if(PC.id==0) { printf("initializing IN %d\n",i) }
+			 CBgids.append(gid)
 			cell = new CBcell(gid)
-			cell.position((i+.5)*len/nCBcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
+			//cell.position((i+.5)*len/nCBcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
 			PC.set_gid2node(gid,PC.id)
 			cell.axon {//synapse_source(gid)//,&v(1))
 			  PC.cell(gid,new NetCon(&v(1), mynil),1)
@@ -160,7 +161,9 @@ proc createCBs(){local i,gid_offset localobj cell,mynil
 		  }
 	}else{
 		for i = 0, nCBcells-1 {
-		CBcells[i] = new CBcell()
+			cell = new CBcell()
+			CBcells.append(cell)
+			CBgids.append(i)
 		}
 	}
 }
@@ -172,21 +175,12 @@ objref CBsoma_list, CBcell_list
 CBsoma_list = new SectionList()
 CBcell_list = new SectionList()
 
-if(PARALLEL){
-	for i=0,CBcells.count()-1{
+for i=0,CBcells.count()-1{
 	CBcells.o(i).soma CBsoma_list.append()
 	CBcells.o(i).soma CBcell_list.append()
 	CBcells.o(i).axon CBcell_list.append()
 	CBcells.o(i).dend CBcell_list.append()
-	}
-}else{
-	for i=0, nCBcells-1 {
-	CBcells[i].soma CBsoma_list.append()
-	CBcells[i].soma CBcell_list.append()
-	CBcells[i].axon CBcell_list.append()
-	CBcells[i].dend CBcell_list.append()
-	}
 }
 
-xopen("../../lib/current-balanceCB.hoc")
-current_balanceCB(-64)  
+{xopen("../../lib/current-balanceCB.hoc")}
+{current_balanceCB(-64) } 

@@ -143,21 +143,22 @@ dend[1] {
 endtemplate CRcell
 
 //Creating new interneurons
-objref CRcells[nCRcells], CRgids
-
+objref CRcells, CRgids
+CRcells = new List() 
+CRgids=new Vector()
 proc createCRs(){local i,gid_offset localobj cell,mynil
 if(PARALLEL){
-	CRcells = new List() 
-	CRgids=new Vector()
-	if(PC.id==0) printf("initializing CRs...\n")      
+	{PC.barrier()}
+	if(PC.id==0) {printf("initializing CRs...\n")  }    
 	for i=0,nCRcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
 		host=i%PC.nhost
 		gid=ind2gid(i,3)
-		CRgids.append(gid)
+
 		if(host==PC.id){
+				CRgids.append(gid)
 			//        if(PC.id==0) { printf("initializing IN %d\n",i)  }
 			cell = new CRcell(gid)
-			cell.position((i+.5)*len/nCRcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
+			//cell.position((i+.5)*len/nCRcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
 			PC.set_gid2node(gid,PC.id)
 			cell.axon {//synapse_source(gid)//,&v(1))
 			PC.cell(gid,new NetCon(&v(1), mynil),1)
@@ -168,7 +169,9 @@ if(PARALLEL){
 	}
 }else{
 	for i = 0, nCRcells-1 {
-	CRcells[i] = new CRcell()
+		cell = new CRcell()
+		CRcells.append(cell)
+		CRgids.append(i)
 	}
 }
 }
@@ -181,23 +184,13 @@ objref CRsoma_list, CRcell_list
 CRsoma_list = new SectionList()
 CRcell_list = new SectionList()
 
-if(PARALLEL){
-	for i=0,(CRcells.count()-1) {      
-		CRcells.o(i).soma CRsoma_list.append()
-		CRcells.o(i).soma CRcell_list.append()
-		CRcells.o(i).axon CRcell_list.append()
-		CRcells.o(i).dend CRcell_list.append()
-	}
-}else{
-	for i=0, nCRcells-1 {
-		CRcells[i].soma CRsoma_list.append()
-		CRcells[i].soma CRcell_list.append()
-		CRcells[i].axon CRcell_list.append()
-		CRcells[i].dend[0] CRcell_list.append()
-		CRcells[i].dend[1] CRcell_list.append()
-	}
+
+for i=0,(CRcells.count()-1) {      
+	CRcells.o(i).soma CRsoma_list.append()
+	CRcells.o(i).soma CRcell_list.append()
+	CRcells.o(i).axon CRcell_list.append()
+	CRcells.o(i).dend CRcell_list.append()
 }
 
-
-xopen("../../lib/current-balanceCR.hoc")
-current_balanceCR(-70)  
+{xopen("../../lib/current-balanceCR.hoc")}
+{current_balanceCR(-70) } 

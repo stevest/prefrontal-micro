@@ -9,11 +9,12 @@ nAllCells=53
 len = 1000 // size of the linear domain, mitral positions range from 0 to len
 
 // Experimental setup
-tstop=5000
+tstop=500
 steps_per_ms=10
-dt=0.1
+dt=1/steps_per_ms
 n=int(tstop/dt)
 celsius=34
+TOTALRUNS = 0
 PLOT = 1
 DEBUG = 0
 
@@ -97,7 +98,7 @@ if(PARALLEL){
 
 
 // given a cell index ($1) and the type of cell ($2), return the gid
-// As for $2, 0 stands for pyramidal cells, 1 for INs, 2 for CBs, and 3 for CRs
+// As for $2, 0 stands for pyramidal cells, 1 for PVs, 2 for CBs, and 3 for CRs
 objref offsets
 {offsets = new Vector()}
 {offsets.append(0,nPCcells,nPVcells,nCBcells,nCRcells)}
@@ -109,3 +110,74 @@ func ind2gid(){local i
   if(i>=offsets.sum(0,$2+1)) { i-=1 }   
   return i 
 }
+
+
+// register the connection target locally given a synapse gid and a synapse mechanism as arguments
+// if given additional (optional) arguments, it will set them as weight, delay, and threshold, respectively
+// http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2158
+obfunc makeSynapse(){ localobj nc, src
+	if(PARALLEL){
+		nc=PC.gid_connect($2,$o3)
+	
+	}else{
+		src = $o1
+		access src.o($2).axon
+		nc = new NetCon(&v(x),$o3)
+	}
+	nc.threshold = $4
+	nc.delay = $5
+	nc.weight = $6
+	return nc
+}
+
+strdef mname,sprop,tempString
+objref mt,pp,mechFile
+
+proc sectionPointMechSnapshot(){ local z localobj lo,mt
+	mechFile = new File()
+	mechFile.wopen($s1)
+	mt = new MechanismType(1)
+	for z=0,mt.count()-1{
+		mt.select(z)
+		mt.selected(mname)
+		mt.internal_type()
+		for (pp = mt.pp_begin(); object_id(pp) != 0; pp = mt.pp_next()) {
+			x = pp.get_loc()
+			//printf("%s located at %s(%g)\n", pp, secname(),x)
+			mechFile.printf("%s located at %s(%g)\n", pp, secname(),x)
+			pop_section()
+		}
+	}
+	mechFile.close()
+}
+
+proc sectionMembraneMechSnapshot(){ local z,j,val localobj lo,mt,ms
+	mechFile = new File()
+	mechFile.wopen($s1)
+	//printf("Snapshot: %15s -> %20s -> %s \n","Mechanism","Property","Value")	
+	mechFile.printf("Snapshot: %15s -> %20s -> %s \n","Mechanism","Property","Value")
+	mt = new MechanismType(0)
+	for z=0,mt.count()-1{
+		mt.select(z)
+		mt.selected(mname)
+
+		ms = new MechanismStandard(mname, 0)
+		for j=0, ms.count()-1 {
+			k = ms.name(sprop, j)
+			val = ms.get(sprop)
+			//printf("Snapshot: %15s -> %20s -> %010.30f \n",mname,sprop, val)
+			mechFile.printf("Snapshot: %15s -> %20s -> %010.30f \n",mname,sprop, val)
+		}
+		
+	}
+	mechFile.close()
+}
+/*
+proc compareCells(){
+	//use gids!
+	if(PARALLEL)
+	forsec PCsoma_list {
+		{ sectionPointMechSnapshot() }
+		{ sectionMembraneMechSnapshot() }
+	}
+}*/

@@ -1,169 +1,58 @@
 //--------This script is made to Store data (voltage & synaptic currents)
 //--------Written 7-11-09, Nassi
-proc save_runsParams() {
 
-Params = new File()		
-sprint(temp,"%s/%s/%s/Params.txt", data_dira, data_dirb, data_dirc)
-print temp //DEBUG
-Params.wopen(temp)
-Params.printf ("TotalRunsNo %d \n",TOTALRUNS)
-Params.printf ("PFcellsNo %d \n",nPcells)
-Params.printf ("INcellsNo %d \n",nINcells)
-Params.close()
-
-}
-
-
-proc save_distances() {
-
+objref PCvsoma,PVvsoma,CBvsoma,CRvsoma
+proc save_membrane_voltage() { //local ctr
 lets=1+runs
-
-DendDist = new File()		
-sprint(temp,"%s/%s/%s/dendDistances_%d.txt", data_dira, data_dirb, data_dirc, lets)
-print temp //DEBUG
-DendDist.wopen(temp)
-for Rows=0, (nPcells-1)  {
-	for Cols=0, (maxsyn){//because we have one autapse too!
-		DendDist.printf ("%f ",distancesMat.x[Rows][Cols])
-	}
-	DendDist.printf ("\n")
-}
-DendDist.close()
-
-}
-
-
-proc save_PID() {
-
-lets=1+runs
-
-
-sprint(temp,"%s/%s/%s/PIDdata_%d.txt", data_dira, data_dirb, data_dirc, lets)
-print temp //DEBUG
-pidData	= new File()
-
-pidData.wopen(temp)
-for Rows=0, (nPcells-1)  {
-	for Cols=0, (maxsyn){ //because we have one autapse too!
-		pidData.printf ("%f ",pidMat.x[Rows][Cols])
-	}
-	pidData.printf ("\n")
-}
-pidData.close()
-
-}
-
-
-proc save_membrane_voltage() {
-lets=1+runs
-
-for sa=0, (nPcells-1) {
-	vsoma = new File()		
-	sprint(temp,"%s/%s/%s/soma_%d_run_%d.txt", data_dira, data_dirb, data_dirc, sa+1,lets)
-	vsoma.wopen(temp)
+//ctr=0
+for sa=0, (nPCcells-1) {
+	PCvsoma = new File()		
+	sprint(temp,"%s/PCsomaV_%d_run_%d.txt", foutput, sa,lets)
+	PCvsoma.wopen(temp)
 	for sb=0, PCv[sa].size()-1 { 
-		vsoma.printf ("%f\n",PCv[sa].x[sb])
+		PCvsoma.printf ("%f\n",PCv[sa].x[sb])
 	}
-	vsoma.close()
-
+	PCvsoma.close()
+	//ctr=ctr+1
 }
 
-
-
-
-
-/*
-vsoma1 = new File()		
-sprint(temp,"%s/%s/%s/somaa_%d.dat", data_dira, data_dirb, data_dirc, lets)
-vsoma1.wopen(temp)
-for j=0, PCv[0].size()-1 {
-vsoma1.printf ("%f\n",PCv[0].x[j])
-}
-vsoma1.close()
-
-vsoma2 = new File()		
-sprint(temp,"%s/%s/%s/somab_%d.dat", data_dira, data_dirb, data_dirc, lets)
-vsoma2.wopen(temp)
-for j=0, PCv[1].size()-1 {
-vsoma2.printf ("%f\n",PCv[1].x[j])
-}
-vsoma2.close()
-
-vsoma3 = new File()		
-sprint(temp,"%s/%s/%s/somac_%d.dat", data_dira, data_dirb, data_dirc, lets)
-vsoma3.wopen(temp)
-for j=0, PCv[2].size()-1 {
-vsoma3.printf ("%f\n",PCv[2].x[j])
-}
-vsoma3.close()
-
-vsoma4 = new File()		
-sprint(temp,"%s/%s/%s/somad_%d.dat", data_dira, data_dirb, data_dirc, lets)
-vsoma4.wopen(temp)
-for j=0, PCv[3].size()-1 {
-vsoma4.printf ("%f\n",PCv[3].x[j])
-}
-vsoma4.close()
-*/
-for sa=0, (nINcells-1) {
-	insoma = new File()		
-	sprint(temp,"%s/%s/%s/insoma_%d_run_%d.txt", data_dira, data_dirb, data_dirc,sa+1, lets)
-	insoma.wopen(temp)
-	for sb=0,INv[sa].size()-1 {
-		insoma.printf ("%f\n",INv[sa].x[sb])
+for sa=0, (nPVcells-1) {
+	PVvsoma = new File()		
+	sprint(temp,"%s/PVsomaV_%d_run_%d.txt", foutput, sa,lets)
+	PVvsoma.wopen(temp)
+	for sb=0, PVv[sa].size()-1 { 
+		PVvsoma.printf ("%f\n",PVv[sa].x[sb])
 	}
-	insoma.close()
-	
-}
-/*
-insomab = new File()		
-sprint(temp,"%s/%s/%s/insomab%d.dat", data_dira, data_dirb, data_dirc, lets)
-insomab.wopen(temp)
-for j=0,INv[1].size()-1 {
-insomab.printf ("%f\n",INv[1].x[j])
-}
-insomab.close()
-*/
+	PVvsoma.close()
+	//ctr=ctr+1
 }
 
-
-proc save_currents() {
-lets=1+runs
-
-curampa = new File()		
-sprint(temp,"%s/%s/%s/ampa%d.txt", data_dira, data_dirb, data_dirc, lets)
-curampa.wopen(temp)
-for j=0,ampac.size()-1 {
-curampa.printf ("%f\n",ampac.x[j])
+for sa=0, (nCBcells-1) {
+	CBvsoma = new File()		
+	sprint(temp,"%s/CBsomaV_%d_run_%d.txt", foutput, sa,lets)
+	CBvsoma.wopen(temp)
+	for sb=0, CBv[sa].size()-1 { 
+		CBvsoma.printf ("%f\n",CBv[sa].x[sb])
+	}
+	CBvsoma.close()
+	//ctr=ctr+1
 }
-curampa.close()
 
-curnmda = new File()		
-sprint(temp,"%s/%s/%s/nmda%d.txt", data_dira, data_dirb, data_dirc, lets)
-curnmda.wopen(temp)
-for j=0,nmdac.size()-1 {
-curnmda.printf ("%f\n",nmdac.x[j])
+for sa=0, (nCRcells-1) {
+	CRvsoma = new File()		
+	sprint(temp,"%s/CRsomaV_%d_run_%d.txt", foutput, sa,lets)
+	CRvsoma.wopen(temp)
+	for sb=0, CRv[sa].size()-1 { 
+		CRvsoma.printf ("%f\n",CRv[sa].x[sb])
+	}
+	CRvsoma.close()
+	//ctr=ctr+1
 }
-curnmda.close()
-
-curgabaa = new File()		
-sprint(temp,"%s/%s/%s/gabaa%d.txt",data_dira, data_dirb, data_dirc, lets)
-curgabaa.wopen(temp)
-for j=0,gabaac.size()-1 {
-curgabaa.printf ("%f\n",gabaac.x[j])
-}
-curgabaa.close()
-
-curgabab = new File()		
-sprint(temp,"%s/%s/%s/gabab%d.txt", data_dira, data_dirb, data_dirc, lets)
-curgabab.wopen(temp)
-for j=0,gababc.size()-1 {
-curgabab.printf ("%f\n",gababc.x[j])
-}
-curgabab.close()
 
 }
 
-//delays.printf("%f\n", delstiminp)
+
+
+
 
 

@@ -5,3 +5,7 @@
 # temp files
 *.*~
 
+# result folders
+single_core/
+multi_core/
+

@@ -23,10 +23,10 @@ if(!xopen("pv.hoc")){print "ERROR	Failed to load interneuron hoc!"}
 {xopen("cb.hoc")} // Xenia's interneurons: load template for CB/LTS interneuron
 {xopen("cr.hoc")} // Xenia's interneurons
 
-if(!xopen("NMDA_Array_1_1.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
-if(!xopen("AMPA_Array_1_1.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
+if(!xopen("NMDA_Array_1_5.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
+if(!xopen("AMPA_Array_1_5.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
 if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
-
+{xopen ("record_par.hoc")}
 
 proc report_gidvecs() { local i, rank
 	// reports distribution of cells across hosts
@@ -44,7 +44,7 @@ proc report_gidvecs() { local i, rank
 	}
 }
 
-
+/*
 // returns true if a given gid is running on the current host
 func is_gid_here(){
 	gid=$1
@@ -81,14 +81,14 @@ proc printallkbars(){localobj vfilePC
 	}
 	vfilePC.close()
 }
-
+*/
 
 
 //--------------------------------------Graphs
 if(!PARALLEL){
-	//if(PLOT){for j=0, (nPCcells-) {addgraph_2("PCcells[j].soma.v(0.5)", 0,tstop, -70, 50)}}
-	addgraph_2("PCcells[0].soma.v(0.5)", 0,tstop, -70, 50)
-	addgraph_2("PCcells[1].soma.v(0.5)", 0,tstop, -70, 50)
+	if(PLOT){for j=0, 10 {addgraph_2("PCcells.o(j).soma.v(0.5)", 0,tstop, -70, 50)}}
+	//addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -70, 50)
+	/*addgraph_2("PCcells[1].soma.v(0.5)", 0,tstop, -70, 50)
 	addgraph_2("PCcells[2].soma.v(0.5)", 0,tstop, -70, 50)
 	addgraph_2("PCcells[3].soma.v(0.5)", 0,tstop, -70, 50)
 	addgraph_2("PCcells[4].soma.v(0.5)", 0,tstop, -70, 50)
@@ -99,7 +99,7 @@ if(!PARALLEL){
 	addgraph_2("PCcells[9].soma.v(0.5)", 0,tstop, -70, 50)
 	addgraph_2("PVcells[0].soma.v(0.5)", 0,tstop, -70, 50)
 	addgraph_2("CBcells[0].soma.v(0.5)", 0,tstop, -70, 50)
-	addgraph_2("CRcells[0].soma.v(0.5)", 0,tstop, -70, 50)
+	addgraph_2("CRcells[0].soma.v(0.5)", 0,tstop, -70, 50)*/
 	//addgraph_2("Pcells[0].soma.v(0.5)", 0,tstop, -70, 50)
 	//addgraph_2("Pcells[2].soma.v(0.5)", 0,tstop, -70, 50)
 	/*addgraph_2("Pcells[3].soma.v(0.5)", 0,tstop, -70, 50)
@@ -116,7 +116,7 @@ if(!PARALLEL){
 
 
 //addgraph_2("INcells[0].soma.v(0.5)", 0,tstop, -80, 50)
-if(PLOT){splot=new Shape()}
+//if(PLOT){splot=new Shape()}
 //forsec Pcells[0].somatic {shape.color(2)}
 //forsec Pcells[0].axonal {shape.color(5)}
 //forsec Pcells[0].basal {shape.color(3)}
@@ -130,75 +130,111 @@ strdef syscmd, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr
 strdef temp
 //objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, insomab, curampa, curnmda, curgabaa, curgabab, DendDist, Params
 //objref campa[PC2PC_MaxSyn], ct[8][Stim_MaxSyn], cnmda[PC2PC_MaxSyn], cnmdat[Stim_MaxSyn], cgabaa[PV2PC_MaxSyn], campaa[PC_MaxAutosyn], cnmdaa[PC_MaxAutosyn], campain[Stim_MaxSyn], cnmdain[Stim_MaxSyn], cgabaat[PV2PC_MaxSyn], cgabab[PV2PC_MaxSyn], cgababt[PV2PC_MaxSyn], ampac, nmdac, gabaac, gababc	
-objref gababweights, nmdaweights, adpweights
+//objref gababweights, nmdaweights, adpweights
 //----record total cell population spike activity
 objref timevec, idvec, recncs, tobj, nil, total_activity
-xopen("values_gabaweight.hoc")
-xopen("values_nmda.hoc")
-xopen("values_adp.hoc")
+//xopen("values_gabaweight.hoc")
+//xopen("values_nmda.hoc")
+//xopen("values_adp.hoc")
 
-			
-for adpvalues=0,0 {
-	fadp=0.99// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
-	sprint(data_dira,"adp%.3f",fadp)
-	sprint(syscmd,"mkdir -p %s",data_dira) 	
-	system(syscmd)
+strdef foutput
 
-	for nmdavalues=0,0 { 
-		nmdaweight=nmdaweights.get[nmdavalues]
-		sprint(data_dirb,"nmda%.2f",nmdaweight)
-		sprint(syscmd,"mkdir -p %s/%s", data_dira, data_dirb) 	
+fadp=0.99// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
+
+for runs = 0, TOTALRUNS {
+
+	if(PARALLEL){
+		if(DEBUG){report_gidvecs()}
+		{ PC.barrier()	}
+		{ PC.set_maxstep(steps_per_ms) }
+		if (PC.id==0){ 
+			printf("Current run is: %d\n",runs)
+			print "Loading ... ",runs, " in host ", PC.id
+			print "maxstep=",steps_per_ms
+		}  
+	}else{
+		foutput = "single_Core"
+		sprint(syscmd,"mkdir -p %s/",foutput) 	
 		system(syscmd)
-		
-		for gababvalues=0,0 {
-			gabaweightb=1.05e-4*0.3//According to Thomson(1999)
-
-			sprint(data_dirc,"gb%f",gabaweightb)
-			sprint(syscmd,"mkdir -p %s/%s/%s",data_dira, data_dirb, data_dirc) 	
-			system(syscmd)
-
-			sadp_soma()
-			sadp_dend()
-			sadp_apical()  //mplokara kai stous apical
-			
-			//ECA_30()
-			//thinner_basal()
-			//thinner_apical()
-
-			for runs = 0,100 {//0, TOTALRUNS {
-				
-				stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
-				//backgroundActivity(runs)
-				connectPC2PC(runs)
-				connectPV2PV(runs)
-				connectPC2PV(runs)
-				connectPC2CB(runs)
-				connectPC2CR(runs)
-				connectPV2PC(runs)
-				connectCB2PC(runs)
-				connectCR2PC(runs)
-				connectCR2CB(runs)
-
-				//noise(runs) 
-				//PV_NetStim()
-				//oneCellclamp()
-				//train()
-				//xopen("recordandsave/record.hoc")
-				//xopen("recordandsave/save_data.hoc")
-				//rec_membrane_voltage()
-
-				run()
-
-				printf("DEBUG: Saving runs Params...\n")
-				
-				//save_distances()
-				printf("DEBUG: DONE Saving Distances...\n")
-				//save_membrane_voltage()
-				printf("DEBUG: DONE Saving Voltages...\n")
-				//save_PID()
-				printf("DEBUG: DONE Saving PIDs...\n")
-				
-			}
-		}
+		xopen("recordandsave/record.hoc")
+		xopen("recordandsave/save_data.hoc")
 	}
+
+	//sadp_soma()
+	//sadp_dend()
+	//sadp_apical()  //mplokara kai stous apical
+
+	//ECA_30()
+	//thinner_basal()
+	//thinner_apical()
+			
+	stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
+
+	//backgroundActivity(runs)
+	/*connectPC2PC(runs)
+	connectPV2PV(runs)
+	connectPC2PV(runs)
+	connectPC2CB(runs)
+	connectPC2CR(runs)
+	connectPV2PC(runs)
+	connectCB2PC(runs)
+	connectCR2PC(runs)
+	connectCR2CB(runs)*/
+	//noise(runs) 
+
+	//PCcells.o(0).dend[0] { sectionPointMechSnapshot() }
+	//PCcells.o(2).soma[0] { sectionMembraneMechSnapshot("somaMech.txt") }
+	//PCcells.o(0).dend[0] { print nseg}
+
+	if(PARALLEL){
+		for lala=0,offsets.x(5)-1{ // record all cells!
+		  par_rec_membrane_voltage(lala)
+		}
+
+		stdinit()
+		runtime=startsw()
+		PC.psolve(tstop)
+		runtime = startsw() - runtime
+
+		if (PC.id==0){
+		print "node ", PC.id, "reached tstop"
+		}
+
+		{ PC.barrier()	} 
+		par_save_membrane_voltage()
+	}else{
+		rec_membrane_voltage()
+
+		runtime=startsw()
+		run()
+		runtime = startsw() - runtime
+		printf("Runtime: %10.4g\n", runtime)
+		
+		if(DEBUG){printf("DEBUG: Saving runs Params...\n")}
+		//save_distances()
+		if(DEBUG){printf("DEBUG: DONE Saving Distances...\n")}
+		save_membrane_voltage()
+		if(DEBUG){printf("DEBUG: DONE Saving Voltages...\n")}
+		//save_PID()
+		if(DEBUG){printf("DEBUG: DONE Saving PIDs...\n")}
+	}
+	
+	/*for qz=0,PCcells.count()-1 {
+		//printf("%d\n", PCgids.x(qzq))
+		sprint(tempString,"somaMech%d.txt",PCgids.x(qz))
+		print tempString
+		PCcells.o(qz).dend[0] { sectionMembraneMechSnapshot(tempString) }
+	}*/
+
+
 }
+
+if(PARALLEL){
+	//printallkbars()
+	print "Work done on node ", PC.id
+	printf("Runtime: %10.4g\n", runtime)
+	{ PC.runworker() }
+	{ PC.done() }// tell workers to quit
+	quit()
+}
+

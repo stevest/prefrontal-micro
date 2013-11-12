@@ -9,7 +9,7 @@ PcellIDlist = new Vector(nPCcells)
 objref IBlist, RSlist
 objref rRS, rIB
 
-proc chooseMorphologies(){
+proc chooseMorphologies(){ local nIB, nRS  localobj rRS, rIB
 	//argument: percentage of IB cells morphologies in network
 	nIB = nPCcells * $1 / 100	
 	nIB = int(nIB)
@@ -88,7 +88,7 @@ proc chooseMorphologies(){
 	
 
 
-	//Populate the network with RS cells:
+	//Populate the network with cells:
 	rRS = new Random($2 + 1)
 	rIB = new Random($2 + 2)
 	rRS.uniform(0,RSlist.size()-1)
@@ -96,11 +96,11 @@ proc chooseMorphologies(){
 
 	for n=0,(nRS-1){
 		PcellIDlist.x[n] = int(RSlist.x[rRS.repick()])
-		//print PcellIDlist.x[n]
+		//printf("RS #%d\n", PcellIDlist.x[n])
 	}
 	for n=nRS,(nIB+nRS-1){
 		PcellIDlist.x[n] = int(IBlist.x[rIB.repick()])
-		//print PcellIDlist.x[n]
+		//printf("IB #%d\n", PcellIDlist.x[n])
 	}
 	
 }

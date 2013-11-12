@@ -12,790 +12,580 @@ objref r, f, fin, fpin, finp, fp, stimrand
 BDendsNo = 18
 objref SectionArray[nPCcells][BDendsNo]
 objref auxilist_basal[nPCcells] 
-	for lala=0, (nPCcells-1) {
-		auxilist_basal[lala] = new List()
-	}
+for lala=0, (nPCcells-1) {
+	auxilist_basal[lala] = new List()
+}
 objref random_basal[nPCcells]
-	for gaga=0, (nPCcells-1) {
-		random_basal[gaga] = new SectionList()
-	}
-	objref rnd, distancesMat, pidMat
+                    for gaga=0, (nPCcells-1) {
+                    	random_basal[gaga] = new SectionList()
+                    }
+objref rnd, distancesMat, pidMat
 distancesMat = new Matrix(nPCcells,(PC2PC_MaxSyn+2)*nPCcells)
 pidMat = new Matrix(nPCcells,(PC2PC_MaxSyn+2)*nPCcells)
-	//-----------------------Stimulations
-	total=1600
-	lala=20
-	objref nc1[nPCcells][total], ns1, nc2[nPCcells][total], ampapr[nPCcells][total], nmdapr[nPCcells][total], nc3[nPCcells*60][total], ns2, nc4[nPCcells*60][total], ampal[nPCcells][total], nmdal[nPCcells][total], gabaal[nPCcells][total], gababl[nPCcells][total]
-	//------------Second stimulus
-	objref ns3, nc5[nPVcells][total], nc6[nPVcells][total], ampasin[nPVcells][total], nmdasin[nPVcells][total]
-	objref nc7[nPCcells][total], nc8[nPCcells][total], ampasp[nPCcells][total], nmdasp[nPCcells][total]
-	
-	//--------------------PC-PC connections
-	//autosynapses
-	objref autoampaOnPC[nPCcells][PC_MaxAutosyn]
-	objref autonmdaOnPC[nPCcells][PC_MaxAutosyn]
-	objref conautoampaPC2PC[nPCcells][PC_MaxAutosyn]
-	objref conautonmdaPC2PC[nPCcells][PC_MaxAutosyn]
-	//recurrent synapses
-	objref ampaOnPC[nPCcells][nPCcells][PC2PC_MaxSyn]
-	objref nmdaOnPC[nPCcells][nPCcells][PC2PC_MaxSyn]
-	objref conampaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
-	objref connmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
+/*//-----------------------Stimulations
+total=1600
+lala=20
+objref nc1[nPCcells][total], ns1, nc2[nPCcells][total], ampapr[nPCcells][total], nmdapr[nPCcells][total], nc3[nPCcells*60][total], ns2, nc4[nPCcells*60][total], ampal[nPCcells][total], nmdal[nPCcells][total], gabaal[nPCcells][total], gababl[nPCcells][total]
+//------------Second stimulus
+objref ns3, nc5[nPVcells][total], nc6[nPVcells][total], ampasin[nPVcells][total], nmdasin[nPVcells][total]
+objref nc7[nPCcells][total], nc8[nPCcells][total], ampasp[nPCcells][total], nmdasp[nPCcells][total]
+ */
+//-----------------------Stimulations
+objref nc1[nPCcells][Stim_MaxSyn], ns1, nc2[nPCcells][Stim_MaxSyn], ampapr[nPCcells][Stim_MaxSyn], nmdapr[nPCcells][Stim_MaxSyn]
+//PC-PC connections
+//autosynapses
+objref autoampaOnPC[nPCcells][PC_MaxAutosyn]
+objref autonmdaOnPC[nPCcells][PC_MaxAutosyn]
+objref conautoampaPC2PC[nPCcells][PC_MaxAutosyn]
+objref conautonmdaPC2PC[nPCcells][PC_MaxAutosyn]
+//recurrent synapses
+objref ampaOnPC[nPCcells][nPCcells][PC2PC_MaxSyn]
+objref nmdaOnPC[nPCcells][nPCcells][PC2PC_MaxSyn]
+objref conampaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
+objref connmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 
 
-	//--------------------PV-PV connections
-	objref gabaOnPV_A[nPVcells][nPVcells][PV2PV_MaxSyn]
-	objref congabaPV2PV_A[nPVcells][nPVcells][PV2PV_MaxSyn]
+//PV-PV connections
+objref gabaOnPV_A[nPVcells][nPVcells][PV2PV_MaxSyn]
+objref congabaPV2PV_A[nPVcells][nPVcells][PV2PV_MaxSyn]
 
-	//--------------------PC-PV connections
-	objref ampaOnPV[nPCcells][nPVcells][PC2PV_MaxSyn]
-	objref nmdaOnPV[nPCcells][nPVcells][PC2PV_MaxSyn]
-	objref conampaPC2PV[nPCcells][nPVcells][PC2PV_MaxSyn]
-	objref connmdaPC2PV[nPCcells][nPVcells][PC2PV_MaxSyn]
+//PC-PV connections
+objref ampaOnPV[nPCcells][nPVcells][PC2PV_MaxSyn]
+objref nmdaOnPV[nPCcells][nPVcells][PC2PV_MaxSyn]
+objref conampaPC2PV[nPCcells][nPVcells][PC2PV_MaxSyn]
+objref connmdaPC2PV[nPCcells][nPVcells][PC2PV_MaxSyn]
 
-	//--------------------PC-CB connections
-	objref ampaOnCB[nPCcells][nCBcells][PC2CB_MaxSyn]
-	objref nmdaOnCB[nPCcells][nCBcells][PC2CB_MaxSyn]
-	objref conampaPC2CB[nPCcells][nCBcells][PC2CB_MaxSyn]
-	objref connmdaPC2CB[nPCcells][nCBcells][PC2CB_MaxSyn]
+//PC-CB connections
+objref ampaOnCB[nPCcells][nCBcells][PC2CB_MaxSyn]
+objref nmdaOnCB[nPCcells][nCBcells][PC2CB_MaxSyn]
+objref conampaPC2CB[nPCcells][nCBcells][PC2CB_MaxSyn]
+objref connmdaPC2CB[nPCcells][nCBcells][PC2CB_MaxSyn]
 
-	//--------------------PC-CR connections
-	objref ampaOnCR[nPCcells][nCRcells][PC2CR_MaxSyn]
-	objref nmdaOnCR[nPCcells][nCRcells][PC2CR_MaxSyn]
-	objref conampaPC2CR[nPCcells][nCRcells][PC2CR_MaxSyn]
-	objref connmdaPC2CR[nPCcells][nCRcells][PC2CR_MaxSyn]
+//--------------------PC-CR connections
+  objref ampaOnCR[nPCcells][nCRcells][PC2CR_MaxSyn]
+  objref nmdaOnCR[nPCcells][nCRcells][PC2CR_MaxSyn]
+  objref conampaPC2CR[nPCcells][nCRcells][PC2CR_MaxSyn]
+  objref connmdaPC2CR[nPCcells][nCRcells][PC2CR_MaxSyn]
 
-	//--------------------PV-PC connections
-	objref gabaOnPC_A[nPVcells][nPCcells][PV2PC_MaxSyn]
-	objref gabaOnPC_B[nPVcells][nPCcells][PV2PC_MaxSyn]
-	objref congabaPV2PC_A[nPVcells][nPCcells][PV2PC_MaxSyn]
-	objref congabaPV2PC_B[nPVcells][nPCcells][PV2PC_MaxSyn]
+//--------------------PV-PC connections
+  objref gabaOnPC_A[nPVcells][nPCcells][PV2PC_MaxSyn]
+  objref gabaOnPC_B[nPVcells][nPCcells][PV2PC_MaxSyn]
+  objref congabaPV2PC_A[nPVcells][nPCcells][PV2PC_MaxSyn]
+  objref congabaPV2PC_B[nPVcells][nPCcells][PV2PC_MaxSyn]
 
-	//--------------------CB-PC connections
-	objref gabaOnPC_CB_A[nCBcells][nPCcells][CB2PC_MaxSyn]
-	objref congabaCB2PC_A[nCBcells][nPCcells][CB2PC_MaxSyn]
+//--------------------CB-PC connections
+  objref gabaOnPC_CB_A[nCBcells][nPCcells][CB2PC_MaxSyn]
+  objref congabaCB2PC_A[nCBcells][nPCcells][CB2PC_MaxSyn]
 
-	//--------------------CR-PC connections
-	objref gabaOnPC_CR_A[nCRcells][nPCcells][CR2PC_MaxSyn]
-	objref congabaCR2PC_A[nCRcells][nPCcells][CR2PC_MaxSyn]
+//--------------------CR-PC connections
+objref gabaOnPC_CR_A[nCRcells][nPCcells][CR2PC_MaxSyn]
+objref congabaCR2PC_A[nCRcells][nPCcells][CR2PC_MaxSyn]
 
-	//--------------------CR-CB connections
-	objref gabaOnCB_CR_A[nCRcells][nCBcells][CR2CB_MaxSyn]
-	objref congabaCR2CB_A[nCRcells][nCBcells][CR2CB_MaxSyn]
+//--------------------CR-CB connections
+objref gabaOnCB_CR_A[nCRcells][nCBcells][CR2CB_MaxSyn]
+objref congabaCR2CB_A[nCRcells][nCBcells][CR2CB_MaxSyn]
 
+// others
+//objref PCns[nPCcells], PVns[nPVcells], CBns[nCBcells], CRns[nCRcells]
+//objref PCsw[nPCcells], PVsw[nPVcells], CBsw[nCBcells], CRsw[nCRcells]
+objref PCns, PVns, CBns, CRns
+objref PCsw, PVsw, CBsw, CRsw
+/*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             //--------------------Others 
+objref ic, ic1[11]  //IClamp
+objref sinw[nPCcells], w[lala][total][nPCcells], ramp//membrane noise
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            objref insinw[nPVcells], inw[lala][total][nPVcells], ramp
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            //objref variousdata
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            strdef tmpstr */
+//--------------------Background activity 
+objref vstim[nPCcells][500]
+objref ampaBG[nPCcells][500]
+objref VSvector[nPCcells][500]
+objref BG1[nPCcells][500]
 
-	//--------------------Others 
-	objref ic, ic1[11]                  						//IClamp
-	objref sinw[nPCcells], w[lala][total][nPCcells], ramp				//membrane noise
-	objref insinw[nPVcells], inw[lala][total][nPVcells], ramp
-	objref variousdata
-	strdef tmpstr
-	//--------------------Background activity 
-	objref vstim[nPCcells][500]
-	objref ampaBG[nPCcells][500]
-	objref VSvector[nPCcells][500]
-	objref BG1[nPCcells][500]
+//----------------------------------------------Insert noise-----------------------------------------------------------//
+//INSERT MOD FILE FOR SINE WAVE
+proc noise() { local ctr 
+	PCns = new List()
+	PVns = new List()
+	CBns = new List()
+	CRns = new List()
+	PCsw = new List()
+	PVsw = new List()
+	CBsw = new List()
+	CRsw = new List()
 
-	//----------------------------------------------Insert noise-----------------------------------------------------------//
-	//INSERT MOD FILE FOR SINE WAVE
-	experiments=0
-	proc noise() {
-		tot=0
-			totin=0
+	ctr = 0
+	forsec PCsoma_list {
+		PCsw.append( new SinClamp(0.5) )
+		PCsw.o(ctr).del=0  
+		PCsw.o(ctr).dur=tstop
+		PCsw.o(ctr).freq = 80 
+		PCns.append( new Random(ctr+$1) )
+		PCns.o(ctr).poisson(0.02)
+		PCns.o(ctr).play(&PCsw.o(ctr).pkamp)
+		ctr=ctr+1
+	} 
+	ctr = 0
+	forsec PVsoma_list {
+		PVsw.append( new SinClamp(0.5) )
+		PVsw.o(ctr).del=0  
+		PVsw.o(ctr).dur=tstop
+		PVsw.o(ctr).freq = 80 
+		PVns.append( new Random(ctr+$1) )
+		PVns.o(ctr).poisson(0.02)  
+		PVns.o(ctr).play(&PVsw.o(ctr).pkamp)
+		ctr=ctr+1
+	} 
+	ctr = 0
+	forsec CBsoma_list {
+		CBsw.append( new SinClamp(0.5) )
+		CBsw.o(ctr).del=0  
+		CBsw.o(ctr).dur=tstop
+		CBsw.o(ctr).freq = 80 
+		CBns.append( new Random(ctr+$1) )
+		CBns.o(ctr).poisson(0.02)   
+		CBns.o(ctr).play(&CBsw.o(ctr).pkamp)
+		ctr=ctr+1
+	} 
+	ctr = 0
+	forsec CRsoma_list {
+		CRsw.append( new SinClamp(0.5) )
+		CRsw.o(ctr).del=0  
+		CRsw.o(ctr).dur=tstop
+		CRsw.o(ctr).freq = 80 
+		CRns.append( new Random(ctr+$1) )
+		CRns.o(ctr).poisson(0.035)  
+		CRns.o(ctr).play(&CRsw.o(ctr).pkamp)
+		ctr=ctr+1
+	} 
 
-			forsec PCsoma_list {
-				w[experiments][runs][tot]=new Random(tot+$1) 
-					w[experiments][runs][tot].poisson(0.035)    
-					sinw[tot]=new SinClamp(0.5)
-					sinw[tot].del=0       
-					sinw[tot].dur=tstop
-					sinw[tot].freq = 80    
-					w[experiments][runs][tot].play(&sinw[tot].pkamp)
-					tot=tot+1
-			} 
-		forsec PVsoma_list {		
-			inw[experiments][runs][totin]=new Random($1+102)
-				inw[experiments][runs][totin].poisson(0.06) 
-
-				insinw[totin]=new SinClamp(0.5)
-				insinw[totin].del=0      
-				insinw[totin].dur=tstop
-				insinw[totin].freq =70  
-				inw[experiments][runs][totin].play(&insinw[totin].pkamp)
-				totin=totin+1
-		}
-
-	}
+}
 
 //---------------------------Initial stimulation (proximal dendrite)(Kuroda, 1998, Constantinides, 2001)---------------//
+//objref rApic, rBasal
+
+//variousdata= new File()
+
+proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number  localobj r,rApic,rBasal
+interval = 200//50
+number = 20
+
+if(PARALLEL){ PC.barrier() }
+
 ns1=new NetStim(0.5) //was 0.5
-	ns1.interval=50//50 
-	ns1.number=20
-	ns1.start=0
-	ns1.noise=0
-
-objref bg[nPCcells]
-for i=0,nPCcells-1 {
-bg[i]=new NetStim(0.5) //was 0.5
-	bg[i].interval=1000//400//50 
-	bg[i].number=5//5000//20
-	bg[i].start=0
-	bg[i].noise=0
-}
-
-objref INstim[nPVcells]
-for i=0,nPVcells-1 {
-	INstim[i] = new NetStim(0.5)
-	INstim[i].interval = 0
-	INstim[i].number = 1
-	INstim[i].start = 120
-	INstim[i].noise = 0
-}
+ns1.interval=interval
+ns1.number=number
+ns1.start=0
+ns1.noise=0
 
 
+r = new Random($1+165)
+PID = r.uniform(0, 1)
+rApic = new Random($1+12)
+rBasal = new Random($1+67)
 
-objref rApic, rBasal
-
-objref ic1,ic2,ic3,ic4
-proc oneCellclamp() {
-amp = -0.4//0.15//0.27//0.120//0.25//0.3//(nA)
-//PCcells[0].soma ic1=new IClamp(0.5)
-//PCcells[1].soma ic2=new IClamp(0.5)
-//PCcells[2].soma ic3=new IClamp(0.5)
-PVcells[0].soma ic4=new IClamp(0.5)
-/*ic1.del=2000
-ic1.dur=3000//2000
-ic1.amp=amp
-ic2.del=2000
-ic2.dur=3000//2000
-ic2.amp=amp
-ic3.del=2000
-ic3.dur=3000//2000
-ic3.amp=amp*/
-ic4.del=500
-ic4.dur=3000//2000
-ic4.amp=0.4
-
-}
-
-
-
-
-variousdata= new File()
-
-proc stimulation() { local PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx  localobj r,rApic,rBasal
-	r = new Random($1+165)
-	PID = r.uniform(0, 1)
-	rApic = new Random($1+12)
-	//rApicIdx = rApic.uniform(0,10) //rApic.uniform(0,24) 
-	rBasal = new Random($1+67)
-	//rBasalIdx = rBasal.uniform(0,17)
-				 
-	for i=1, nPCcells - 1  { 
-		// Apical input:
-		for j=0, ((Stim_MaxSyn/2)-1) {
-			PID=r.repick()
-			if(PARALLEL){
-			rApicIdx = int(rApic.uniform(0,PCcells.o(i).ApicNo))
-			PCcells.o(i).apic[rApicIdx] ampapr[i][j]=new GLU(PID)
-			PCcells.o(i).apic[rApicIdx] nmdapr[i][j]=new NMDA(PID)
-
-			}else{
-			ApicalNo=0
-                	forsec PCcells[i].apical {ApicalNo+=1}
-//if (ApicalNo>1) { //For pyramidals with one apical..
-			rApicIdx = int(rApic.uniform(0,ApicalNo))
-			//rApicIdx=2// OVERRIDE VALUE!!
-			PCcells[i].apic[rApicIdx] ampapr[i][j]=new GLU(PID)
-			PCcells[i].apic[rApicIdx] nmdapr[i][j]=new NMDA(PID)
-			}
-
-			nc1[i][j]=new NetCon(ns1, ampapr[i][j])
-			nc1[i][j].delay=100
-			nc1[i][j].weight=ampaArr.x[PcellIDlist.x[i]]
-			nc1[i][j].threshold=-20 
-
-			nc2[i][j]=new NetCon(ns1, nmdapr[i][j])
-			nc2[i][j].delay=100
-			nc2[i][j].weight=nmdaArr.x[PcellIDlist.x[i]]                       
-			nc2[i][j].threshold=-20 
-			if(PLOT){splot.point_mark(nmdapr[i][j],1)} //colorize
-			//printf("NMDA valid G: %f\n", nmdaArr.x[PcellIDlist.x[i]])			
-			//printf("AMPA valid G: %f\n", ampaArr.x[PcellIDlist.x[i]])
-			
-//}
-		}
-				
-				
-		//Basal input:
-		for j=(Stim_MaxSyn/2), (Stim_MaxSyn-1) {
-			PID=r.repick()
-			//PID=0.5
-
-			if(PARALLEL){
-			rBasalIdx = int(rBasal.uniform(0,PCcells.o(i).DendNo))
-			PCcells.o(i).dend[rBasalIdx] ampapr[i][j]=new GLU(PID)// sta apical!!!!!
-			PCcells.o(i).dend[rBasalIdx] nmdapr[i][j]=new NMDA(PID)//nmda_segev(PID)
-			}else{
-			BasalNo=0
-                	forsec PCcells[i].basal {BasalNo+=1}
-			rBasalIdx = int(rBasal.uniform(0,BasalNo))
-			//rBasalIdx = 7
-			//print rBasalIdx
-			PCcells[i].dend[rBasalIdx] ampapr[i][j]=new GLU(PID)// sta apical!!!!!
-			PCcells[i].dend[rBasalIdx] nmdapr[i][j]=new NMDA(PID)//nmda_segev(PID)
-			}
-
-			nc1[i][j]=new NetCon(ns1, ampapr[i][j])
-			nc1[i][j].delay=100 //+ PID*2
-			nc1[i][j].weight = ampaArr.x[PcellIDlist.x[i]]  //*0.7
-			nc1[i][j].threshold=-20 
-
-			nc2[i][j]=new NetCon(ns1, nmdapr[i][j])
-			nc2[i][j].delay=100 //+ PID*2 
-			nc2[i][j].weight = nmdaArr.x[PcellIDlist.x[i]]  *0.8                 
-			nc2[i][j].threshold= -20 
-			if(PLOT){splot.point_mark(nmdapr[i][j],2)} //colorize
-			//printf("NMDA valid G: %f\n", nmdaArr.x[PcellIDlist.x[i]])			
-			//printf("AMPA valid G: %f\n", ampaArr.x[PcellIDlist.x[i]])
-			
-		}	
-	}
-
-	
-	for i=1, (nPCcells-1)  { 
-		// Apical input:
-		for j=0, ((30/2)-1) {
-			PID=r.repick()
-
-			if(PARALLEL){
-			rApicIdx = int(rApic.uniform(0,PCcells.o(i).ApicNo))
-			PCcells.o(i).apic[rApicIdx] ampapr[i][j]=new GLU(PID)
-			PCcells.o(i).apic[rApicIdx] nmdapr[i][j]=new NMDA(PID)
-			}else{
-			ApicalNo=0
-                	forsec PCcells[i].apical {ApicalNo+=1}
-//if (ApicalNo>1) { //For pyramidals with one apical..
-			rApicIdx = int(rApic.uniform(0,ApicalNo))
-			//rApicIdx=2// OVERRIDE VALUE!!
-			PCcells[i].apic[rApicIdx] ampapr[i][j]=new GLU(PID)
-			PCcells[i].apic[rApicIdx] nmdapr[i][j]=new NMDA(PID)
-			}
-
-			nc1[i][j]=new NetCon(bg[i], ampapr[i][j])
-			nc1[i][j].delay=100
-			nc1[i][j].weight=ampaArr.x[PcellIDlist.x[i]]
-			nc1[i][j].threshold=-20 
-
-			nc2[i][j]=new NetCon(bg[i], nmdapr[i][j])
-			nc2[i][j].delay=100
-			nc2[i][j].weight=nmdaArr.x[PcellIDlist.x[i]]                       
-			nc2[i][j].threshold=-20 
-			if(PLOT){splot.point_mark(nmdapr[i][j],1)} //colorize	
-//}
-		}
-				
-				
-		//Basal input:
-		for j=(30/2), (30-1) {
-			PID=r.repick()
-
-			if(PARALLEL){
-			rBasalIdx = int(rBasal.uniform(0,PCcells.o(i).DendNo))
-			PCcells.o(i).dend[rBasalIdx] ampapr[i][j]=new GLU(PID)// sta apical!!!!!
-			PCcells.o(i).dend[rBasalIdx] nmdapr[i][j]=new NMDA(PID)//nmda_segev(PID)
-			}else{
-			//PID=0.5
-			BasalNo=0
-                	forsec PCcells[i].basal {BasalNo+=1}
-			rBasalIdx = int(rBasal.uniform(0,BasalNo))
-			//rBasalIdx = 7
-			//print rBasalIdx
-			PCcells[i].dend[rBasalIdx] ampapr[i][j]=new GLU(PID)// sta apical!!!!!
-			PCcells[i].dend[rBasalIdx] nmdapr[i][j]=new NMDA(PID)//nmda_segev(PID)
-			}
-
-			nc1[i][j]=new NetCon(bg[i], ampapr[i][j])
-			nc1[i][j].delay=100 //+ PID*2
-			nc1[i][j].weight = ampaArr.x[PcellIDlist.x[i]]  //*0.7
-			nc1[i][j].threshold=-20 
-
-			nc2[i][j]=new NetCon(bg[i], nmdapr[i][j])
-			nc2[i][j].delay=100 //+ PID*2 
-			nc2[i][j].weight = nmdaArr.x[PcellIDlist.x[i]]   //*0.8                 
-			nc2[i][j].threshold= -20 
-			if(PLOT){splot.point_mark(nmdapr[i][j],2)} //colorize
+for i=0, PCcells.count() - 1  { 
+	// Apical input:
+	for j=0, ((Stim_MaxSyn/2)-1) {
+		PID=0.5//r.repick()
+		rApicIdx = 0//int(rApic.uniform(0,PCcells.o(i).ApicNo-1))
+		PCcells.o(i).apic[rApicIdx] ampapr[i][j]=new GLU(PID)
+		PCcells.o(i).apic[rApicIdx] nmdapr[i][j]=new NMDA(PID)
 		
-		}	
+		nc1[i][j]=new NetCon(ns1, ampapr[i][j])
+		nc1[i][j].delay=100
+		nc1[i][j].weight=0.000162//ampaArr.x[PcellIDlist.x[PCgids.x(i)]]
+		nc1[i][j].threshold=-20 
+
+                nc2[i][j]=new NetCon(ns1, nmdapr[i][j])
+		nc2[i][j].delay=100
+		nc2[i][j].weight=0.000763//nmdaArr.x[PcellIDlist.x[PCgids.x(i)]]                       
+                nc2[i][j].threshold=-20
+                //if(PLOT){splot.point_mark(nmdapr[i][j],1)} //colorize
 	}
 
 
-	
-}
+	//Basal input:
+	for j=(Stim_MaxSyn/2), (Stim_MaxSyn-1) {
+		PID=0.5//r.repick()
 
-proc backgroundActivity() { local PID,RV,RLB,RLA localobj r,rv,rlb,rla
+		rBasalIdx = 0//int(rBasal.uniform(0,PCcells.o(i).DendNo-1))
+		PCcells.o(i).dend[rBasalIdx] ampapr[i][j]=new GLU(PID)// sta apical!!!!!
+		PCcells.o(i).dend[rBasalIdx] nmdapr[i][j]=new NMDA(PID)//nmda_segev(PID)
+
+		nc1[i][j]=new NetCon(ns1, ampapr[i][j])
+		nc1[i][j].delay=100 //+ PID*2
+		nc1[i][j].weight = 0.000162//ampaArr.x[PcellIDlist.x[PCgids.x(i)]]  //*0.7
+		nc1[i][j].threshold=-20 
+
+		nc2[i][j]=new NetCon(ns1, nmdapr[i][j])
+		nc2[i][j].delay=100 //+ PID*2 
+		nc2[i][j].weight = 0.000763//nmdaArr.x[PcellIDlist.x[PCgids.x(i)]]  *0.8                 
+		nc2[i][j].threshold= -20 
+		//if(PLOT){splot.point_mark(nmdapr[i][j],2)} //colorize
+	}	
+}
+} //end proc
+
+
+
+proc backgroundActivity() { local i,j,PID,RV,RLB,RLA localobj r,rv,rlb,rla
 
 r = new Random($1 + 300)
 rv = new Random($1)
 RV = rv.uniform(1, 5000)
 PID = r.uniform(0,1)
+rlb = new Random($1+160)
+rla = new Random($1+560)
 BGweight = 0.0004//5
 
-	for i=0, (nPCcells-1) {
+for i=0, PCcells.count()-1 {
 
-		BasalNo=0
-                forsec PCcells[i].basal {BasalNo+=1}
-		ApicalNo=0
-                forsec PCcells[i].apical {ApicalNo+=1}
-		rlb = new Random($1+160+i)
-		rla = new Random($1+560+i)
-		RLB = rlb.uniform(0,BasalNo-1)
-		RLA = rla.uniform(0,ApicalNo-1)
+	RLB = rlb.uniform(0,PCcells.o(i).DendNo-1)
+	RLA = rla.uniform(0,PCcells.o(i).ApicNo-1)
 
-		for j=0, 164 {
-			VSvector[i][j] = new Vector(10)
-			for t=0,9{
-				VSvector[i][j].x[t] = RV
-
-				RV = rv.repick()
-			}
-			VSvector[i][j].sort()
-			PCcells[i].dend[RLB] ampaBG[i][j]=new GLU(PID)
-			PID = r.repick()
-			RLB = rlb.repick()
-			vstim[i][j] = new VecStim(0.5)
-			vstim[i][j].delay = 0
-			vstim[i][j].play(VSvector[i][j])
-			BG1[i][j]=new NetCon(vstim[i][j], ampaBG[i][j])
-			BG1[i][j].delay=0
-			BG1[i][j].weight =   BGweight
-			BG1[i][j].threshold=-20 
+	for j=0, 164 {
+		VSvector[i][j] = new Vector(10)
+		for t=0,9{
+			VSvector[i][j].x[t] = RV
+			RV = rv.repick()
 		}
-		for j=165, 330 {
-			VSvector[i][j] = new Vector(10)
-			for t=0,9{
-				VSvector[i][j].x[t] = RV
-
-				RV = rv.repick()
-			}
-			VSvector[i][j].sort()
-			PCcells[i].apic[RLA] ampaBG[i][j]=new GLU(PID)
-			PID = r.uniform(0,1)
-			RLA = rla.repick()
-			vstim[i][j] = new VecStim(0.5)
-			vstim[i][j].delay = 0
-			vstim[i][j].play(VSvector[i][j])
-			BG1[i][j]=new NetCon(vstim[i][j], ampaBG[i][j])
-			BG1[i][j].delay=0
-			BG1[i][j].weight =   BGweight
-			BG1[i][j].threshold=-20 
+		VSvector[i][j].sort()
+		PCcells.o(i).dend[RLB] ampaBG[i][j]=new GLU(PID)
+		PID = r.repick()
+		RLB = rlb.repick()
+		vstim[i][j] = new VecStim(0.5)
+		vstim[i][j].delay = 0
+		vstim[i][j].play(VSvector[i][j])
+		BG1[i][j]=new NetCon(vstim[i][j], ampaBG[i][j])
+		BG1[i][j].delay=0
+		BG1[i][j].weight =   BGweight
+		BG1[i][j].threshold=-20 
+	}
+	for j=165, 330 {
+		VSvector[i][j] = new Vector(10)
+		for t=0,9{
+			VSvector[i][j].x[t] = RV
+			RV = rv.repick()
 		}
-		for j=331, 499 {
-			VSvector[i][j] = new Vector(10)
-			for t=0,9{
-				VSvector[i][j].x[t] = RV
-
-				RV = rv.repick()
-			}
-			VSvector[i][j].sort()
-			PCcells[i].soma ampaBG[i][j]=new GLU(PID)
-			PID = r.uniform(0,1)
-			vstim[i][j] = new VecStim(0.5)
-			vstim[i][j].delay = 0
-			vstim[i][j].play(VSvector[i][j])
-			BG1[i][j]=new NetCon(vstim[i][j], ampaBG[i][j])
-			BG1[i][j].delay=0
-			BG1[i][j].weight =   BGweight
-			BG1[i][j].threshold=-20 
+		VSvector[i][j].sort()
+		PCcells.o(i).apic[RLA] ampaBG[i][j]=new GLU(PID)
+		PID = r.uniform(0,1)
+		RLA = rla.repick()
+		vstim[i][j] = new VecStim(0.5)
+		vstim[i][j].delay = 0
+		vstim[i][j].play(VSvector[i][j])
+		BG1[i][j]=new NetCon(vstim[i][j], ampaBG[i][j])
+		BG1[i][j].delay=0
+		BG1[i][j].weight =   BGweight
+		BG1[i][j].threshold=-20 
+	}
+	for j=331, 499 {
+		VSvector[i][j] = new Vector(10)
+		for t=0,9{
+			VSvector[i][j].x[t] = RV
+			RV = rv.repick()
 		}
+		VSvector[i][j].sort()
+		PCcells.o(i).soma ampaBG[i][j]=new GLU(PID)
+		PID = r.uniform(0,1)
+		vstim[i][j] = new VecStim(0.5)
+		vstim[i][j].delay = 0
+		vstim[i][j].play(VSvector[i][j])
+		BG1[i][j]=new NetCon(vstim[i][j], ampaBG[i][j])
+		BG1[i][j].delay=0
+		BG1[i][j].weight =   BGweight
+		BG1[i][j].threshold=-20 
 	}
 }
 
+}//end proc
+
 // ---------------------------------PC-PC connections, basal dendrite(Thomson, 1997)------------------------------------//
 
-proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,target,source,synapse localobj r,fp,rDend
-	r = new Random($1 + 350)
-	PID = r.uniform(0,1)
-	fp = new Random($1+3)	
-	rDend = new Random($1+4)
-	//rDendidx = rDend.uniform(0,17)	
-	FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
+proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn localobj r,fp,rDend
+	if(PARALLEL){ PC.barrier() }
 
-	//---------------------------------------------------Insert Autapses(Lubke, 1996)
-	for i=0, (nPCcells-1) {
-		if(PARALLEL){
+r = new Random($1 + 350)
+PID = r.uniform(0,1)
+fp = new Random($1+3)	
+rDend = new Random($1+4)
+//rDendidx = rDend.uniform(0,17)	
+FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
+
+//---------------------------------------------------Insert Autapses(Lubke, 1996)
+
+
+/*for i=0, PCcells.count()-1 {
 		PCcells.o(i).soma distance()
-		}else{
-		PCcells[i].soma distance()
-		}
-		if (connMatrix.x[i][i]) { //If autopses are enabled..
+		if (connMatrix.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
 			for j=0, (PC_MaxAutosyn-1) { 
 				PID=r.repick()
 				FIDp=abs(fp.repick())
-				if(PARALLEL){
-				rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo) )
+
+				rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
 				PCcells.o(i).dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
 				PCcells.o(i).dend[rDendidx] autonmdaOnPC[i][j] = new NMDA(PID)//nmda_segev(PID) 
-				PCcells.o(i).axon conautoampaPC2PC [i][j] = new NetCon(&v(1), autoampaOnPC[i][j], -20, FIDp, ampaArr.x[PcellIDlist.x[i]] )
-				PCcells.o(i).axon conautonmdaPC2PC [i][j] = new NetCon(&v(1), autonmdaOnPC[i][j], -20, FIDp, nmdaArr.x[PcellIDlist.x[i]] )
-				}else{
-				//PID=0.9//OVERRIDE VALUE!!
-				BasalNo=0
-		        	forsec PCcells[i].basal {BasalNo+=1}
-				rDendidx = int(rDend.uniform(0,BasalNo) )
-				//rDendidx = 7 //OVERRIDE VALUE!!
-				PCcells[i].dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
-				PCcells[i].dend[rDendidx] autonmdaOnPC[i][j] = new NMDA(PID)//nmda_segev(PID) 
-				//access PCcells[i].dend[rDendidx]
 		//----------------------Connect autapses
-				PCcells[i].axon conautoampaPC2PC [i][j] = new NetCon(&v(1), autoampaOnPC[i][j], -20, FIDp, ampaArr.x[PcellIDlist.x[i]] )
-				PCcells[i].axon conautonmdaPC2PC [i][j] = new NetCon(&v(1), autonmdaOnPC[i][j], -20, FIDp, nmdaArr.x[PcellIDlist.x[i]] )
-				}
+				PCcells.o(i).axon conautoampaPC2PC [i][j] = new NetCon(&v(1), autoampaOnPC[i][j], -20, FIDp, ampaArr.x[PcellIDlist.x[PCgids.x(i)]] )
+				PCcells.o(i).axon conautonmdaPC2PC [i][j] = new NetCon(&v(1), autonmdaOnPC[i][j], -20, FIDp, nmdaArr.x[PcellIDlist.x[PCgids.x(i)]] )
+
 				distancesMat.x[i][0] = distance(PID)
 				pidMat.x[i][0] = PID
-				if(PLOT){splot.point_mark(autonmdaOnPC[i][j],3)} //colorize
-				//printf("NMDA valid G: %f\n", nmdaArr.x[PcellIDlist.x[i]])			
-				//printf("AMPA valid G: %f\n", ampaArr.x[PcellIDlist.x[i]])
+				//if(PLOT){splot.point_mark(autonmdaOnPC[i][j],3)} //colorize
 			}
-			
+		}
+	}*/
+//--------------------------Create SectionReference list for basal dendrites---------------//
+// connect PC 2 PC with connectivity/weights from MATLAB:
+synCtr = 0
+for trg=0, PCcells.count()-1 { 
+	for src=0,PCcells.count()-1 {
+		if(connMatrix.x[PCgids.x(src)][PCgids.x(trg)]){
+			for syn=0, (PC2PC_MaxSyn-1) { //for current syn
+				PID=r.repick()
+				FIDp=abs(fp.repick())
+
+				rDendidx = int(rDend.uniform(0,PCcells.o(trg).DendNo-1) )
+				PCcells.o(trg).dend[rDendidx] ampaOnPC[src][trg][syn] = new GLU(PID)
+				PCcells.o(trg).dend[rDendidx] nmdaOnPC[src][trg][syn] = new NMDA(PID)//nmda_segev(PID)
+
+				conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,PCgids.x(src),ampaOnPC[src][trg][syn],-20,FIDp,ampaArr.x[PcellIDlist.x[PCgids.x(trg)]] )
+				connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,PCgids.x(src),nmdaOnPC[src][trg][syn],-20,FIDp,nmdaArr.x[PcellIDlist.x[PCgids.x(trg)]] )
+
+				distancesMat.x[trg][synCtr+1] = distance(PID)
+				pidMat.x[trg][synCtr+1] = PID
+				//if(PLOT){splot.point_mark(nmdaOnPC[src][trg][syn],4)} //colorize
+				synCtr = synCtr+1 //because we have multiple cells
+			}
 		}
 	}
-
-
-	//--------------------------Create SectionReference list for basal dendrites---------------//
-	//rsid = new Random($1+1)		
-	//rnd = new Random($1+2)
-	//PID = rnd.uniform(0, 1)
-	// connect PC 2 PC with connectivity/weights from MATLAB:
 	synCtr = 0
-	for target=0, (nPCcells-1) { 
-		for source=0,(nPCcells-1) {
-			if( (target!=source) && (connMatrix.x[source][target]) ){
-				for synapse=0, (PC2PC_MaxSyn-1) { //for current synapse
-					PID=r.repick()
-					FIDp=abs(fp.repick())
-					if(PARALLEL){
-					rDendidx = int(rDend.uniform(0,PCcells.o(target).DendNo) )
-					PCcells.o(target).dend[rDendidx] ampaOnPC[source][target][synapse] = new GLU(PID)
-					PCcells.o(target).dend[rDendidx] nmdaOnPC[source][target][synapse] = new NMDA(PID)//nmda_segev(PID)
-					PCcells.o(source).axon conampaPC2PC[source][target][synapse]=new NetCon(&v(1),ampaOnPC[source][target][synapse],-20,FIDp, ampaArr.x[PcellIDlist.x[target]] )
-					PCcells.o(source).axon connmdaPC2PC[source][target][synapse]=new NetCon(&v(1),nmdaOnPC[source][target][synapse],-20,FIDp, nmdaArr.x[PcellIDlist.x[target]] )					}else{
-					//num = rsid.uniform(0,auxilist_basal[cn].count())
-					BasalNo=0
-                			forsec PCcells[target].basal {BasalNo+=1}
-					rDendidx = int(rDend.uniform(0,BasalNo) )
-					//rDendidx = 7 //OVERRIDE VALUE!!				 
-					PCcells[target].dend[rDendidx] ampaOnPC[source][target][synapse] = new GLU(PID)
-					PCcells[target].dend[rDendidx] nmdaOnPC[source][target][synapse] = new NMDA(PID)//nmda_segev(PID)
-					PCcells[source].axon conampaPC2PC[source][target][synapse]=new NetCon(&v(1),ampaOnPC[source][target][synapse],-20,FIDp, ampaArr.x[PcellIDlist.x[target]] )
-					PCcells[source].axon connmdaPC2PC[source][target][synapse]=new NetCon(&v(1),nmdaOnPC[source][target][synapse],-20,FIDp, nmdaArr.x[PcellIDlist.x[target]] )
-					}
-					distancesMat.x[target][synCtr+1] = distance(PID)
-					pidMat.x[target][synCtr+1] = PID
-					if(PLOT){splot.point_mark(nmdaOnPC[source][target][synapse],4)} //colorize
-					synCtr = synCtr+1 //because we have multiple cells
-					//printf("NMDA valid G: %f\n", nmdaArr.x[PcellIDlist.x[target]])			
-					//printf("AMPA valid G: %f\n", ampaArr.x[PcellIDlist.x[target]])
-				}
-				//printf("PC#%d projects to PC#%d\n", source, target)	
-			}
-		}
-		synCtr = 0
-	}
+}
 } //END procedure initPC
 
 
 
 //---------------------------------------------PV-PV connections--------------------------------------------------------//
-proc connectPV2PV() { local precedingCells,delstimpvpv,PID,source,target,synapse localobj r,fpvpv
-	r = new Random($1 + 250)
-	PID = r.uniform(0,1)
-	precedingCells = nPCcells
-	fpvpv = new Random($1-100)
-	delstimpvpv=fpvpv.normal(1.76,0.07)		//latency from IN-IN, according to Bacci (2003)   
+proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn localobj r,fpvpv
+	if(PARALLEL){ PC.barrier() }
+r = new Random($1 + 250)
+PID = r.uniform(0,1)
+fpvpv = new Random($1-100)
+delstimpvpv=fpvpv.normal(1.76,0.07)		//latency from IN-IN, according to Bacci (2003)   
 
-	for source=0, (nPVcells-1) {
-		for target=0, (nPVcells-1) {
-			if (connMatrix.x[source+precedingCells][target+precedingCells]) { //if connection exists (also autaptic connections?); account for PC overhead in matrix
-				for synapse=0, (PV2PV_MaxSyn-1) {
-					PID = r.repick ()
-					delstimpvpv=abs(fpvpv.repick())
-					if(PARALLEL){
-					PVcells.o(target).soma gabaOnPV_A[source][target][synapse] = new GABAain(PID)
-					PVcells.o(source).axon congabaPV2PV_A[source][target][synapse] = new NetCon(&v(1), gabaOnPV_A[source][target][synapse],-20,delstimpvpv,autogabaweight)
-					}else{
-					PVcells[target].soma gabaOnPV_A[source][target][synapse] = new GABAain(PID)
-					PVcells[source].axon congabaPV2PV_A[source][target][synapse] = new NetCon(&v(1), gabaOnPV_A[source][target][synapse],-20,delstimpvpv,autogabaweight)
-					}
-				}
-			}
-		}
-	}
-
-
-} // End procedure initPV
-
-//----------------------------------------------PC-PV connections-------------------------------------------------------//
-proc connectPC2PV() { local precedingCells,delstimpcpv,PID,source,target,synapse localobj r,fpcpv
-	r = new Random($1 + 150)
-	PID = r.uniform(0,1)
-	precedingCells = nPCcells
-	fpcpv = new Random($1*2)
-	delstimpcpv=fpcpv.normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999)
-
-	for source=0, (nPCcells-1) {
-		for target=0, (nPVcells-1) {
-			if (connMatrix.x[source][target+precedingCells]) { //if connection exists; account for PC overhead in matrix
-				for synapse=0, (PC2PV_MaxSyn-1) {
-					PID = r.repick ()
-					delstimpcpv=abs(fpcpv.repick())
-					if(PARALLEL){
-					PVcells.o(target).soma ampaOnPV[source][target][synapse] = new GLUIN(PID) //no Dends available in the model!
-					PVcells.o(target).soma nmdaOnPV[source][target][synapse] = new NMDA(PID)
-					PCcells.o(source).axon conampaPC2PV[source][target][synapse] = new NetCon(&v(1), ampaOnPV[source][target][synapse], -20, delstimpcpv, ampaweightin*2.9)
-					PCcells.o(source).axon connmdaPC2PV[source][target][synapse] = new NetCon(&v(1), nmdaOnPV[source][target][synapse], -20, delstimpcpv, nmdaweightin*2.9)   
-					}else{
-					PVcells[target].soma ampaOnPV[source][target][synapse] = new GLUIN(PID) //no Dends available in the model!
-					PVcells[target].soma nmdaOnPV[source][target][synapse] = new NMDA(PID)
-					PCcells[source].axon conampaPC2PV[source][target][synapse] = new NetCon(&v(1), ampaOnPV[source][target][synapse], -20, delstimpcpv, ampaweightin*2.9)
-					PCcells[source].axon connmdaPC2PV[source][target][synapse] = new NetCon(&v(1), nmdaOnPV[source][target][synapse], -20, delstimpcpv, nmdaweightin*2.9)   
-					}
-				}
-			}
-		}
-	}
-
-} //end procedure initPC2PV
-
-//----------------------------------------------PC-CB connections-------------------------------------------------------//
-proc connectPC2CB() {local i, j, k, precedingCells,delstimpccb,source,target,synapse localobj fpccb
-	precedingCells = nPCcells + nPVcells
-	fpccb = new Random($1*2)
-	delstimpccb=fpccb.normal(0.6, 0.2)		//latency from Pc-Cb, according to Thomson(2007), also Angulo,Audinat(1999)
-	//delstim=0.6
-	for source=0, (nPCcells-1) {
-		for target=0, (nCBcells-1) {
-			if (connMatrix.x[source][target+precedingCells]) { //if connection exists; account for PC overhead in matrix
-				//----------------------------Insert synapses at dendrites
-				for synapse=0,(PC2CB_MaxSyn-1) { 
-					delstimpccb=abs(fpccb.repick())
-					if(PARALLEL){
-					CBcells.o(target).dend ampaOnCB[source][target][synapse] = new GLUIN(0.5) //TO SEE XENIA, 6/07/11
-					CBcells.o(target).dend nmdaOnCB[source][target][synapse] = new NMDA(0.5)
-					PCcells.o(source).axon conampaPC2CB[source][target][synapse] = new NetCon(&v(1), ampaOnCB[source][target][synapse], -20, delstimpccb, ampaweight_pc2cb)
-					PCcells.o(source).axon connmdaPC2CB[source][target][synapse] = new NetCon(&v(1), nmdaOnCB[source][target][synapse], -20, delstimpccb, nmdaweight_pc2cb)
-					}else{
-					CBcells[target].dend ampaOnCB[source][target][synapse] = new GLUIN(0.5) //TO SEE XENIA, 6/07/11
-					CBcells[target].dend nmdaOnCB[source][target][synapse] = new NMDA(0.5)
-					PCcells[source].axon conampaPC2CB[source][target][synapse] = new NetCon(&v(1), ampaOnCB[source][target][synapse], -20, delstimpccb, ampaweight_pc2cb)
-					PCcells[source].axon connmdaPC2CB[source][target][synapse] = new NetCon(&v(1), nmdaOnCB[source][target][synapse], -20, delstimpccb, nmdaweight_pc2cb)
-					}
-					if(PLOT){splot.point_mark(ampaOnCB[source][target][synapse],5)} //colorize
-				}
-			}
-		}
-	}
-}//proc pyrcb()
-
-//----------------------------------------------PC-CR connections-------------------------------------------------------//
-proc connectPC2CR() {local i, j, k ,BasalNo, precedingCells,delstimpccr,source,target,synapse localobj fpccr
-	precedingCells = nPCcells + nPVcells + nCBcells
-	fpccr = new Random($1*2)
-	delstimpccr=fpccr.normal(0.6, 0.2)		//latency from Pc-Cb, according to Thomson(2007), also Angulo,Audinat(1999)
-	//delstim=0.6
-for source=0, (nPCcells-1) {
-	for target=0, (nCRcells-1) {
-		if (connMatrix.x[source][target+precedingCells]) { //if connection exists; account for PC overhead in matrix
-			//----------------------------Insert synapses at dendrites
-			for synapse=0,(PC2CR_MaxSyn-1) { 
-				delstimpccr=abs(fpccr.repick())
-				if(PARALLEL){
-				CRcells.o(target).dend[0] ampaOnCR[source][target][synapse] = new GLUIN(0.5) 
-				CRcells.o(target).dend[0] nmdaOnCR[source][target][synapse] = new NMDA(0.5)
-				PCcells.o(source).axon conampaPC2CR[source][target][synapse] = new NetCon(&v(1), ampaOnCR[source][target][synapse], -20, delstimpccr, ampaweight_pc2cr)
-				PCcells.o(source).axon connmdaPC2CR[source][target][synapse] = new NetCon(&v(1), nmdaOnCR[source][target][synapse], -20, delstimpccr, nmdaweight_pc2cr)
-				}else{
-				CRcells[target].dend[0] ampaOnCR[source][target][synapse] = new GLUIN(0.5) 
-				CRcells[target].dend[0] nmdaOnCR[source][target][synapse] = new NMDA(0.5)
-				PCcells[source].axon conampaPC2CR[source][target][synapse] = new NetCon(&v(1), ampaOnCR[source][target][synapse], -20, delstimpccr, ampaweight_pc2cr)
-				PCcells[source].axon connmdaPC2CR[source][target][synapse] = new NetCon(&v(1), nmdaOnCR[source][target][synapse], -20, delstimpccr, nmdaweight_pc2cr)
-				}
-				if(PLOT){splot.point_mark(ampaOnCR[source][target][synapse],5)} //colorize
+for src=0, PVcells.count()-1 {
+	for trg=0, PVcells.count()-1 {
+		if (connMatrix.x[PVgids.x(src)][PVgids.x(trg)]) { //NO NEED to account for PC overhead in matrix, gid are GLOBAL ID ;)
+			for syn=0, (PV2PV_MaxSyn-1) {
+				PID = r.repick ()
+				delstimpvpv=abs(fpvpv.repick())
+				PVcells.o(trg).soma gabaOnPV_A[src][trg][syn] = new GABAain(PID)
+				congabaPV2PV_A[src][trg][syn] = makeSynapse(PVcells,PVgids.x(src),gabaOnPV_A[src][trg][syn],-20,delstimpvpv,autogabaweight )
 			}
 		}
 	}
 }
+} // End procedure initPV
+
+//----------------------------------------------PC-PV connections-------------------------------------------------------//
+proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn localobj r,fpcpv
+	if(PARALLEL){ PC.barrier() }
+r = new Random($1 + 150)
+PID = r.uniform(0,1)
+fpcpv = new Random($1*2)
+delstimpcpv=fpcpv.normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999)
+
+for src=0, PCcells.count()-1 {
+	for trg=0, PVcells.count()-1 {
+		if (connMatrix.x[PCgids.x(src)][PVgids.x(trg)]) { //if connection exists; account for PC overhead in matrix
+			for syn=0, (PC2PV_MaxSyn-1) {
+				PID = r.repick ()
+				delstimpcpv=abs(fpcpv.repick())
+				PVcells.o(trg).soma ampaOnPV[src][trg][syn] = new GLUIN(PID) //no Dends available in the model!
+				PVcells.o(trg).soma nmdaOnPV[src][trg][syn] = new NMDA(PID)
+
+				conampaPC2PV[src][trg][syn] = makeSynapse(PCcells,PCgids.x(src), ampaOnPV[src][trg][syn], -20, delstimpcpv, ampaweightin*2.9)
+				connmdaPC2PV[src][trg][syn] = makeSynapse(PCcells,PCgids.x(src), nmdaOnPV[src][trg][syn], -20, delstimpcpv, nmdaweightin*2.9)    
+			}
+		}
+	}
+}
+} //end procedure initPC2PV
+
+
+//----------------------------------------------PC-CB connections-------------------------------------------------------//
+proc connectPC2CB() {local i, j, k,delstimpccb,src,trg,syn localobj fpccb
+	if(PARALLEL){ PC.barrier() }
+fpccb = new Random($1*2)
+delstimpccb=fpccb.normal(0.6, 0.2)		//latency from Pc-Cb, according to Thomson(2007), also Angulo,Audinat(1999)
+
+for src=0, PCcells.count()-1 {
+	for trg=0, CBcells.count()-1 {
+		if (connMatrix.x[PCgids.x(src)][CBgids.x(trg)]) { 
+			//----------------------------Insert synapses at dendrites
+			for syn=0,(PC2CB_MaxSyn-1) { 
+				delstimpccb=abs(fpccb.repick())
+				CBcells.o(trg).dend ampaOnCB[src][trg][syn] = new GLUIN(0.5) //TO SEE XENIA, 6/07/11
+				CBcells.o(trg).dend nmdaOnCB[src][trg][syn] = new NMDA(0.5)
+
+				conampaPC2CB[src][trg][syn] = makeSynapse(PCcells,PCgids.x(src), ampaOnCB[src][trg][syn], -20, delstimpccb, ampaweight_pc2cb)
+				connmdaPC2CB[src][trg][syn] = makeSynapse(PCcells,PCgids.x(src), nmdaOnCB[src][trg][syn], -20, delstimpccb, nmdaweight_pc2cb)
+				//if(PLOT){splot.point_mark(ampaOnCB[src][trg][syn],5)} //colorize
+			}
+		}
+	}
+}
+}//proc pyrcb()
+
+//----------------------------------------------PC-CR connections-------------------------------------------------------//
+proc connectPC2CR() {local i, j, k ,BasalNo,delstimpccr,src,trg,syn localobj fpccr
+	if(PARALLEL){ PC.barrier() }
+fpccr = new Random($1*2)
+delstimpccr=fpccr.normal(0.6, 0.2)		//latency from Pc-Cb, according to Thomson(2007), also Angulo,Audinat(1999)
+//delstim=0.6
+
+
+for src=0, PCcells.count()-1 {
+	for trg=0, CRcells.count()-1 {
+		if (connMatrix.x[PCgids.x(src)][CRgids.x(trg)]) { //if connection exists; account for PC overhead in matrix
+			//----------------------------Insert synapses at dendrites
+			for syn=0,(PC2CR_MaxSyn-1) { 
+				delstimpccr=abs(fpccr.repick())
+				CRcells.o(trg).dend[0] ampaOnCR[src][trg][syn] = new GLUIN(0.5) 
+				CRcells.o(trg).dend[0] nmdaOnCR[src][trg][syn] = new NMDA(0.5)
+				conampaPC2CR[src][trg][syn]  = makeSynapse(PCcells,PCgids.x(src), ampaOnCR[src][trg][syn], -20, delstimpccr, ampaweight_pc2cr)
+				connmdaPC2CR[src][trg][syn]  = makeSynapse(PCcells,PCgids.x(src), nmdaOnCR[src][trg][syn], -20, delstimpccr, nmdaweight_pc2cr)
+				//if(PLOT){splot.point_mark(ampaOnCR[src][trg][syn],5)} //colorize
+			}
+		}
+	}
+}
+
 }// proc pyrcr()
 
 
-
-
 //------------------------------------------------PV-PC connections-----------------------------------------------------//
-proc connectPV2PC() {local precedingCells,delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo,rDendidx,source,target,synapse localobj r,fpvpc,rDend
-	r = new Random($1 + 180)
-	PID = r.uniform(0,1)
-	precedingCells = nPCcells
-	fpvpc = new Random($1*8)
-	rDend = new Random($1+5)
-	delstimpvpc=fpvpc.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
-	NoSynapsesSoma = int(PV2PC_MaxSyn * 46 / 100) //percentage (paper?)
-	NoSynapsesDend = PV2PC_MaxSyn - NoSynapsesSoma
+proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo,rDendidx,src,trg,syn localobj r,fpvpc,rDend
+	if(PARALLEL){ PC.barrier() }
+r = new Random($1 + 180)
+PID = r.uniform(0,1)
+fpvpc = new Random($1*8)
+rDend = new Random($1+5)
+delstimpvpc=fpvpc.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
+NoSynapsesSoma = int(PV2PC_MaxSyn * 46 / 100) //percentage (paper?)
+NoSynapsesDend = PV2PC_MaxSyn - NoSynapsesSoma
 
-	//-----------------------------Connect
-	for source=0, (nPVcells-1) {
-		for target=0,(nPCcells-1) {
-			if (connMatrix.x[source+precedingCells][target]) { //if connection exists; account for PC overhead in matrix
-				
-				//----------------------------Insert synapses at dendrites
-				for synapse=0,(NoSynapsesDend-1) { 
-					PID = r.repick()
-					if(PARALLEL){
-					rDendidx = int(rDend.uniform(0,PCcells.o(target).DendNo) )
-					PCcells.o(target).dend[rDendidx] gabaOnPC_A[source][target][synapse] = new GABAa(PID) //was @ soma initially...
-					PCcells.o(target).dend[rDendidx] gabaOnPC_B[source][target][synapse] = new GABAb(PID)
-					}else{
-					BasalNo=0
-					forsec PCcells[target].basal {BasalNo+=1}
-					rDendidx = int(rDend.uniform(0,BasalNo) )
-					//printf("GABA synapse placed in dend No%d\n", rDendidx)
-					PCcells[target].dend[rDendidx] gabaOnPC_A[source][target][synapse] = new GABAa(PID) //was @ soma initially...
-					PCcells[target].dend[rDendidx] gabaOnPC_B[source][target][synapse] = new GABAb(PID)
-					}
-					if(PLOT){splot.point_mark(gabaOnPC_A[source][target][synapse],5)} //colorize
-				}
-				//----------------------------Insert synapses at soma
-				for synapse=0,(NoSynapsesSoma-1) { 
-					PID = r.repick()					
-					if(PARALLEL){
-					PCcells.o(target).soma gabaOnPC_A[source][target][synapse+NoSynapsesDend] = new GABAa(PID) //carefull not to overwrite array!
-					PCcells.o(target).soma gabaOnPC_B[source][target][synapse+NoSynapsesDend] = new GABAb(PID)
-					}else{
-					//print "Connect PV2PC"
-					PCcells[target].soma gabaOnPC_A[source][target][synapse+NoSynapsesDend] = new GABAa(PID) //carefull not to overwrite array!
-					PCcells[target].soma gabaOnPC_B[source][target][synapse+NoSynapsesDend] = new GABAb(PID)
-					}
-					if(PLOT){splot.point_mark(gabaOnPC_A[source][target][synapse+NoSynapsesDend],5)} //colorize
-				}
+//-----------------------------Connect
+for src=0, PVcells.count()-1 {
+	for trg=0,PCcells.count()-1 {
+		if (connMatrix.x[PVgids.x(src)][PCgids.x(trg)]) { //if connection exists; account for PC overhead in matrix
+			//----------------------------Insert synapses at dendrites
+			for syn=0,(NoSynapsesDend-1) { 
+				PID = r.repick()
+				rDendidx = int(rDend.uniform(0,PCcells.o(trg).DendNo-1) )
+				PCcells.o(trg).dend[rDendidx] gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
+				PCcells.o(trg).dend[rDendidx] gabaOnPC_B[src][trg][syn] = new GABAb(PID)
+				//if(PLOT){splot.point_mark(gabaOnPC_A[src][trg][syn],5)} //colorize
+			}
+			//----------------------------Insert synapses at soma
+			for syn=0,(NoSynapsesSoma-1) { 
+				PID = r.repick()					
 
-				for synapse=0, (PV2PC_MaxSyn-1) { //for total number of IN-PC synapses
-					delstimpvpc=abs(fpvpc.repick())
-					//print delstiminp
-					//print "Connect PV2PC"
-					//printf("connect %dI, %dP, %dS\n", i, j, k)
-					if(PARALLEL){
-					PVcells.o(source).axon congabaPV2PC_A[source][target][synapse] = new NetCon(&v(1), gabaOnPC_A[source][target][synapse], -20, delstimpvpc, gabaweight_pv2pc_a)
-					PVcells.o(source).axon congabaPV2PC_B[source][target][synapse] = new NetCon(&v(1), gabaOnPC_B[source][target][synapse], -20, delstimpvpc, gabaweight_pv2pc_b)
-					}else{
-					PVcells[source].axon congabaPV2PC_A[source][target][synapse] = new NetCon(&v(1), gabaOnPC_A[source][target][synapse], -20, delstimpvpc, gabaweight_pv2pc_a)
-					PVcells[source].axon congabaPV2PC_B[source][target][synapse] = new NetCon(&v(1), gabaOnPC_B[source][target][synapse], -20, delstimpvpc, gabaweight_pv2pc_b)
-					}
-				}
+				PCcells.o(trg).soma gabaOnPC_A[src][trg][syn+NoSynapsesDend] = new GABAa(PID) //carefull not to overwrite array!
+				PCcells.o(trg).soma gabaOnPC_B[src][trg][syn+NoSynapsesDend] = new GABAb(PID)
+
+				//if(PLOT){splot.point_mark(gabaOnPC_A[src][trg][syn+NoSynapsesDend],5)} //colorize
+			}
+
+			for syn=0, (PV2PC_MaxSyn-1) { //for total number of IN-PC synapses
+				delstimpvpc=abs(fpvpc.repick())
+				congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,PVgids.x(src), gabaOnPC_A[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_a)
+				congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,PVgids.x(src), gabaOnPC_B[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_b)
 			}
 		}
 	}
+}
 }  //end procedure initPV2PC
 
 
-
 //------------------------------------------------CB-PC connections to d2--------------------------------------------------//
-proc connectCB2PC() {local BasalNo,precedingCells,PID,delstimcbpc,rDendidx,source,target,synapse  localobj r,fcbpc,rDend
-	r = new Random($1 + 170)
-	PID = r.uniform(0,1)
-	precedingCells = nPCcells + nPVcells
-	rDend = new Random($1+6)
-	fcbpc = new Random($1*9)
-	delstimcbpc=fcbpc.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
-	//delstimcbp=1.8
-	for source=0, (nCBcells-1) {
-		for target=0,(nPCcells-1) {
-			if (connMatrix.x[source+precedingCells][target]) { //if connection exists; account for PC overhead in matrix
-		
-				//----------------------------Insert synapses at distal dendrites
-				if(PARALLEL){
-				rDendidx = int(rDend.uniform(0,PCcells.o(target).DendNo) )
-				}else{				
-				BasalNo=0
-				forsec PCcells[target].basal {BasalNo+=1}
-				rDendidx = int(rDend.uniform(0,BasalNo) )
-				}
-				for synapse=0,(CB2PC_MaxSyn-1) { 
-					delstimcbpc=abs(fcbpc.repick())
-					if(PARALLEL){
-					PCcells.o(target).dend[rDendidx] gabaOnPC_CB_A[source][target][synapse] = new GABAa(1)//cheating! must find distal basal somehow.
-					CBcells.o(source).axon congabaCB2PC_A[source][target][synapse] = new NetCon(&v(1), gabaOnPC_CB_A[source][target][synapse], -20, delstimcbpc, gabaweight_cb2pc)
-					}else{
-					PCcells[target].dend[rDendidx] gabaOnPC_CB_A[source][target][synapse] = new GABAa(1)//cheating! must find distal basal somehow.
-					CBcells[source].axon congabaCB2PC_A[source][target][synapse] = new NetCon(&v(1), gabaOnPC_CB_A[source][target][synapse], -20, delstimcbpc, gabaweight_cb2pc)
-					}
-					if(PLOT){splot.point_mark(gabaOnPC_CB_A[source][target][synapse],5)} //colorize
-				}
+proc connectCB2PC() {local BasalNo,PID,delstimcbpc,rDendidx,src,trg,syn  localobj r,fcbpc,rDend
+	if(PARALLEL){ PC.barrier() }
+r = new Random($1 + 170)
+PID = r.uniform(0,1)
+rDend = new Random($1+6)
+fcbpc = new Random($1*9)
+delstimcbpc=fcbpc.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
+//delstimcbp=1.8
+
+for src=0, CBcells.count()-1 {
+	for trg=0,PCcells.count()-1 {
+		if (connMatrix.x[CBgids.x(src)][PCgids.x(trg)]) { //if connection exists; account for PC overhead in matrix
+			//----------------------------Insert synapses at distal dendrites
+			rDendidx = int(rDend.uniform(0,PCcells.o(trg).DendNo-1) )
+			for syn=0,(CB2PC_MaxSyn-1) { 
+				delstimcbpc=abs(fcbpc.repick())
+				PCcells.o(trg).dend[rDendidx] gabaOnPC_CB_A[src][trg][syn] = new GABAa(1)//cheating! must find distal basal somehow.
+				congabaCB2PC_A[src][trg][syn]  = makeSynapse(CBcells,CBgids.x(src), gabaOnPC_CB_A[src][trg][syn], -20, delstimcbpc, gabaweight_cb2pc)
+				//if(PLOT){splot.point_mark(gabaOnPC_CB_A[src][trg][syn],5)} //colorize
 			}
 		}
 	}
+}
 }// proc cbpyr2()
 
 
 //------------------------------------------------CR-PC connections to d2---------------------------------------------------//
-proc connectCR2PC() {local precedingCells,delstimcrpc,PID,BasalNo,rDendidx,source,target,synapse  localobj fcrpc,rDend
-	precedingCells = nPCcells + nPVcells + nCBcells
-	fcrpc = new Random($1*9)
-	rDend = new Random($1+6)
-	delstimcrpc=fcrpc.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
-	//delstimcbp=1.8
-	for source=0, (nCRcells-1) {
-		for target=0,(nPCcells-1) {
-			if (connMatrix.x[source+precedingCells][target]) { //if connection exists; account for PC overhead in matrix
-		
-				//----------------------------Insert synapses at distal dendrites
-				for synapse=0,(CR2PC_MaxSyn-1) { 
-					delstimcrpc=abs(fcrpc.repick())
-					if(PARALLEL){
-					rDendidx = int(rDend.uniform(0,PCcells.o(target).DendNo) )
-					PCcells.o(target).dend[rDendidx] gabaOnPC_CR_A[source][target][synapse] = new GABAa(1)//cheating! must find distal basal somehow.
-					CRcells.o(source).axon congabaCR2PC_A[source][target][synapse] = new NetCon(&v(1), gabaOnPC_CR_A[source][target][synapse], -20, delstimcrpc, gabaweight_cr2pc)
-					}else{
-					BasalNo=0
-					forsec PCcells[target].basal {BasalNo+=1}
-					rDendidx = int(rDend.uniform(0,BasalNo) )
-					PCcells[target].dend[rDendidx] gabaOnPC_CR_A[source][target][synapse] = new GABAa(1)//cheating! must find distal basal somehow.
-					CRcells[source].axon congabaCR2PC_A[source][target][synapse] = new NetCon(&v(1), gabaOnPC_CR_A[source][target][synapse], -20, delstimcrpc, gabaweight_cr2pc)
-					}
-					if(PLOT){splot.point_mark(gabaOnPC_CR_A[source][target][synapse],5)} //colorize
-				}
+proc connectCR2PC() {local delstimcrpc,PID,BasalNo,rDendidx,src,trg,syn  localobj fcrpc,rDend
+	if(PARALLEL){ PC.barrier() }
+fcrpc = new Random($1*9)
+rDend = new Random($1+6)
+delstimcrpc=fcrpc.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
+//delstimcbp=1.8
+
+for src=0, CRcells.count()-1 {
+	for trg=0,PCcells.count()-1 {
+		if (connMatrix.x[CRgids.x(src)][PCgids.x(trg)]) { //if connection exists; account for PC overhead in matrix
+			//----------------------------Insert synapses at distal dendrites
+			for syn=0,(CR2PC_MaxSyn-1) { 
+				delstimcrpc=abs(fcrpc.repick())
+
+				rDendidx = int(rDend.uniform(0,PCcells.o(trg).DendNo-1) )
+				PCcells.o(trg).dend[rDendidx] gabaOnPC_CR_A[src][trg][syn] = new GABAa(1)//cheating! must find distal basal somehow.
+				congabaCR2PC_A[src][trg][syn]  = makeSynapse(CRcells,CRgids.x(src), gabaOnPC_CR_A[src][trg][syn], -20, delstimcrpc, gabaweight_cr2pc)
+				//if(PLOT){splot.point_mark(gabaOnPC_CR_A[src][trg][syn],5)} //colorize
 			}
 		}
 	}
+}
 }// proc crpyr2()
 
 
 
 
 //------------------------------------------------CR-CB connections-----------------------------------------------------//
-proc connectCR2CB() {local BasalNo, precedingCellsI,precedingCellsJ,delstimcrcb,source,target,synapse localobj fcrcb
-	precedingCellsI = nPCcells + nPVcells + nCBcells
-	precedingCellsJ = nPCcells + nPVcells
-	fcrcb = new Random($1*9)
-	delstimcrcb=fcrcb.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
-	//delstimcbp=1.8
-	for source=0, (nCRcells-1) {
-		for target=0,(nCBcells-1) {
-			if (connMatrix.x[source+precedingCellsI][target+precedingCellsJ]) { //if connection exists; account for PC overhead in matrix
-				//----------------------------Insert synapses at dendrites
-				for synapse=0,(CR2CB_MaxSyn-1) { 
-					delstimcrcb=abs(fcrcb.repick())
-					if(PARALLEL){
-					CBcells.o(target).dend gabaOnCB_CR_A[source][target][synapse] = new GABAa(0.5) //CBs only have one dendrite
-					CRcells.o(source).axon congabaCR2CB_A[source][target][synapse] = new NetCon(&v(1), gabaOnCB_CR_A[source][target][synapse], -20, delstimcrcb, gabaweight_cr2cb)
-					}else{
-					CBcells[target].dend gabaOnCB_CR_A[source][target][synapse] = new GABAa(0.5) //CBs only have one dendrite
-					CRcells[source].axon congabaCR2CB_A[source][target][synapse] = new NetCon(&v(1), gabaOnCB_CR_A[source][target][synapse], -20, delstimcrcb, gabaweight_cr2cb)
-					}
-					if(PLOT){splot.point_mark(gabaOnCB_CR_A[source][target][synapse],5)} //colorize
-				}
+proc connectCR2CB() {local BasalNo,delstimcrcb,src,trg,syn localobj fcrcb
+	if(PARALLEL){ PC.barrier() }
+fcrcb = new Random($1*9)
+delstimcrcb=fcrcb.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
+//delstimcbp=1.8
+
+for src=0, CRcells.count()-1 {
+	for trg=0,CBcells.count()-1 {
+		if (connMatrix.x[CRgids.x(src)][CBgids.x(trg)]) { //if connection exists; account for PC overhead in matrix
+			//----------------------------Insert synapses at dendrites
+			for syn=0,(CR2CB_MaxSyn-1) { 
+				delstimcrcb=abs(fcrcb.repick())
+
+				CBcells.o(trg).dend gabaOnCB_CR_A[src][trg][syn] = new GABAa(0.5) //CBs only have one dendrite
+				congabaCR2CB_A[src][trg][syn] = makeSynapse(CRcells,CRgids.x(src), gabaOnCB_CR_A[src][trg][syn], -20, delstimcrcb, gabaweight_cr2cb)
+				//if(PLOT){splot.point_mark(gabaOnCB_CR_A[src][trg][syn],5)} //colorize
 			}
 		}
 	}
-
+}
 }// proc crcb()
 
 
@@ -811,78 +601,58 @@ proc sadp_dend() {
 		for(x) {
 			if(ismembrane("ican")) for(x) { gbar_ican(x)= gbar_ican(x)*fadp} //0.0001*0.1
 		}}}
-		
+
 proc sadp_apical() {
-forsec PCapical_list {
-for(x) {
-	if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fadp} //0.0001*0.1
-	}}}
+	forsec PCapical_list {
+		for(x) {
+			if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fadp} //0.0001*0.1
+		}}}
 
 proc thinner_basal(){
 	forsec PCdend_list{
-	print diam
-	diam = (diam*95)/100
-	print diam
-}}
+		print diam
+		diam = (diam*95)/100
+		print diam
+	}}
 
 proc thinner_apical(){
 	forsec PCapical_list{
-	print diam
-	diam = (diam*95)/100
-	print diam
-}}
+		print diam
+		diam = (diam*95)/100
+		print diam
+	}}
 
 proc ECA_30(){ local evaValue
-ecaValue = 30
+	ecaValue = 30
 	forsec PCapical_list{
 	print eca
 	eca = ecaValue
 	print eca
-	}
+}
 forsec PCdend_list{
 	print eca
 	eca = ecaValue
 	print eca
-	}
+}
 forsec PCsoma_list{
-print eca
-eca =ecaValue
-print eca
+	print eca
+	eca =ecaValue
+	print eca
 }
 }
 
 // train for fADP validation:
 objref ic2[5]
 
-proc train() {
-initDelay = 1000
-for i=0,4 {
-		PCcells[0].soma ic2[i]=new IClamp(0.5)
+           proc train() {
+	initDelay = 1000
+	for i=0,4 {
+		PCcells.o(0).soma ic2[i]=new IClamp(0.5)
 		ic2[i].del=initDelay	
 		ic2[i].dur=5
 		ic2[i].amp=3//(nA)
 		initDelay = initDelay + 50
-}}
-
-
-//---------------------------------------------- PV NetStim connections-------------------------------------------------------//
-	objref AMPAin[nPVcells],NMDAin[nPVcells],PVnc1[nPVcells], PVnc2[nPVcells]
-	proc PV_NetStim() {
-	  for i=0,nPVcells-1 {
-			PVcells[i].soma AMPAin[i] = new GLUIN(0.5)
-			PVcells[i].soma NMDAin[i] = new NMDA(0.5)
-			
-
-			PVnc1[i]=new NetCon(INstim[i], AMPAin[i])
-			PVnc1[i].delay=0 //+ PID*2
-			PVnc1[i].weight = ampaweightin * 10
-			PVnc1[i].threshold=-20 
-
-			PVnc2[i]=new NetCon(INstim[i], NMDAin[i])
-			PVnc2[i].delay=0 //+ PID*2 
-			PVnc2[i].weight = nmdaweightin     *10          
-			PVnc2[i].threshold= -20
-	  }
-	} //end procedure PV NetStim
+	}
+}
 
 
