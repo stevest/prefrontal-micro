@@ -71,7 +71,7 @@ proc init() {
 	// make 3-d mapping of cell sections
 	//$o1.xopen_library("Terrence","map-segments-to-3d")
 
-	map_segments_to_3d()
+	//map_segments_to_3d() necessary?
 
 	// prepare to make a graph with cell configuration
 	//$o1.tmpo2=new Shape()
@@ -105,12 +105,12 @@ proc init() {
 	gCAN = 0.0001 	 		 	
 	//=====================================================================================
  
-	// Start inserting mechanisms in cell
+	
 	forsec somatic {
-		//nseg = 21
+		nseg = 3//21
 
-		insert Naf
-		gnafbar_Naf = gna_default*5  
+		/*insert Naf
+		gnafbar_Naf = gna_default*5 */  // minor suspect
 		insert kdr
 		gkdrbar_kdr = gkdrbar_default
 
@@ -126,14 +126,14 @@ proc init() {
 		vhalf_h = -82
 
 
-		insert kad  // proximal A current
+		insert kad  // proximal A current  //minor suspect
 		gkabar_kad = kad_init
 
 		insert cal 
-		gcalbar_cal=soma_caL
+		gcalbar_cal=soma_caL  
 
-		insert can
-		gcalbar_can=soma_caN  
+		/*insert can
+		gcalbar_can=soma_caN  */ // suspect
 
 		insert kca
 		gbar_kca = soma_kca
@@ -149,19 +149,19 @@ proc init() {
 		insert cat 
 		gcatbar_cat = soma_caT   
 
-		insert car
-		gcabar_car=soma_car
+		/*insert car
+		gcabar_car=soma_car */ // suspect
 		insert nap	
 		gnabar_nap=soma_nap*0.1
 
-		insert ican
-		gbar_ican  = gCAN
+		/*insert ican  //a suspect
+		gbar_ican  = gCAN*/ // suspect
 	}
 
 
-	//  Configure Axon
+	/*
 	forsec axonal {
-		//nseg=5
+		nseg=3//5
 
 		insert Naf
 		gnafbar_Naf = gna_default*10
@@ -176,17 +176,17 @@ proc init() {
 		//$o1.tmpo2.color(1)
 
 		//MARIA:
-		/*
-		insert kad  
-		gkabar_kad     = kad_init*10
-		insert Ks
-		gKsbar_Ks = soma_kdBG
-		*/
-	}
+		
+		//insert kad  
+		//gkabar_kad     = kad_init*10
+		//insert Ks
+		//gKsbar_Ks = soma_kdBG
+		
+	}*/
 
 	//Include all apical dendrites
 	//  Configure apical trunk
-	access soma
+	/*access soma
 	distance()
 
 
@@ -225,7 +225,7 @@ proc init() {
 				ar2_Naf(x) = max_ar2 + m_ar2*xdist
 			}
 		}
-	}
+	}*/
 
 	
 
@@ -241,16 +241,7 @@ proc init() {
 	printf("Basal sAHP in PC#%d, kca is: %f\n",$1,basal_sAHP.x[$1])
 	}*/
 
-	forsec basal {
-		/*if (basal_fAHP.x[$1] != 0){
-		insert mykca
-		gkbar_mykca = basal_fAHP.x[$1]
-		}
-		if (basal_sAHP.x[$1] != 0){
-		insert kca
-		gbar_kca = basal_sAHP.x[$1]
-		}*/
-
+	/*forsec basal {
 		insert Naf
 		gnafbar_Naf = gna_default*0.1
 		insert kdr
@@ -283,9 +274,9 @@ proc init() {
 				ar2_Naf(x) = max_ar2 + m_ar2*xdist
 			}
 		}
-	} 
+	} */
    
-	khbasal_fixed() // Configure basal dendrites //Outside of the basal loop???!?        
+	/*khbasal_fixed()*/ // Configure basal dendrites //Outside of the basal loop???!?        
 
 	forsec somatic { g_pas=1/Rm_default } // force Rm at all soma sections
     
@@ -313,7 +304,7 @@ proc position() { local i // adapted from Migliore 2010
 
 proc cut_sections() {  
 	forall {
-		nseg=1+int(L/$1)
+		nseg=3//1+int(L/$1)
 	}
 }
 
@@ -564,8 +555,8 @@ endtemplate PCcell
 
 objref FL[56]
   //printf("RS1cell: setting filenames\n")
-  //FL[0]=new String("C3_5_axon.hoc") //OVERRIDE FOR CELL #32!!
-  FL[0]=new String("0-2c_axon.hoc")
+FL[0]=new String("simple.hoc")
+  //FL[0]=new String("0-2c_axon.hoc")
   FL[1]=new String("0-2_axon.hoc")
   FL[2]=new String("0-2a_axon.hoc")
   FL[3]=new String("0-2b_axon.hoc") // the files 0-2b and 0-2a were forgotten in the listing that I found in Maria's script
@@ -630,33 +621,35 @@ strdef filename,basename
 basename="../../morphology/smith_new_axon/"
 proc createPyrs(){ local i,host,gid localobj cell,mynil
 	if(PARALLEL){
-		{PC.barrier()}
-		  if(PC.id==0) {printf("initializing PCs...\n") }     
-		    for i=0,nPCcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
-		      host=i%PC.nhost
-		      gid=ind2gid(i,0)
+	{PC.barrier()}
+	if(PC.id==0) {printf("initializing PCs...\n") }     
+	for i=0,nPCcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
+	host=i%PC.nhost
+	gid=ind2gid(i,0)
 
-		      if(host==PC.id){
-			PCgids.append(gid)  
-			sprint(filename,"%s%s",basename,FL[num2ind(int(PcellIDlist.x[i]))].s)   
-			print "@ ",host, "GID ", gid, " Creating morph:\n"     
-			cell = new PCcell(gid,filename)
-			//cell.position((i+.5)*len/nPCcells, 0, 0)
-			PC.set_gid2node(gid,PC.id)
-			cell.axon {//synapse_source(gid)//,&v(1))
-			  PC.cell(gid,new NetCon(&v(1), mynil),1)
-			}  
-			PC.threshold(gid,-20)          
-			PCcells.append(cell)  
-		      }    
-		  }
+	if(host==PC.id){
+	PCgids.append(gid)  
+	//sprint(filename,"%s%s",basename,FL[num2ind(int(PcellIDlist.x[i]))].s)
+	sprint(filename,"%s%s",basename,FL[0].s)      
+	print "@ ",host, "GID ", gid, " Creating morph:"     
+	cell = new PCcell(gid,filename)
+	//cell.position((i+.5)*len/nPCcells, 0, 0)
+	PC.set_gid2node(gid,PC.id)
+	cell.axon {//synapse_source(gid)//,&v(1))
+	PC.cell(gid,new NetCon(&v(1), mynil),1)
+	}  
+	PC.threshold(gid,-20)          
+	PCcells.append(cell)  
+	}    
+	}
 	}else{
-		  for i = 0, (nPCcells-1) {
-			sprint(filename,"%s%s",basename,FL[num2ind(int(PcellIDlist.x[i]))].s)
+		for i = 0, (nPCcells-1) {
+			//sprint(filename,"%s%s",basename,FL[num2ind(int(PcellIDlist.x[i]))].s)
+			sprint(filename,"%s%s",basename,FL[0].s)  
 			cell = new PCcell(i,filename)
 			PCcells.append(cell) 
 			PCgids.append(i)
-		  }
+		}
 	}
 
 }

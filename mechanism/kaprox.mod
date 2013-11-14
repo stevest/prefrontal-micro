@@ -5,6 +5,7 @@ TITLE K-A channel from Klee Ficker and Heinemann
 
 
 NEURON {
+	THREADSAFE
 	SUFFIX kap
 	USEION k READ ek WRITE ik
         RANGE gkabar, ik

@@ -4,32 +4,33 @@
 objref PCv[nPCcells], PCt[nPCcells], PVv[nPVcells], PVt[nPVcells], CBv[nCBcells], CBt[nCBcells], CRv[nCRcells], CRt[nCRcells]
 proc rec_membrane_voltage(){ local i,j,k,l,m
 
+
 for (i=0;i<nPCcells;i=i+1) {
 	PCv[i]=new Vector(n)
 	PCt[i]=new Vector(n)
 	for m=0,n-1 {PCt[i].x[m]=m*dt }
-	PCcells.o(i).soma cv.record(&v(.5),PCv[i],PCt[i],0) 
+	PCcells.o(i).soma {cv.record(&v(0.5),PCv[i],PCt[i],0) }
 }
 
 for (j=0;j<nPVcells;j=j+1) {
 	PVv[j]=new Vector(n)
 	PVt[j]=new Vector(n)
 	for m=0,n-1 {PVt[j].x[m]=m*dt }
-    	PVcells.o(j).soma cv.record(&v(.5),PVv[j],PVt[j],0)
+    	PVcells.o(j).soma cv.record(&v(0.5),PVv[j],PVt[j],0)
 }
 
 for (k=0;k<nCBcells;k=k+1) {
 	CBv[k]=new Vector(n)
 	CBt[k]=new Vector(n)
 	for m=0,n-1 {CBt[k].x[m]=m*dt }
-    	CBcells.o(k).soma cv.record(&v(.5),CBv[k],CBt[k],0)
+    	CBcells.o(k).soma cv.record(&v(0.5),CBv[k],CBt[k],0)
 }
 
 for (l=0;l<nCRcells;l=l+1) {
 	CRv[l]=new Vector(n)
 	CRt[l]=new Vector(n)
 	for m=0,n-1 {CRt[l].x[m]=m*dt }
-    	CRcells.o(l).soma cv.record(&v(.5),CRv[l],CRt[l],0)
+    	CRcells.o(l).soma cv.record(&v(0.5),CRv[l],CRt[l],0)
 }
 
 }

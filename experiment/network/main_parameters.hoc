@@ -9,7 +9,7 @@ nAllCells=53
 len = 1000 // size of the linear domain, mitral positions range from 0 to len
 
 // Experimental setup
-tstop=500
+tstop=800
 steps_per_ms=10
 dt=1/steps_per_ms
 n=int(tstop/dt)
@@ -113,7 +113,7 @@ func ind2gid(){local i
 
 
 // register the connection target locally given a synapse gid and a synapse mechanism as arguments
-// if given additional (optional) arguments, it will set them as weight, delay, and threshold, respectively
+// if given additional arguments, it will set them as weight, delay, and threshold, respectively
 // http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2158
 obfunc makeSynapse(){ localobj nc, src
 	if(PARALLEL){
@@ -172,12 +172,4 @@ proc sectionMembraneMechSnapshot(){ local z,j,val localobj lo,mt,ms
 	}
 	mechFile.close()
 }
-/*
-proc compareCells(){
-	//use gids!
-	if(PARALLEL)
-	forsec PCsoma_list {
-		{ sectionPointMechSnapshot() }
-		{ sectionMembraneMechSnapshot() }
-	}
-}*/
+

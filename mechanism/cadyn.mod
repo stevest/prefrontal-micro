@@ -1,6 +1,7 @@
 : simple first-order model of calcium dynamics
 
 NEURON {
+	THREADSAFE
         SUFFIX cadyn
         USEION ca READ cai,ica WRITE cai 
         RANGE ca :Nassi
@@ -59,7 +60,8 @@ STATE {
 : } Nassi
  
 BREAKPOINT {
-	SOLVE state METHOD euler
+	:SOLVE state METHOD euler :EULER IS NOT THREAD SAFE!
+	SOLVE state METHOD cnexp
 }
 
 DERIVATIVE state { 

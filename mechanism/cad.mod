@@ -38,6 +38,7 @@ TITLE decay of internal calcium concentration
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
 NEURON {
+	THREADSAFE
 	SUFFIX cad
 	USEION ca READ ica, cai WRITE cai	
         RANGE ca
@@ -76,7 +77,8 @@ ASSIGNED {
 }
 	
 BREAKPOINT {
-	SOLVE state METHOD euler
+	:SOLVE state METHOD euler :EULER IS NOT THREAD SAFE!
+	SOLVE state METHOD cnexp
 }
 
 DERIVATIVE state { 

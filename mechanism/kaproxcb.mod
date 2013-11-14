@@ -4,6 +4,7 @@ TITLE K-A channel from Klee Ficker and Heinemann
 : used only in soma and sections located < 100 microns from the soma
 
 NEURON {
+	THREADSAFE
 	SUFFIX kapcb
 	USEION k READ ko, ki WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
         RANGE gkabar, ik

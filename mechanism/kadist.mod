@@ -7,6 +7,7 @@ TITLE K-A channel from Klee Ficker and Heinemann
 :  Updated by Maria Markaki  12/02/03
 
 NEURON {
+	THREADSAFE
 	SUFFIX kad
 	USEION k READ ek WRITE ik
         RANGE gkabar,gka,ik
@@ -26,16 +27,12 @@ PARAMETER {    :parameters that can be entered when function is called in cell-s
         vhalfn = -1     (mV)       :activation half-potential (-1), change for pfc, activation at -40
         vhalfl = -56    (mV)       :inactivation half-potential
        a0n = 0.1       (/ms)      :parameters used
-       : a0l = 0.05       (/ms)      :parameters used
         zetan = -1.8    (1)        :in calculation of
         zetal = 3       (1) 
-	:zetal = 3       (1)        :steady state values
         gmn   = 0.39    (1)        :and time constants
-	:gmn   = 0.39    (1)        :and time constants, original
         gml   = 1       (1)
 	lmin  = 2       (ms)
 	nmin  = 0.1     (ms)
-:	nmin  = 0.2     (ms)	:suggested
 	pw    = -1      (1)
 	tq    = -40     (mV)
 	qq    = 5       (mV)
@@ -72,8 +69,8 @@ INITIAL {    :initialize the following parameter using rates()
 
 BREAKPOINT {
 	SOLVE states METHOD cnexp
-:	ik = gkabar*n*l*(v+70)
-	ik = gkabar*n*l*(v-ek)
+	:ik = gkabar*n*l*(v-ek)
+	ik = gkabar*(v-ek)
 }
 
 

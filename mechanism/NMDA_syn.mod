@@ -9,6 +9,7 @@ ENDCOMMENT
 TITLE NMDA synapse 
 
 NEURON {
+	THREADSAFE
 	POINT_PROCESS nmda_segev
 	USEION ca READ cai WRITE ica VALENCE 2
 	NONSPECIFIC_CURRENT inmda 
@@ -98,8 +99,10 @@ DERIVATIVE state {
 
 NET_RECEIVE (weight) {
 	gmax=weight
-	state_discontinuity( A, A+ gmax)
-	state_discontinuity( B, B+ gmax)
+	:state_discontinuity( A, A+ gmax) :deprecated and not thread safe!
+	A = A + gmax
+	:state_discontinuity( B, B+ gmax) :deprecated and not thread safe!
+	B = B + gmax
 
 }
 

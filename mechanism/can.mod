@@ -4,6 +4,7 @@ TITLE N-type calcium channel
 :  Updated by Maria Markaki  03/12/03
 
 NEURON {
+	THREADSAFE
 	SUFFIX can
 	USEION ca READ cai, eca WRITE ica 
         RANGE gcalbar, ica, po

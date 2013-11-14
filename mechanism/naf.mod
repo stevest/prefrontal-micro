@@ -21,7 +21,6 @@ PARAMETER {
 	v (mV)
 	dt (ms)
 	gnafbar	= 0 (mho/cm2)
-	:gnafbar= 0.086 (mho/cm2) <0,1e9>
 	ena = 55 (mV)
 	
 	:PARAMETERS FOR S ATTENUATION SYSTEM
@@ -31,8 +30,6 @@ PARAMETER {
  	vvs = 2 (mV)
 	a0r = 0.0003 (/ms)
         b0r = 0.0003 (/ms)
-       : a0r = 0.0003 (ms)
-        :b0r = 0.0003 (ms)
         zetar = 12    
 	zetas = 12   
         gmr = 0.2   
@@ -82,10 +79,8 @@ UNITSOFF
 
 FUNCTION malf( v){ LOCAL va 
 	va=v+28
-	:va=v+28
 	if (fabs(va)<1e-04){
 	   malf= -0.2816*(-9.3 + va*0.5)
-	   :malf= -0.2816*(-9.3 + va*0.5)
 	}else{
 	   malf = -0.2816*(v+28)/(-1+exp(-va/9.3))
 	}
@@ -94,10 +89,8 @@ FUNCTION malf( v){ LOCAL va
 
 FUNCTION mbet(v(mV))(/ms) { LOCAL vb 
 	vb=v+1
-	:vb=v+1
 	if (fabs(vb)<1e-04){
 	    mbet = 0.2464*(6+vb*0.5)
-	    :mbet = 0.2464*(6 + vb*0.5)
 	}else{
 	   mbet = 0.2464*(v+1)/(-1+exp(vb/6))	  :/(-1+exp((v+1)/6))
 	}
@@ -105,7 +98,6 @@ FUNCTION mbet(v(mV))(/ms) { LOCAL vb
 
 
 FUNCTION half(v(mV))(/ms) { LOCAL vc 
-	:vc=v+15.1
 	vc=v+40.1	:changed to 40.1 by kiki
 	if (fabs(vc)<1e-04){
 	   half=0.098*(20 + vc*0.5)
@@ -116,7 +108,6 @@ FUNCTION half(v(mV))(/ms) { LOCAL vc
 
 
 FUNCTION hbet(v(mV))(/ms) { LOCAL vd
-	:vd=v+13.1
 	vd=v+13.1  :decreasing it increases the peak current
 	if (fabs(vd)<1e-04){
 	   hbet=1.4*(10 + vd*0.5)
@@ -134,12 +125,10 @@ FUNCTION alpv(v(mV)) {
 
 
 FUNCTION alpr(v(mV)) {       :used in "s" activation system tau
-
   alpr = exp(1.e-3*zetar*(v-vhalfr)*9.648e4/(8.315*(273.16+celsius))) 
 }
 
 FUNCTION betr(v(mV)) {       :used in "s" activation system tau
-
   betr = exp(1.e-3*zetar*gmr*(v-vhalfr)*9.648e4/(8.315*(273.16+celsius))) 
 }
 

@@ -6,6 +6,7 @@ TITLE t-type calcium channel with high threshold for activation
 
 
 NEURON {
+	THREADSAFE
 	SUFFIX catcb
 	USEION ca READ cai, eca    
         :USEION Ca WRITE iCa VALENCE 2

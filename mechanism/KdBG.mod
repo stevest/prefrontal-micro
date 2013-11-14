@@ -12,6 +12,7 @@ Copyright	  Maciej Lazarewicz, 2001
 ENDCOMMENT
 
 NEURON {
+	THREADSAFE
 	SUFFIX kdBG
 	USEION k WRITE ik
 	RANGE  gbar,ik

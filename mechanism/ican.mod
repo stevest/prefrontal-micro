@@ -30,6 +30,7 @@
                              INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
                              NEURON {
+					THREADSAFE
                                      SUFFIX ican
                                      USEION n READ en WRITE in VALENCE 1
                                      USEION ca READ cai
@@ -78,7 +79,8 @@
                              }
 
                              BREAKPOINT { 
-                                     SOLVE states METHOD euler
+                                :     SOLVE states METHOD euler :EULER IS NOT THREAD SAFE!
+				SOLVE states METHOD cnexp
                                      
 				if (t>mystart)  {     
 				in = gbar * m*m * (v - en)

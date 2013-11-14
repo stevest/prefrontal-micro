@@ -47,7 +47,7 @@ ASSIGNED {
 }
 
 BREAKPOINT { 
-        SOLVE states :METHOD euler
+	SOLVE states :METHOD euler :EULER IS NOT THREAD SAFE!
         ica = pcabar * m*m * ghk(v,cai,cao,2)
 }
 

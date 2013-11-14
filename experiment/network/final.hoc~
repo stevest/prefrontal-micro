@@ -153,7 +153,7 @@ for runs = 0, TOTALRUNS {
 			print "maxstep=",steps_per_ms
 		}  
 	}else{
-		foutput = "single_Core"
+		foutput = "single_core"
 		sprint(syscmd,"mkdir -p %s/",foutput) 	
 		system(syscmd)
 		xopen("recordandsave/record.hoc")
@@ -168,19 +168,19 @@ for runs = 0, TOTALRUNS {
 	//thinner_basal()
 	//thinner_apical()
 			
-	stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
-
+	//stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
+	clampStim(runs)
 	//backgroundActivity(runs)
-	/*connectPC2PC(runs)
-	connectPV2PV(runs)
+	connectPC2PC(runs)
+	/*connectPV2PV(runs)
 	connectPC2PV(runs)
 	connectPC2CB(runs)
 	connectPC2CR(runs)
 	connectPV2PC(runs)
 	connectCB2PC(runs)
 	connectCR2PC(runs)
-	connectCR2CB(runs)*/
-	//noise(runs) 
+	connectCR2CB(runs)
+	noise(runs) */
 
 	//PCcells.o(0).dend[0] { sectionPointMechSnapshot() }
 	//PCcells.o(2).soma[0] { sectionMembraneMechSnapshot("somaMech.txt") }

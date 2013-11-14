@@ -3,6 +3,7 @@ TITLE Slow Ca-dependent potassium current
 :   Ca++ dependent K+ current responsible for slow AHP
 
 NEURON {
+	THREADSAFE
 	SUFFIX kca
 	USEION k READ ek WRITE ik
 	USEION ca READ cai

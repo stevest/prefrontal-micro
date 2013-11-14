@@ -7,6 +7,7 @@ TITLE K-A channel from Klee Ficker and Heinemann
 :  Updated by Maria Markaki  12/02/03
 
 NEURON {
+	THREADSAFE
 	SUFFIX kadcr
 	USEION k READ ki, ko WRITE ik 		:Changed from READ ek, 23/04/2010,Nassi
         RANGE gkabar,gka,ik

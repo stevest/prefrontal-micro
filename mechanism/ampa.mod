@@ -48,6 +48,7 @@ ENDCOMMENT
 
 
 NEURON {
+    THREADSAFE
 	POINT_PROCESS GLU         
 	RANGE R, gmax, g, ina     
 	USEION na WRITE ina   
@@ -94,6 +95,7 @@ INITIAL {
 }
 
 BREAKPOINT {
+:printf("AMPA Ron %f Roff %f\n",Ron, Roff)
 	SOLVE release METHOD cnexp
 	g = (Ron + Roff)*1(umho)
 	iglu = g*(v - Erev)  :i
@@ -114,28 +116,40 @@ DERIVATIVE release {
 : Note: automatic initialization of all reference args to 0 except first
 
 NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
-	: flag is an implicit argument of NET_RECEIVE and  normally 0
+INITIAL{
+	nspike=0
+	on = 0
+}
+	: flag is an implicit argument of NET_RECEIVE (equals 0 if external, else is a self send message)
         if (flag == 0) { : a spike, so turn on if not already in a Cdur pulse
 		nspike = nspike + 1
 		if (!on) {
+			synon = synon + weight
 			r0 = r0*exp(-Beta*(t - t0))
+			:state_discontinuity(Ron, Ron + r0) :deprecated and not thread safe!
+			Ron = Ron + r0
+			:state_discontinuity(Roff, Roff - r0):deprecated and not thread safe!
+			Roff = Roff - r0
 			t0 = t
 			on = 1
-			synon = synon + weight
-			state_discontinuity(Ron, Ron + r0)
-			state_discontinuity(Roff, Roff - r0)
-		}
-		: come again in Cdur with flag = current value of nspike
-		net_send(Cdur, nspike)
+			: come again in Cdur with flag = current value of nspike
+			net_send(Cdur, nspike)
+		}:else{
+			:net_move(t+Cdur)
+		:}
+		
+
         }
 	if (flag == nspike) { : if this associated with last spike then turn off
-		r0 = weight*Rinf + (r0 - weight*Rinf)*exp(-(t - t0)/Rtau)
-		t0 = t
 		synon = synon - weight
-		state_discontinuity(Ron, Ron - r0)
-		state_discontinuity(Roff, Roff + r0)
+		r0 = weight*Rinf + (r0 - weight*Rinf)*exp(-(t - t0)/Rtau)
+		state_discontinuity(Ron, Ron - r0) :deprecated and not thread safe!
+		:Ron = Ron - r0
+		state_discontinuity(Roff, Roff + r0) :deprecated and not thread safe!
+		:Roff = Roff + r0
+		t0 = t
 		on = 0
 	}
-gmax=weight
+gmax = weight
 }
 

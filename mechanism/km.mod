@@ -10,6 +10,7 @@
 
 
 NEURON {
+	THREADSAFE
 	SUFFIX km
 	USEION k READ ek WRITE ik
 	RANGE n, gbar,ik
