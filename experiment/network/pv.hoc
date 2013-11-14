@@ -1,0 +1,183 @@
+//Interneuron for PFC 
+//Based on Durstewitz and Gabriel 2006
+//"Irregular spiking in NMDA-driven prefrontal cortex neurons"
+
+begintemplate PVcell
+external PARALLEL
+
+public position, x, y, z
+public soma, axon, dend
+create soma, axon, dend
+
+proc position() { local i // adapted from Migliore 2010
+  soma for i = 0, n3d()-1 {
+    pt3dchange(i, $1-x+x3d(i), $2-y+y3d(i), $3-z+z3d(i), diam3d(i))
+  }
+  x = $1  y = $2  z = $3
+}
+
+proc init() {
+x = y = z = 0 // only change via position
+
+if(PARALLEL){gid=$1}
+
+create soma, axon, dend
+
+soma_nafin=0.045*3//*0.025//0.055*3
+soma_kdrin=0.018*2//*0.028//0.0018*2
+soma_Kslowin=0.000725*0.1//*0.00006*0.1//0.000725*0.1
+soma_hin=0.00001//*
+soma_kapin=0.0032//*0.001
+soma_canin=0.0003//*
+soma_kctin=0.0001
+soma_kcain=20*0
+
+soma {
+     nseg=1
+     L=27//42
+     diam=29//42
+
+	//insert kdyn
+	insert pas
+	cm=1.2            //microF/cm2
+	g_pas =1/10000//1/30000// //mho/cm2   (oso anevazw ton paranomasti anevainei to input resistance)
+	e_pas = v_initin//(Kawaguchi k Kubota, 1993 --> -73+-3.9)
+	v_initin= -73
+	Ra=150 
+
+     insert Nafx
+     gnafbar_Nafx= soma_nafin
+
+     insert kdrin
+     gkdrbar_kdrin= soma_kdrin
+
+     insert IKs	
+     gKsbar_IKs= soma_Kslowin
+
+     insert hin
+     gbar_hin=soma_hin
+
+     insert kap
+     gkabar_kap=soma_kapin
+
+     insert can
+     gcalbar_can=soma_canin
+
+     insert mykca
+     gkcbar_mykca=soma_kctin
+
+     insert kcain
+     gbar_kcain=soma_kcain
+
+     insert cadynin
+
+}
+
+axon {
+	nseg=1
+	L=115//113.22 
+	diam=1.5//1.1
+	
+
+	//insert kdyn
+	insert pas
+	cm=1.2            //microF/cm2
+	g_pas =1/10000//1/10000//mho/cm2   (oso anevazw ton paranomasti anevainei to input resistance)
+	e_pas = v_initin//(Kawaguchi k Kubota, 1993 --> -73+-3.9)
+	v_initin= -73
+	Ra=150 
+
+	insert Nafx
+	gnafbar_Nafx=soma_nafin*10//0.025*10 
+
+	insert kdrin
+	gkdrbar_kdrin=soma_kdrin*0.5//0.0018
+}
+
+
+dend {
+	nseg=1
+	L=22//20
+	diam=7//5
+
+
+	//insert kdyn
+	insert pas
+	cm=1.2            //microF/cm2
+	g_pas =1/10000//1/30000//mho/cm2   (oso anevazw ton paranomasti anevainei to input resistance)
+	e_pas = v_initin//(Kawaguchi k Kubota, 1993 --> -73+-3.9)
+	v_initin= -73
+	Ra=150
+
+	insert Nafx
+	gnafbar_Nafx=0.018*5//soma_nafin*0.1
+
+	insert kdrin
+	gkdrbar_kdrin=0.018*0.5//soma_kdrin*0.1
+
+     	insert kap
+    	gkabar_kap=soma_kapin*10
+
+}
+
+
+	ko0_k_ion = 3.82   //mM
+ 	ki0_k_ion = 140    //mM
+	celsius   = 23
+	connect axon(0), soma(0.5)
+	connect dend(0), soma(0)
+ 	//xopen("../bash_templates/current-balancein.hoc")
+	//current_balancein(v_initin)  
+}
+
+endtemplate PVcell
+
+
+//Creating new PV interneurons
+objref PVcells, PVgids
+PVcells = new List() 
+PVgids=new Vector()
+
+proc createPVs(){local i,host,gid localobj cell,mynil
+	if(PARALLEL){
+		{PC.barrier()}
+		  if(PC.id==0) { printf("initializing %d PVs...\n",nPVcells) }
+		    for i=0,(nPVcells-1){ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
+		      host=i%PC.nhost
+		      gid=ind2gid(i,1)
+		      if(host==PC.id){
+			 PVgids.append(gid)  
+			cell = new PVcell(gid)
+			//cell.position((i+.5)*len/nPVcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
+			PC.set_gid2node(gid,PC.id)
+			cell.axon {//synapse_source(gid)//,&v(1))
+			  PC.cell(gid,new NetCon(&v(1), mynil),1)
+			}        
+			PC.threshold(gid,-20)          
+			PVcells.append(cell)        
+		      }    
+		  }
+
+	}else{
+		for i = 0, nPVcells-1 {
+			cell = new PVcell()
+			PVcells.append(cell)
+			PVgids.append(i)
+		}
+	}
+}
+
+createPVs()
+
+//Create list with segments
+objref PVsoma_list
+PVsoma_list = new SectionList()
+
+
+for i=0,PVcells.count()-1 {		
+	PVcells.o(i).soma PVsoma_list.append() 
+}
+
+
+{xopen("../../lib/current-balancePV.hoc")}
+{current_balancePV(-70) }
