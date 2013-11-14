@@ -1,0 +1,81 @@
+objref tvec, idvec
+// will be Vectors that record all spike times (tvec) 
+// see also http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/parcon.html#spike_record
+proc spikerecord() {local i localobj nc,nil
+  tvec = new Vector() 
+  idvec = new Vector()
+  // the next line causes problems if there are more NetCons than cells //
+ // for i=0, nclist.count-1 {
+  for i=0, PCcells.count()-1 { 
+    nc = PCcells.o(i).connect2target(nil) 
+    nc.record(tvec, idvec, i) // the Vector will continue to record spike times // even after the NetCon has been destroyed
+    }
+} 
+
+//////////////////////////// // Report simulation results ////////////////////////////
+proc spikeout() { local i 
+  printf("\ntime\t cell\n") 
+  for i=0, tvec.size-1 { 
+    printf("%g\t %d\n", tvec.x[i], idvec.x[i])
+  }
+} 
+// If you save the stdout to a file you can sort the results. A nice idiom is sort -k 1n,1n -k 2n,2n temp1 > temp
+//All the spike times and cells are the same as in the serial implementation, as we can verify by capturing the outputs of the two programs to files, sorting the parallel output, and comparing
+//$ # numeric sort on spike time, then cell id 
+//$ sort -n -k 1 -k 2 serout.txt > sorted_serout.txt 
+//$ sort -n -k 1 -k 2 parout.txt > sorted_parout.txt 
+//$ cmp sorted_serout.txt sorted_parout.txt
+
+
+// see this here on the topic of storing membrane voltage in a parallel context: http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=1987
+objref r_volts[offsets.x[offsets.size()-1]],r_msec[offsets.x[offsets.size()-1]]
+// each recorded range variable must have a separate tvec which will be different for different cells
+objref recordedCells
+recordedCells = new Vector()
+// recording routines for the parallel context
+proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
+
+	if (PC.gid_exists($1)) { 
+		if(DEBUG){printf("Recording cell %d voltage on node %d\n", $1,PC.id)}
+		s=recordedCells.size()
+		r_volts[s]=new Vector(n)
+		r_msec[s]=new Vector(n)
+		//Also a known bug:
+		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
+		for q=0,n-1 {r_msec[s].x[q]=q*dt }
+		PC.gid2cell($1).soma {cv.record(&v(0.5),r_volts[s],r_msec[s],0)}
+		recordedCells.append($1)
+	}
+}
+
+// store voltage currents to files
+strdef vfilePC_filename
+strdef data_dir, basename
+data_dir = "multi_core"
+//basename = "soma_run"
+
+strdef syscmd
+
+proc par_save_membrane_voltage() {local i,s localobj vfilePC
+
+if (PC.id == 0) {
+		sprint(syscmd,"mkdir -p %s",data_dir)
+		system(syscmd)
+}
+{ PC.barrier() } 
+
+for i=0, PC.nhost-1 {
+	if (PC.id == i) {
+		for s=0,recordedCells.size()-1{
+			vfilePC = new File()	
+			sprint(vfilePC_filename,"%s/%d_%d.txt", data_dir, recordedCells.x(s), runs)  
+			vfilePC.wopen(vfilePC_filename)
+			r_volts[s].printf(vfilePC,"%8.4f\n")
+			vfilePC.close()
+		}
+	}
+}
+
+{ PC.barrier() } 
+
+}
