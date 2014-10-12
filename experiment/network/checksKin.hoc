@@ -1,86 +1,30 @@
 //--------------Set parameters and run this for the net (4 Pcells and 1 Interneuron)
 //--------------Written 8-5-08, modified 08-10-08
-load_file("nrngui.hoc")          //load main NEURON library
-cvode.active(0)     
-    
-////////////////////////////////////////////
-////////////////////////////////////////////
+if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
 //----------------------------------------Set parameters--------------------------------------------------------------//
-tstop=10000 //was 800 for NMDA/AMPA
-steps_per_ms=10
-dt=0.1
-celsius=34
-//-------------------Set synaptic weights
-ampaweightpr=	0.00013			//Initial stimulus
-nmdaweightpr=	0.00018			//Initial stimulus
-ampaweight=	0.00019		//According to Wang(2008)
-nmdaweight=	0.52//51//0.41			//ratio inmda/iampa in basal dendrites:1 (Wang,Gao,2008)
-gabaweight=	6.9e-4 			//According to Woo(2007)
-//gabaweightb=	0.654e-4
-ampaweightin=	7.5e-4			//according to Wang,Gao,2009
-nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
-autogabaweight=	5.1e-4			//According to Bacci (2003) 
-//------------------Set # of synapses
-inmaxsyn=	90			//initial stimulation
-maxsyn=		22	 //was5		//PC-PC connections
-automaxsyn=	1			//autosynapses (one third, Lubke, 1996)
-maxsyn1=	12			//IN-IN connections
-maxsyn2=	2			//PC-IN connections (Thomson, 2007)
-maxsyn3=	4			//IN-PC connections (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)
+if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}   
+//override parameters for this validation runs:
+nPCcells=1
+tstop=100 //was 800 for NMDA/AMPA
+n=int(tstop/dt) 
+GPYID = 3  
 
-nPcells = 1
-nINcells = 1
-GPYID = 1
-xopen("../../lib/basic-graphics.hoc")
-xopen("../define_objects.hoc")
-
-xopen("../RS1cell.hoc") 
-//xopen("../RS1cellNassi.hoc") 
-xopen("incell.hoc")
-NMDAfactor = 1//0.59
-AMPAfactor = 1
-xopen("NMDA_Array_1_1.hoc")
-xopen("AMPA_Array_1_1.hoc")		
-xopen ("net.hoc")                    	//load net structure
-
+if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
+if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
 
 //--------------------------------------Graphs
-//for j=0, (nPcells-1) {addgraph_2("Pcells[j].soma.v(0.5)", 0,tstop, -70, 50)}
-addgraph_2("Pcells[0].soma.v(0.5)", 0,tstop, -70, 50)
+//addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -70, 50)
+////////////////////////////////////////////
+////////////////////////////////////////////
 
+NMDAfactor = 1//0.59
+AMPAfactor = 1
+xopen("NMDA_Array_1_5.hoc")
+xopen("AMPA_Array_1_5.hoc")		
+xopen ("network.hoc")                    	//load net structure
 
 
 //---------------------------------------------Multiple Experiments/Runs---------------------------------------------//
-//---For many experiments
-strdef syscmd, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr 
-//-----Variables
-n=int(tstop/dt)
-//-----Objects for record data
-objref cv
-cv=new CVode(0)
-objref PCv[nPcells], PCi[nPcells], PCt[nPcells], INv[nINcells], INt[nINcells], PCSi[300], PCSt[300]
-printf("DEBUG: PFC NEURONS No: %d\n",nPcells)
-printf("DEBUG: INTERNEURONS No: %d\n",nINcells)
-strdef temp
-objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, insomab, curampa, curnmda, curgabaa, curgabab, DendDist, Params
-objref campa[maxsyn], ct[8][inmaxsyn], cnmda[maxsyn], cnmdat[inmaxsyn], cgabaa[maxsyn3], campaa[automaxsyn], cnmdaa[automaxsyn], campain[inmaxsyn], cnmdain[inmaxsyn], cgabaat[maxsyn3], cgabab[maxsyn3], cgababt[maxsyn3], ampac, nmdac, gabaac, gababc	
-objref gababweights, nmdaweights, adpweights
-//----record total cell population spike activity
-objref timevec, idvec, recncs, tobj, nil, total_activity
-xopen("values_gabaweight.hoc")
-xopen("values_nmda.hoc")
-xopen("values_adp.hoc")
-
-//---------------------------------Procedure for various checks------------------------------------------------//
-objref r1	
-objref conpyr1pyr2[100], nconpyr1pyr2[100], ampapyr1pyr2[100], nmdapyr1pyr2[100]
-ns2=new NetStim(0.5)
-ns2.interval=20//(in ms!!!)// 20ms in NMDA SPIKES
-ns2.number=1 //Single-Paired stimulation
-ns2.start=0
-ns2.noise=0
-objref nc_s1[500]
-objref nc_s2[500] , ic2[5]
 
 // fADP:
 proc sadp_soma() { local ctr
@@ -115,7 +59,7 @@ objref ic2[5]
 proc train() {
 initDelay = 1000
 for i=0,4 {
-		Pcells[0].soma ic2[i]=new IClamp(0.5)
+		PCcells.o(0).soma ic2[i]=new IClamp(0.5)
 		ic2[i].del=initDelay	
 		ic2[i].dur=5
 		ic2[i].amp=3//(nA)
@@ -128,9 +72,8 @@ for i=0,4 {
 //--------------------------------------------------------------IClamp
 objref ic10
 proc IClump() {
-access Pcells[0].soma
 amp=0.17//IC_AMP//0.15//0.27//0.120//0.25//0.3//(nA)
-Pcells[0].soma ic10=new IClamp(0.5)
+PCcells.o(0).soma {ic10=new IClamp(0.5)}
 ic10.del=400
 ic10.dur=70000//2000
 ic10.amp=amp
@@ -140,8 +83,7 @@ ic10.amp=amp
 //--------------------------------------------------------------VClamp
 objref vc
 proc vclamp() {
-access Pcells[0].soma
-Pcells[0].soma vc = new VClamp(0.5)
+PCcells.o(0).soma {vc = new VClamp(0.5)}
 vc.amp[0]= -60 //NMDA 60//AMPA -70//train -65
 vc.dur[0]=500
 vc.amp[1]= 20 //NMDA 60//AMPA -70//train -65
@@ -205,18 +147,6 @@ proc save_Dsoma_Voltage() {
 
 //////////////////////////////////
 //-----------------------------------------------------Multiple Runs
-n=int(tstop/dt)
-objref cv
-cv=new CVode(0)
-objref PCv[nPcells]
-objref PCi[nPcells]
-objref PCt[nPcells]
-objref INv[nINcells]
-objref INt[nINcells]
-strdef temp, tmpstr
-objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, curampa, curnmda, curgabaa, curgabab
-objref campa[maxsyn+automaxsyn], campat[maxsyn+automaxsyn], cnmda[maxsyn+automaxsyn], cnmdat[maxsyn+automaxsyn], cgabaa[maxsyn3], cgabaat[maxsyn3], cgabab[maxsyn3], cgababt[maxsyn3], ampac, nmdac, gabaac, gababc, generalfile
-
 
 //addgraph("Pcell[0].soma.cai(0.5)",-70,50)
 //addgraph("Pcell[0].soma.ica_cal(0.5)",-70,50)
@@ -239,18 +169,18 @@ objref campa[maxsyn+automaxsyn], campat[maxsyn+automaxsyn], cnmda[maxsyn+automax
 
 
 //test code
-for GPYID = 1,1 {
+//for GPYID = 1,1 {
 	IC_AMP = 0.05
-	for runs = 0, 10 {
+	//for runs = 0, 10 {
 	//r1=new Random(runs)
-	objref Pcells[nPcells]
+	//objref Pcells[nPcells]
 	//Load new morphology
-	createPyrs()
+	//createPyrs()
 	
-	fadp = 0.1
-	sadp_soma()
-	sadp_dend()
-	sadp_apical()
+	//fadp = 0.1
+	//sadp_soma()
+	//sadp_dend()
+	//sadp_apical()
 
 train()
 	//IClump() 
@@ -268,7 +198,7 @@ train()
 
 	IC_AMP = IC_AMP+0.05
 
-	}
-}
+	//}
+//}
 
 

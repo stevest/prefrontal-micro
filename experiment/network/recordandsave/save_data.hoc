@@ -1,58 +1,14 @@
-//--------This script is made to Store data (voltage & synaptic currents)
-//--------Written 7-11-09, Nassi
 
-objref PCvsoma,PVvsoma,CBvsoma,CRvsoma
-proc save_membrane_voltage() { //local ctr
-lets=1+runs
-//ctr=0
-for sa=0, (nPCcells-1) {
-	PCvsoma = new File()		
-	sprint(temp,"%s/PCsomaV_%d_run_%d.txt", foutput, sa,lets)
-	PCvsoma.wopen(temp)
-	for sb=0, PCv[sa].size()-1 { 
-		PCvsoma.printf ("%f\n",PCv[sa].x[sb])
+strdef savefilename
+proc save_membrane_voltage()  { local i 
+	for (i=0;i<nPCcells;i=i+1) {
+		vsoma[i] = new File()		
+		sprint(savefilename,"experiment_%d/%s/%d_%d_%d.txt", $3,EXP,$2,i, runs) 
+		vsoma.wopen(savefilename)
+		for sb=0, volt.size()-1 { 
+			vsoma.printf ("%f\n",volt[i].x[sb])
+		}
+		vsoma.close()
 	}
-	PCvsoma.close()
-	//ctr=ctr+1
 }
-
-for sa=0, (nPVcells-1) {
-	PVvsoma = new File()		
-	sprint(temp,"%s/PVsomaV_%d_run_%d.txt", foutput, sa,lets)
-	PVvsoma.wopen(temp)
-	for sb=0, PVv[sa].size()-1 { 
-		PVvsoma.printf ("%f\n",PVv[sa].x[sb])
-	}
-	PVvsoma.close()
-	//ctr=ctr+1
-}
-
-for sa=0, (nCBcells-1) {
-	CBvsoma = new File()		
-	sprint(temp,"%s/CBsomaV_%d_run_%d.txt", foutput, sa,lets)
-	CBvsoma.wopen(temp)
-	for sb=0, CBv[sa].size()-1 { 
-		CBvsoma.printf ("%f\n",CBv[sa].x[sb])
-	}
-	CBvsoma.close()
-	//ctr=ctr+1
-}
-
-for sa=0, (nCRcells-1) {
-	CRvsoma = new File()		
-	sprint(temp,"%s/CRsomaV_%d_run_%d.txt", foutput, sa,lets)
-	CRvsoma.wopen(temp)
-	for sb=0, CRv[sa].size()-1 { 
-		CRvsoma.printf ("%f\n",CRv[sa].x[sb])
-	}
-	CRvsoma.close()
-	//ctr=ctr+1
-}
-
-}
-
-
-
-
-
 

@@ -125,7 +125,7 @@ dend {
 
 	ko0_k_ion = 3.82   //mM
  	ki0_k_ion = 140    //mM
-	celsius   = 23
+	//celsius   = 23 it is necessary? when different than initial -> different results than the parallel
 	connect axon(0), soma(0.5)
 	connect dend(0), soma(0)
 	

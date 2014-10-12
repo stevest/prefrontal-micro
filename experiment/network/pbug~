@@ -1,0 +1,17 @@
+#!/bin/sh
+
+pkill -9 nrniv
+
+res1=$(date +%s.%N)
+
+# -mca btl ^openib flag inhibit the search for infiniband hardware
+mpirun -n 24 -mca btl ^openib ../../mechanism/$(arch)/special -mpi -c "PARALLEL=1" NEURON_BUG.hoc  
+
+
+res2=$(date +%s.%N)
+echo "Start time: $res1"
+echo "Stop time:  $res2"
+
+
+printf "Elapsed:    %.3F\n"  $(echo "$res2 - $res1"|bc )
+

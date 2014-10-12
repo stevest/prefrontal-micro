@@ -9,3 +9,6 @@
 single_core/
 multi_core/
 
+# experiment folders:
+experiment_*/
+

@@ -9,18 +9,26 @@ PcellIDlist = new Vector(nPCcells)
 objref IBlist, RSlist
 objref rRS, rIB
 
-proc chooseMorphologies(){ local nIB, nRS  localobj rRS, rIB
+proc chooseMorphologies(){ local n, nIB, nRS  localobj rRS, rIB
+
+if(SIMPLIFIED){
+	for n=0,(nPCcells-1){
+		PcellIDlist.x[n] = 1
+	}
+}else {
+
+
 	//argument: percentage of IB cells morphologies in network
 	nIB = nPCcells * $1 / 100	
 	nIB = int(nIB)
 	nRS = nPCcells - nIB
 	if(PARALLEL){
 	if(PC.id==0){
-	printf("Number of RS: %d\n\n", nRS)
-	printf("Number of IB: %d\n\n", nIB)
+	printf("Number of RS: %d\n", nRS)
+	printf("Number of IB: %d\n", nIB)
 	}}else{
-	printf("Number of RS: %d\n\n", nRS)
-	printf("Number of IB: %d\n\n", nIB)
+	printf("Number of RS: %d\n", nRS)
+	printf("Number of IB: %d\n", nIB)
 	}
 	//get lists of IDs for IB and RS (HARDCODED!)
 	IBlist = new Vector(6)
@@ -95,12 +103,14 @@ proc chooseMorphologies(){ local nIB, nRS  localobj rRS, rIB
 	rIB.uniform(0,IBlist.size()-1)
 
 	for n=0,(nRS-1){
-		PcellIDlist.x[n] = int(RSlist.x[rRS.repick()])
+		PcellIDlist.x[n] = 20//int(RSlist.x[rRS.repick()])//32//int(RSlist.x[rRS.repick()])
 		//printf("RS #%d\n", PcellIDlist.x[n])
 	}
 	for n=nRS,(nIB+nRS-1){
-		PcellIDlist.x[n] = int(IBlist.x[rIB.repick()])
+		PcellIDlist.x[n] = 20//int(IBlist.x[rIB.repick()])//32//int(IBlist.x[rIB.repick()])
 		//printf("IB #%d\n", PcellIDlist.x[n])
 	}
+
+} //if SIMPLIFIED
 	
 }

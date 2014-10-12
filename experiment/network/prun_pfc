@@ -1,1 +1,1 @@
-../../mechanism/x86_64/special -nobanner -c "PARALLEL=0" final.hoc -
+../../mechanism/x86_64/special -nobanner -c "PARALLEL=0" -c "SIMPLIFIED=1" final.hoc -

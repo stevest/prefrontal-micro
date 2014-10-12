@@ -1,0 +1,38 @@
+proc celldef() {
+  topol()
+  subsets()
+}
+
+create soma[1], axon[1], dend[3], apic[3]
+
+proc topol() { local i
+  connect axon(0), soma(0.5)
+}
+
+
+objref all, somatic, axonal, basal, apical
+proc subsets() { local i
+  objref all, somatic, axonal, basal, apical
+  all = new SectionList()
+    soma all.append()
+    for i=0, 0 axon[i] all.append()
+    for i=0, 2 dend[i] all.append()
+    for i=0, 2 apic[i] all.append()
+
+  somatic = new SectionList()
+    soma somatic.append()
+
+  axonal = new SectionList()
+    for i=0, 0 axon[i] axonal.append()
+  
+  basal = new SectionList()
+    for i=0, 2 dend[i] basal.append()
+
+  apical = new SectionList()
+    for i=0, 2 apic[i] apical.append()
+
+}
+
+access soma
+
+celldef()

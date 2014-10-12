@@ -1,15 +1,63 @@
-//--------------Set parameters and run this for the net (generated from MATBAL scripts)
+//--------------Set parameters and run this for the net (generated from MATLAB scripts)
 //--------------Written 1/8/13 Stefanos
 if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
-cvode.active(0)	     //Do NOT use CVODE solver!
 
 //----------------------------------------Set parameters--------------------------------------------------------------//
-if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}
-
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
-if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
+strdef NMDA_MECH, EXEC_CMD
+EXEC_CMD = ""
+if (EXPERIMENT) { //if Structured...
+	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkParametersSTR.hoc\")",ID)
+} else {
+	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkParametersRND.hoc\")",ID)
+}
+execute(EXEC_CMD)
+
+EXEC_CMD = ""
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulation.hoc\")",ID)
+execute(EXEC_CMD)
+/*EXEC_CMD = ""
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
+execute(EXEC_CMD)*/
+//if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
+
+EXEC_CMD = ""
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParams.hoc\")",ID)
+execute(EXEC_CMD)
+//if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
+
+
+EXEC_CMD = ""
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importStimulationParameters.hoc\")",ID)
+execute(EXEC_CMD)
+
+
+
+//xopen("gap.hoc") //for PV gup junctions
+
+
+//if(!xopen("importStimulationParameters.hoc")){print "ERROR	Failed to import network parameters!"}
 //xopen("importBasal_fAHP.hoc")
 //xopen("importBasal_sAHP.hoc")
+if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}
+
+
+//parse stimulation parameters
+objref PcellStimList
+PcellStimList = new Vector(nPCcells,0)
+
+if(EXPERIMENT){ //if Structured...
+	for i=0,PcellStimListSTR.nrow-1{
+		PcellStimList.x[PcellStimListSTR.x[i][CLUSTER_ID]]=1
+
+	}
+} else {
+	for i=0,PcellStimListRND.nrow-1{
+		PcellStimList.x[PcellStimListRND.x[i][CLUSTER_ID]] = 1
+
+	}
+}
+
 
 //procedure to choose which Pyramidal morphologies we want in network
 if(!xopen("chooseMorphologies.hoc")){print "ERROR	Failed to load choose morphologies!"}
@@ -18,15 +66,84 @@ chooseMorphologies(60,0)
 
 if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
 if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
-if(!xopen("../RS1cell.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
+if(SIMPLIFIED){
+	if(!xopen("pfc_pc_temp.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
+}else{
+	if(!xopen("../RS1cell.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
+}
 if(!xopen("pv.hoc")){print "ERROR	Failed to load interneuron hoc!"}
 {xopen("cb.hoc")} // Xenia's interneurons: load template for CB/LTS interneuron
 {xopen("cr.hoc")} // Xenia's interneurons
 
+
+//fADP for morphology #3:
+fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
+
 if(!xopen("NMDA_Array_1_5.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
-if(!xopen("AMPA_Array_1_5.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
+if(!xopen("AMPA_Array_1_1.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
+if(!xopen("NMDA_Array_BG_1_1.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
+
+if(SIMPLIFIED){
+	//overwrite with NASSI's values:
+	//-------------------Set synaptic weights
+	ampaweightpr=	0.00024			//Initial stimulus
+	nmdaweightpr=	0.22			//Initial stimulus
+	ampaweight=	0.00019		//According to Wang(2008)
+	gabaweight=	6.9e-4 			//According to Woo(2007)
+	gabaweightb=1.05e-4
+	ampaweightin=	7.5e-4			//according to Wang,Gao,2009
+	nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+	autogabaweight=	5.1e-4			//According to Bacci (2003) 
+	//------------------Set # of synapses
+	synapses_backb=60//100
+	synapses_backpr=60//100
+	synapses_backa=60//100
+	synapses_backinh=40
+	synapses_inh=1
+
+	//override complex background spiketrains:
+	BG_dendSyn = synapses_backb
+	BG_apicSyn = synapses_backa
+	BG_apicprSyn = synapses_backpr
+
+
+	Stim_MaxSyn_apic = 90			//initial stimulation
+	Stim_MaxSyn_basal=0//120	//initial stimulation
+
+	/*
+	gababweights.x[0]=1.05e-4		//0.2
+	gababweights.x[1]=2.22e-4		//0.4
+	gababweights.x[2]=3.38e-4		//0.6
+	gababweights.x[3]=4.65e-4		//0.8
+	*/
+	autogabaweight =	5.1e-4
+	//gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
+
+	gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+	gabaweight_pv2pc_b = gabaweightb    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+
+
+	/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
+	nmdaweights.x[1]=0.35		//1.5
+	nmdaweights.x[2]=0.47		//1.9
+	nmdaweights.x[3]=0.585		//2.3*/
+	for i=0,55{
+		nmdaArr.x[i] = NMDAfactor * 0.585
+		nmdaArr_bg.x[i] = NMDAfactor_bg * 0.22
+	}
+	nmdaweight = NMDAfactor * 0.585
+	//ampaweight=	0.00019	//NASSI
+	for i=0,55{
+		ampaArr.x[i] = AMPAfactor * ampaweight	
+	}
+
+}
+
 if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
+
+
 {xopen ("record_par.hoc")}
+
 
 proc report_gidvecs() { local i, rank
 	// reports distribution of cells across hosts
@@ -34,11 +151,11 @@ proc report_gidvecs() { local i, rank
 	if (PC.id==0) printf("\ngidvecs on %d host(s)\n",PC.nhost)
 	for rank=0, PC.nhost-1 {  // host 0 first, then 1, 2, etc.
 		if (rank==PC.id) {
-			printf("@host %d: %dPC, %dPV, %dCB, %dCR\n",PC.id,PCcells.count(), PVcells.count(), CBcells.count(), CRcells.count() )
+			//printf("@host %d: %dPC, %dPV, %dCB, %dCR\n",PC.id,PCcells.count(), PVcells.count(), CBcells.count(), CRcells.count() )
 			PCgids.printf()      
-			PVgids.printf()            
-			CBgids.printf()    
-			CRgids.printf()      
+			//PVgids.printf()            
+			//CBgids.printf()    
+			//CRgids.printf()      
 		}
 	{ PC.barrier() } // wait for all hosts to get to this point
 	}
@@ -86,7 +203,7 @@ proc printallkbars(){localobj vfilePC
 
 //--------------------------------------Graphs
 if(!PARALLEL){
-	if(PLOT){for j=0, 10 {addgraph_2("PCcells.o(j).soma.v(0.5)", 0,tstop, -70, 50)}}
+	//if(PLOT){for j=0, 10 {addgraph_2("PCcells.o(j).soma.v(0.5)", 0,tstop, -70, 50)}}
 	//addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -70, 50)
 	/*addgraph_2("PCcells[1].soma.v(0.5)", 0,tstop, -70, 50)
 	addgraph_2("PCcells[2].soma.v(0.5)", 0,tstop, -70, 50)
@@ -124,7 +241,7 @@ if(!PARALLEL){
 
 //---------------------------------------------Multiple Experiments/Runs---------------------------------------------//
 //---For many experiments
-strdef syscmd, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr 
+strdef syscmd, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr ,exp_dir
 
 
 strdef temp
@@ -139,12 +256,108 @@ objref timevec, idvec, recncs, tobj, nil, total_activity
 
 strdef foutput
 
-fadp=0.99// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
+objref ic2[5]
+proc train() {
+	initDelay = 10
+	for i=0,4 {
+		PCcells.o(0).soma ic2[i]=new IClamp(0.5)
+		ic2[i].del=initDelay	
+		ic2[i].dur=5
+		ic2[i].amp=3//(nA)
+		initDelay = initDelay + 50
+}}
 
-for runs = 0, TOTALRUNS {
+sadp_soma()
+sadp_dend()
+sadp_apical()  //mplokara kai stous apical
 
+//strdef vfilePC_filename
+sprint(exp_dir,"experiment_%d",ID)
+sprint(syscmd,"mkdir -p %s",exp_dir)
+system(syscmd)
+sprint(data_dir,"%s",EXP)
+sprint(syscmd,"mkdir -p %s/%s",exp_dir,data_dir)
+system(syscmd)
+
+
+proc vclamp_proc() {
+	if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {vc = new VClamp(0.5)}
+		vc.amp[0]= $2
+		vc.dur[0]=tstop
+	}
+}
+
+proc TTX_proc() {
+	if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {
+			for(x) {
+				if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+				if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+			}
+		}
+		forsec PC.gid2cell($1).apical {
+			for(x) {
+				if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+				if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+			}
+		}
+		forsec PC.gid2cell($1).basal {
+			for(x) {
+				if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+				if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+			}
+		}
+	}
+}
+
+proc iclamp_proc() {
+	if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {ic[0] = new IClamp(0.5)}
+		ic[0].amp = $2
+		ic[0].dur = 100
+		ic[0].del = 1100
+	}
+	if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {ic[1] = new IClamp(0.5)}
+		ic[1].amp = $2
+		ic[1].dur = 100
+		ic[1].del = 1300
+	}
+	/*if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {ic[2] = new IClamp(0.5)}
+		ic[2].amp = $2
+		ic[2].dur = 137.0
+		ic[2].del = 715.3
+	}
+	if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {ic[3] = new IClamp(0.5)}
+		ic[3].amp = $2
+		ic[3].dur = 205.2
+		ic[3].del = 1733.4
+	}
+	if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {ic[4] = new IClamp(0.5)}
+		ic[4].amp = $2
+		ic[4].dur = 116.0
+		ic[4].del = 2583.9
+	}
+	if (PC.gid_exists($1)) { 
+		PC.gid2cell($1).soma {ic[5] = new IClamp(0.5)}
+		ic[5].amp = -0.1
+		ic[5].dur = tstop
+		ic[5].del = 0
+	}*/
+}
+
+
+for runs = 0, TOTALRUNS-1 {
 	if(PARALLEL){
 		if(DEBUG){report_gidvecs()}
+		if (PC.id == 0) {
+			sprint(syscmd,"mkdir -p multi_core")
+			system(syscmd)
+		}
 		{ PC.barrier()	}
 		{ PC.set_maxstep(steps_per_ms) }
 		if (PC.id==0){ 
@@ -156,40 +369,53 @@ for runs = 0, TOTALRUNS {
 		foutput = "single_core"
 		sprint(syscmd,"mkdir -p %s/",foutput) 	
 		system(syscmd)
-		xopen("recordandsave/record.hoc")
-		xopen("recordandsave/save_data.hoc")
+		{xopen("recordandsave/record.hoc")}
+		{xopen("recordandsave/save_data.hoc")}
 	}
 
-	//sadp_soma()
-	//sadp_dend()
-	//sadp_apical()  //mplokara kai stous apical
+	
 
 	//ECA_30()
 	//thinner_basal()
 	//thinner_apical()
-			
-	//stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
-	clampStim(runs)
-	//backgroundActivity(runs)
-	//connectPC2PC(runs)
-	/*connectPV2PV(runs)
+	stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
+	//clampStim(runs)
+	/*backgroundActivity(runs) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
+	backgroundActivityPV(runs) //~11Hz Petersen Carl
+	backgroundActivityCB(runs) //~2Hz Petersen Carl
+	backgroundActivityCR(runs) //~2Hz Petersen Carl
+	*/
+	
+	connectPC2PC(runs)
+	connectPV2PV(runs)
 	connectPC2PV(runs)
-	connectPC2CB(runs)
-	connectPC2CR(runs)
 	connectPV2PC(runs)
+	/*connectPC2CB(runs)
+	connectPC2CR(runs)	
 	connectCB2PC(runs)
 	connectCR2PC(runs)
-	connectCR2CB(runs)
-	noise(runs) */
+	connectCR2CB(runs)*/
+	//noise(runs)
+	//train()
+	//TTX_proc(GPYID) 
+	//iclamp_proc(0,-0.1)
+
+	if (VCLAMP){
+		vclamp_proc(GPYID,VCLAMP)
+	}
 
 	//PCcells.o(0).dend[0] { sectionPointMechSnapshot() }
 	//PCcells.o(2).soma[0] { sectionMembraneMechSnapshot("somaMech.txt") }
 	//PCcells.o(0).dend[0] { print nseg}
 
 	if(PARALLEL){
+		recordedCells = new Vector()
 		for lala=0,offsets.x(5)-1{ // record all cells!
 		  par_rec_membrane_voltage(lala)
 		}
+		record_source_spikes()
+
+		if(VCLAMP){par_rec_vclamp_current(GPYID)}
 
 		stdinit()
 		runtime=startsw()
@@ -197,26 +423,44 @@ for runs = 0, TOTALRUNS {
 		runtime = startsw() - runtime
 
 		if (PC.id==0){
-		print "node ", PC.id, "reached tstop"
+			print "node ", PC.id, "reached tstop"
 		}
 
 		{ PC.barrier()	} 
-		par_save_membrane_voltage()
+		par_save_membrane_voltage(data_dir,CLUSTER_ID,ID, ISBINARY)
+		//save_source_spikes(data_dir,CLUSTER_ID,ID)
+		//save_source_DIST(data_dir,CLUSTER_ID,ID)
+		//if(VCLAMP){par_save_vclamp_current(data_dir,CLUSTER_ID,ID)}
 	}else{
 		rec_membrane_voltage()
+
+if(PLOT){
+	for j=0, PCcells.count()-1 {
+		PCcells.o(j).soma { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
+			addgraph_2("v(0.5)", 0,tstop, -70, 50)
+		}
+	}
+	PCcells.o(0).dend[11] { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
+			addgraph_2("v(0.5)", 0,tstop, -70, 50)
+	}
+	//PCcells.o(0) { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
+		addgraph_2("nmdaOnPC[0][0][0].inmda(0.5)", 0,tstop, -70, 50)
+	//}
+}
+
 
 		runtime=startsw()
 		run()
 		runtime = startsw() - runtime
 		printf("Runtime: %10.4g\n", runtime)
 		
-		if(DEBUG){printf("DEBUG: Saving runs Params...\n")}
+		//if(DEBUG){printf("DEBUG: Saving runs Params...\n")}
 		//save_distances()
-		if(DEBUG){printf("DEBUG: DONE Saving Distances...\n")}
-		save_membrane_voltage()
-		if(DEBUG){printf("DEBUG: DONE Saving Voltages...\n")}
+		//if(DEBUG){printf("DEBUG: DONE Saving Distances...\n")}
+		save_membrane_voltage(data_dir,CLUSTER_ID,ID)
+		//if(DEBUG){printf("DEBUG: DONE Saving Voltages...\n")}
 		//save_PID()
-		if(DEBUG){printf("DEBUG: DONE Saving PIDs...\n")}
+		//if(DEBUG){printf("DEBUG: DONE Saving PIDs...\n")}
 	}
 	
 	/*for qz=0,PCcells.count()-1 {
@@ -225,16 +469,16 @@ for runs = 0, TOTALRUNS {
 		print tempString
 		PCcells.o(qz).dend[0] { sectionMembraneMechSnapshot(tempString) }
 	}*/
-
-
 }
 
 if(PARALLEL){
 	//printallkbars()
-	print "Work done on node ", PC.id
+	//print "Work done on node ", PC.id
 	printf("Runtime: %10.4g\n", runtime)
 	{ PC.runworker() }
 	{ PC.done() }// tell workers to quit
+	print "Success"
 	quit()
 }
+
 

@@ -1,98 +1,12 @@
-//--This script is used to record ALL synaptic currents that a Pcell receives inside a network over time. It records total NMDA, AMPA, GAABA, GABAB
-//--To save these data adjust the parameters in the save_data.hoc
-//--Written 19-11-09, Nassi
-objref PCv[nPCcells], PCt[nPCcells], PVv[nPVcells], PVt[nPVcells], CBv[nCBcells], CBt[nCBcells], CRv[nCRcells], CRt[nCRcells]
-proc rec_membrane_voltage(){ local i,j,k,l,m
+objref vsoma[nPCcells], volt[nPCcells],curr[nPCcells], time[nPCcells]
 
 
+proc rec_membrane_voltage(){ local i
 for (i=0;i<nPCcells;i=i+1) {
-	PCv[i]=new Vector(n)
-	PCt[i]=new Vector(n)
-	for m=0,n-1 {PCt[i].x[m]=m*dt }
-	PCcells.o(i).soma {cv.record(&v(0.5),PCv[i],PCt[i],0) }
+	volt[i]=new Vector(n)
+	time[i]=new Vector(n)
+	for j=0,n-1 {time[i].x[j]=j*dt }
+		PCcells.o(i).soma cv.record(&v(.5),volt[i],time[i],1) 
+	}
 }
 
-for (j=0;j<nPVcells;j=j+1) {
-	PVv[j]=new Vector(n)
-	PVt[j]=new Vector(n)
-	for m=0,n-1 {PVt[j].x[m]=m*dt }
-    	PVcells.o(j).soma cv.record(&v(0.5),PVv[j],PVt[j],0)
-}
-
-for (k=0;k<nCBcells;k=k+1) {
-	CBv[k]=new Vector(n)
-	CBt[k]=new Vector(n)
-	for m=0,n-1 {CBt[k].x[m]=m*dt }
-    	CBcells.o(k).soma cv.record(&v(0.5),CBv[k],CBt[k],0)
-}
-
-for (l=0;l<nCRcells;l=l+1) {
-	CRv[l]=new Vector(n)
-	CRt[l]=new Vector(n)
-	for m=0,n-1 {CRt[l].x[m]=m*dt }
-    	CRcells.o(l).soma cv.record(&v(0.5),CRv[l],CRt[l],0)
-}
-
-}
-
-/*
-proc rec_synaptic_currents() {
-
-//-----Record AMPA synaptic current 
-for i=0, (maxsyn-1) {
-	campa[i]=new Vector()
-	ct[0][i]=new Vector(n)
-	for j=0,(n-1) {ct[0][i].x[j]=j*dt }
-	Pcells[0].dend[0] cv.record(&ampa[0][i].iglu,campa[i],ct[0][i],1)
-}
-
-for i=0, (automaxsyn-1) {
-	campaa[i]=new Vector()
-	ct[1][i]=new Vector(n)
-	for j=0,(n-1) {ct[1][i].x[j]=j*dt }
-	Pcells[0].dend[0] cv.record(&autoampa[0][i].iglu,campaa[i],ct[1][i],1)
-}
-
-for i=0, (inmaxsyn-1) {
-	campain[i]=new Vector()
-	ct[2][i]=new Vector(n)
-	for j=0,(n-1) {ct[2][i].x[j]=j*dt }
-	Pcells[0].dend[0] cv.record(&ampapr[0][i].iglu,campain[i],ct[2][i],1)
-}
-
-//------Record NMDA synaptic current
-for i=0, (maxsyn-1) {
-cnmda[i]=new Vector()
-ct[3][i]=new Vector(n)
-for j=0,(n-1) {ct[3][i].x[j]=j*dt }
-Pcells[0].dend[0] cv.record(&nmda[0][i].inmda,cnmda[i],ct[3][i],1)
-}
-for i=0, (automaxsyn-1) {
-cnmdaa[i]=new Vector()
-ct[4][i]=new Vector(n)
-for j=0,(n-1) {ct[4][i].x[j]=j*dt }
-Pcells[0].dend[0] cv.record(&autonmda[0][i].inmda,cnmdaa[i],ct[4][i],1)
-}
-
-for i=0, (inmaxsyn-1) {
-cnmdain[i]=new Vector()
-ct[5][i]=new Vector(n)
-for j=0,(n-1) {ct[5][i].x[j]=j*dt }
-Pcells[0].dend[0] cv.record(&nmdapr[0][i].inmda,cnmdain[i],ct[5][i],1)
-}
-//-----Record Gabaa synaptic current
-for i=0, (maxsyn3-1){
-cgabaa[i]=new Vector()
-ct[6][i]=new Vector(n)
-for j=0,n-1 {ct[6][i].x[j]=j*dt }
-Pcells[0].soma cv.record(&gabaa[0][i].i,cgabaa[i],ct[6][i],1)
-}
-//----Record Gabab synaptic current
-for i=0, (maxsyn3-1){
-cgabab[i]=new Vector()
-ct[7][i]=new Vector(n)
-for j=0,n-1 {ct[7][i].x[j]=j*dt }
-Pcells[0].soma cv.record(&gabab[0][i].i,cgabab[i],ct[7][i],1)
-}
-}
-*/

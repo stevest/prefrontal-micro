@@ -10,7 +10,7 @@ proc spikerecord() {local i localobj nc,nil
     nc = PCcells.o(i).connect2target(nil) 
     nc.record(tvec, idvec, i) // the Vector will continue to record spike times // even after the NetCon has been destroyed
     }
-} 
+}
 
 //////////////////////////// // Report simulation results ////////////////////////////
 proc spikeout() { local i 
@@ -29,14 +29,14 @@ proc spikeout() { local i
 
 // see this here on the topic of storing membrane voltage in a parallel context: http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=1987
 objref r_volts[offsets.x[offsets.size()-1]],r_msec[offsets.x[offsets.size()-1]]
+objref r_curr[offsets.x[offsets.size()-1]]
 // each recorded range variable must have a separate tvec which will be different for different cells
 objref recordedCells
 recordedCells = new Vector()
 // recording routines for the parallel context
 proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
-
 	if (PC.gid_exists($1)) { 
-		if(DEBUG){printf("Recording cell %d voltage on node %d\n", $1,PC.id)}
+		//if(DEBUG){printf("Recording cell %d voltage on node %d\n", $1,PC.id)}
 		s=recordedCells.size()
 		r_volts[s]=new Vector(n)
 		r_msec[s]=new Vector(n)
@@ -48,34 +48,150 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 	}
 }
 
+proc par_rec_vclamp_current(){local i,s,q  // use gid as parameter
+	if (PC.gid_exists($1)) { 
+		//if(DEBUG){printf("Recording cell %d current on node %d\n", $1,PC.id)}
+		s=0//recordedCells.size()
+		r_curr[s]=new Vector(n)
+		r_msec[s]=new Vector(n)
+		for q=0,n-1 {r_msec[s].x[q]=q*dt }
+		r_curr[s].record(&vc.i,r_msec[s],0)
+		//recordedCells.append($1)
+	}
+}
+
+
 // store voltage currents to files
-strdef vfilePC_filename
-strdef data_dir, basename
-data_dir = "multi_core"
+strdef vfilePC_filename, ifilePC_filename
+//, basename
 //basename = "soma_run"
 
-strdef syscmd
 
-proc par_save_membrane_voltage() {local i,s localobj vfilePC
+proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 
-if (PC.id == 0) {
-		sprint(syscmd,"mkdir -p %s",data_dir)
-		system(syscmd)
-}
 { PC.barrier() } 
+strdef ext
+if ($4) {
+	ext = "bin"
+} else {
+	ext = "txt"
+}
 
-for i=0, PC.nhost-1 {
-	if (PC.id == i) {
+//for i=0, PC.nhost-1 {
+	//if (PC.id == i) {
 		for s=0,recordedCells.size()-1{
 			vfilePC = new File()	
-			sprint(vfilePC_filename,"%s/%d_%d.txt", data_dir, recordedCells.x(s), runs)  
+			sprint(vfilePC_filename,"experiment_%d/%s/%d_%d_%d.%s", $3,EXP,$2,recordedCells.x(s), runs,ext) 
 			vfilePC.wopen(vfilePC_filename)
-			r_volts[s].printf(vfilePC,"%8.4f\n")
+			if ($4) {
+				for j=0, r_volts[s].size()-1 {
+					vfilePC.vwrite(&r_volts[s].x[j])
+				}
+			} else {
+				r_volts[s].printf(vfilePC,"%8.4f\n")
+			}
+			vfilePC.close()
+		}
+	//}
+//}
+
+{ PC.barrier() } 
+
+/*
+{ PC.barrier() } 
+vfilePC = new File()	
+sprint(vfilePC_filename,"experiment_%d/%s/%d_%d.txt", $3,EXP,$2,runs)
+
+for i=0, nPCcells-1 { //for all cells
+	if (PC.gid_exists(i)) { // if the current node has the cell i
+			vfilePC.aopen(vfilePC_filename)
+			r_volts[gid2local(PCgids,i)].printf(vfilePC,"%8.4f ")
+			vfilePC.close()
+	}
+	//vfilePC.printf("\n")
+	{ PC.barrier() }
+}
+
+{ PC.barrier() }
+*/
+}
+
+proc par_save_vclamp_current() {local i,s localobj vfilePC
+
+{ PC.barrier() } 
+
+//for i=0, PC.nhost-1 {
+	if (PC.id == 0) {
+		//for s=0,recordedCells.size()-1{
+			s=0			
+			vfilePC = new File()	
+			sprint(ifilePC_filename,"experiment_%d/%s/%d_%d_%d_i.txt", $3,EXP,$2,0, runs) 
+			vfilePC.wopen(ifilePC_filename)
+			r_curr[s].printf(vfilePC,"%8.4f\n")
+			vfilePC.close()
+		//}
+	}
+//}
+
+{ PC.barrier() } 
+
+}
+
+//record the spike events for each source cell:
+objref cLocalID
+cLocalID = new Vector()
+objref st_vect[offsets.x[offsets.size()-1]], st_msec[offsets.x[offsets.size()-1]]
+
+proc record_source_spikes() {local i,s,q
+//{ PC.barrier() } 
+for i = 0, nPCcells-1 {
+	if (PC.gid_exists(i)) { 
+		//if(DEBUG){printf("Recording cell's %d spikes on node %d\n", i,PC.id)}
+		s=cLocalID.size()
+		st_vect[s]=new Vector(n)
+		st_msec[s]=new Vector(n)
+		for q=0,n-1 {st_msec[s].x[q]=q*dt }
+		PC.spike_record(i,st_vect[s],st_msec[s])
+		cLocalID.append(i)
+	}
+}
+//{ PC.barrier() } 
+}
+
+strdef ST_filename
+proc save_source_spikes() {local i,s,q localobj vfilePC
+//{ PC.barrier() } 
+for i=0, PC.nhost-1 {
+	if (PC.id == i) {
+		for s=0,cLocalID.size()-1{			
+			vfilePC = new File()	
+			sprint(ST_filename,"experiment_%d/%s/%d_%d_%d_st.txt", $3,EXP,$2,cLocalID.x(s), runs) 
+			vfilePC.wopen(ST_filename)
+			st_vect[s].printf(vfilePC,"%8.4f\n")
 			vfilePC.close()
 		}
 	}
 }
+//{ PC.barrier() } 
+}
 
-{ PC.barrier() } 
+strdef DIST_filename
+proc save_source_DIST() {local i,s localobj vfilePC
+
+for i=0, PC.nhost-1 {
+	if (PC.id == i) {
+		for s=0,clusterDIST.size()-1{	
+			//vfilePC = new File()	
+			sprint(DIST_filename,"experiment_%d/%s/%d_%d_%d_DIST.txt", $3,EXP,$2,PCgids.x(s), runs) 
+			//vfilePC.wopen(PID_filename)
+			wopen(DIST_filename)
+			//vfilePC.fprint("%8.4f\n",clusterDIST.x(s))
+			fprint("%8.4f\n",clusterDIST.x(s))
+			//vfilePC.close()
+			wopen()
+		}
+	}
+}
 
 }
+

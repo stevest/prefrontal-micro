@@ -1,0 +1,274 @@
+//--------------Set parameters and run this for the net (4 Pcells and 1 Interneuron)
+//--------------Written 8-5-08, modified 08-10-08
+if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//----------------------------------------Set parameters--------------------------------------------------------------//
+/*nPCcells=1
+
+if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}   */
+//override parameters for this validation runs:
+nPCcells=1
+PARALLEL = 0
+objref PC
+
+tstop=1000
+steps_per_ms=10
+dt=1/steps_per_ms
+n=int(tstop/dt)
+celsius=34
+TOTALRUNS = 10
+maxStimIntensity = 200
+PLOT = 0
+DEBUG = 0
+
+objref cv
+cv=new CVode(0)
+
+if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
+if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
+if(!cv.cache_efficient(1)){print "ERRORRRR!"}
+
+PYID = 22 //initially load morphology #0
+
+SIMPLIFIED = 0
+
+//procedure to choose which Pyramidal morphologies we want in network
+if(!xopen("chooseMorphologies.hoc")){print "ERROR	Failed to load choose morphologies!"}
+//argument: percentage of IB cells morphologies in network, random seed:
+chooseMorphologies(60,0)
+if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
+if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
+if(!xopen("../RS1cell.hoc")){print "ERROR	Failed to load interneuron hoc!"}
+
+
+//--------------------------------------Graphs
+//addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -70, 50)
+
+
+//---------------------------------------------Multiple Experiments/Runs---------------------------------------------//
+
+//---------------------------------Procedure for various checks------------------------------------------------//
+
+
+// train for fADP validation:
+objref icTrain[5]
+
+proc train() {
+initDelay = 1000
+for i=0,4 {
+		PCcells.o(0).soma { icTrain[i]=new IClamp(0.5) }
+		icTrain[i].del=initDelay	
+		icTrain[i].dur=5
+		icTrain[i].amp=3//(nA)
+		initDelay = initDelay + 50
+}}
+
+//--------------------------------------------------------------IClamp
+objref ic
+proc currentClamp() { 
+	PCcells.o(0).soma { ic=new IClamp(0.5) }
+	ic.del=400
+	ic.dur=500//2000
+	ic.amp=$1
+}
+
+//--------------------------------------------------------------VClamp
+objref vc[2]
+proc vclamp() {
+	objref vc[2]
+	PCcells.o(0).soma { vc[$3] = new VClamp(0.5) }
+	vc[$3].amp[0] = $1 //FREAKING NEURON WANTS THIS AS AN ARRAY POINTER!!!
+	vc[$3].dur[0] = $2//tstop
+//for FS autapses testing...
+	/*vc.amp[1] = 10
+	vc.dur[1] = 1
+	vc.amp[2] = -70
+	vc.dur[2] = 1999*/
+}
+
+objref vsoma[TOTALRUNS], volt[TOTALRUNS],curr[TOTALRUNS], time[TOTALRUNS]
+proc rec_soma_Voltage(){
+	volt[runs]=new Vector(n)
+	time[runs]=new Vector(n) //different dt vector needed from $@#%@$#% NEURON..
+	for j=0,n-1 {time[runs].x[j]=j*dt }
+	PCcells.o(0).soma { cv.record(&v(0.5),volt[runs],time[runs],1) }
+}
+proc save_soma_Voltage() {
+	vsoma[runs] = new File()		
+	sprint(temp,"%s_%d.txt", $s1,runs)  //RS/IB classification!
+	vsoma.wopen(temp)
+	for sb=0, volt.size()-1 { 
+		vsoma.printf ("%f\n",volt[runs].x[sb])
+	}
+	vsoma.close()
+}
+proc rec_VClamp_Current(){
+	curr[runs]=new Vector(n)
+	time[runs]=new Vector(n) 
+	for j=0,n-1 {time[runs].x[j]=j*dt }
+	cv.record(&vc[$1].i,curr[runs],time[runs],1)
+}
+
+proc save_VClamp_Current() {    
+	vsoma[runs] = new File()		
+	sprint(temp,"%s_%d.txt", $s1, runs)  //RS/IB classification!
+	vsoma.wopen(temp)
+	for sb=0, curr.size()-1 { 
+	  vsoma.printf ("%f\n",curr[runs].x[sb])
+	}
+	vsoma.close()
+}
+
+
+proc KblockNassiOLD(){
+	forall{
+		for(x){
+			fk=0
+			//if(ismembrane("kdr")) for(x) { gkdrbar_kdr(x)= gkdrbar_kdr(x)*fk }	// H Nassi DEN to mplokare (commented) //den mplokarontai apo tous blockers tou Kaliou!
+			if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*fk }
+			if(ismembrane("Ks"))  for(x) { gKsbar_Ks(x)= gKsbar_Ks(x)*fk } 
+			if(ismembrane("kca")) { for(x) {  gbar_kca(x)= gbar_kca(x)*fk }}  //slow Ca
+			if(ismembrane("mykca")) { for(x) {  gkbar_mykca(x)= gkbar_mykca(x)*fk }} //fast Ca
+			if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+			if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+			if(ismembrane("can")) for(x) {  gcalbar_can(x)= gcalbar_can(x)*0 }
+			if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 } //mplokaroume k ta Ca, giati den kanoun diafora sto amplitude, alla einai pio sta8era sto Vclamp!	
+			if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
+			//if(ismembrane("calc")) for(x) {  gcabar_calc(x)= gcabar_calc(x)*0 }
+			if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
+		}
+	}
+}
+
+
+
+//---------------------------------Procedure for various checks------------------------------------------------//	
+objref  nmdau[maxStimIntensity]
+objref nsu,ns40, nsr, ns2
+nsu=new NetStim(0.5)
+nsu.interval=10//(in ms!!!)// 20ms in NMDA SPIKES
+nsu.number=1 //Unitary NetStim
+nsu.start=0
+nsu.noise=0
+ns40=new NetStim(0.5)
+ns40.interval=10//100Hz
+ns40.number=40 //Thomson 1996 (?)
+ns40.start=0
+ns40.noise=0
+nsr=new NetStim(0.5)
+nsr.interval=50//(in ms!!!)// 20ms in NMDA SPIKES
+nsr.number=1 //Unitary NetStim
+nsr.start=0
+nsr.noise=0
+ns2=new NetStim(0.5)
+ns2.interval=20//50Hz
+ns2.number=2 //Thomson 1996 (?)
+ns2.start=0
+ns2.noise=0
+
+objref nc_n[maxStimIntensity]
+		
+
+
+// Create synapses at random basal dendrite locations:
+proc NMDA_Curr() { localobj r, rp
+	r = new Random($1)
+	rp = new Random($1+3)
+	BasalNo=0
+	forsec PCcells.o[0].basal { BasalNo+=1 }
+	r.uniform(0,BasalNo-1)
+	rp.uniform(0,1)
+	cd = r.repick()
+	for cs=0, activeSynapses-1 {
+		//PID=rp.repick()
+		PID = cs / (activeSynapses -1)
+		if(PID==0){PID=0.01}
+		if(PID==1){PID=0.99}
+print PID
+		PCcells.o[0].dend[cd] {
+			nmdau[cs] = new nmda_segev(PID)
+			nc_n[cs]=new NetCon(ns2, nmdau[cs])
+			nc_n[cs].delay=400
+			nc_n[cs].weight= 0.6250  //VALIDATED: 0.2344, 0.6250, Kiki 0.0005341
+			nc_n[cs].threshold=-20
+			splot.point_mark(nmdau[cs],3) //colorize
+		}
+	}
+}
+
+
+//------------------------------------Pharmacological procedures
+fadp=0//2//0.5//0.23
+proc sadp_soma() {
+	forsec PCsoma_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0001*fadp } 
+		}}}
+proc sadp_dend() {
+	forsec PCdend_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0001*0.1*fadp} 
+		}}}
+proc sadp_apical() {
+	forsec PCapical_list {
+		for(x) {
+			if(ismembrane("ican"))  for(x) { gbar_ican(x)= 0.0001*0.1*fadp} 
+		}}}
+
+proc KblockNassiOLD(){
+forall{
+for(x){
+	fk=0
+	//if(ismembrane("kdr")) for(x) { gkdrbar_kdr(x)= gkdrbar_kdr(x)*fk }	// H Nassi DEN to mplokare (commented) //den mplokarontai apo tous blockers tou Kaliou!
+	if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*fk }
+	if(ismembrane("Ks"))  for(x) { gKsbar_Ks(x)= gKsbar_Ks(x)*fk } 
+	if(ismembrane("kca")) { for(x) {  gbar_kca(x)= gbar_kca(x)*fk }}  //slow Ca
+	if(ismembrane("mykca")) { for(x) {  gkbar_mykca(x)= gkbar_mykca(x)*fk }} //fast Ca
+	if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+	if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+	if(ismembrane("can")) for(x) {  gcalbar_can(x)= gcalbar_can(x)*0 }
+	if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 } //mplokaroume k ta Ca, giati den kanoun diafora sto amplitude, alla einai pio sta8era sto Vclamp!	
+	if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
+	//if(ismembrane("calc")) for(x) {  gcabar_calc(x)= gcabar_calc(x)*0 }
+	if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
+	}}}
+
+proc TTX() {
+	forsec PCcells.o(0).all {
+		for(x) {
+			if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+			if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+		}
+	}
+}
+
+//-----------------------------------------------------Multiple Runs
+
+strdef syscmd, foldername, filename
+foldername = "valid_NMDA"
+splot=new Shape()
+
+cd = 0 //always start from the first dendrite
+activeSynapses = 10
+for runs = 0, TOTALRUNS-1 {
+
+	//Simple Stimulation MODE:
+	NMDA_Curr(runs)
+	//vclamp(60, tstop,0)
+	//KblockNassiOLD()
+	TTX()
+	sadp_soma()
+	sadp_dend()
+	sadp_apical()
+
+	//rec_soma_Voltage()
+	addgraph_2("PCcells.o(0).dend[cd].v(0)", 0,tstop, -70, 50)
+	//addgraph_2("vc[0].i", 0,tstop, 0,250)
+	run()
+	sprint(filename,"%s/%s",foldername,"paired_stim") 
+	//save_soma_Voltage(filename)
+	splot=new Shape()
+	activeSynapses += 10
+}
+
+
+

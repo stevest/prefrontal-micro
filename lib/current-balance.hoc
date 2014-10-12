@@ -3,7 +3,6 @@
 
 proc current_balance() {
 	  finitialize($1)
-print $1
 	  fcurrent()	
 	  //printf("Balancing each PYRAMIDAL compartment to %d mV\n", $1)
 	  forsec PCcell_list {

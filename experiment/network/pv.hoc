@@ -57,13 +57,13 @@ soma {
      insert hin
      gbar_hin=soma_hin
 
-     insert kap
+     insert kap //A type na to grapsw sto materials and methods
      gkabar_kap=soma_kapin
 
      insert can
      gcalbar_can=soma_canin
 
-     insert mykca
+     insert mykca //fast AHP na to grapsw sto materials and methods
      gkcbar_mykca=soma_kctin
 
      insert kcain
@@ -123,7 +123,7 @@ dend {
 
 	ko0_k_ion = 3.82   //mM
  	ki0_k_ion = 140    //mM
-	celsius   = 23
+	//celsius   = 23 //it is necessary? when different than initial -> different results than the parallel
 	connect axon(0), soma(0.5)
 	connect dend(0), soma(0)
  	//xopen("../bash_templates/current-balancein.hoc")
@@ -180,4 +180,4 @@ for i=0,PVcells.count()-1 {
 
 
 {xopen("../../lib/current-balancePV.hoc")}
-{current_balancePV(-70) }
+{current_balancePV(-73) }

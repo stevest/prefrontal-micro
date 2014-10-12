@@ -1,0 +1,64 @@
+// This HOC file was generated with MATLAB
+
+// Object decleration:
+objref nmdaArr_bg
+nmdaArr_bg = new Vector(56)
+
+// Validated Weights:
+nmdaArr_bg.x[0] = NMDAfactor_bg * 0.625000	//current is 0.049703
+nmdaArr_bg.x[1] = NMDAfactor_bg * 0.546875	//current is 0.048407
+nmdaArr_bg.x[2] = NMDAfactor_bg * 0.625000	//current is 0.049579
+nmdaArr_bg.x[3] = NMDAfactor_bg * 0.703125	//current is 0.051824
+nmdaArr_bg.x[4] = NMDAfactor_bg * 0.859375	//current is 0.051147
+nmdaArr_bg.x[5] = NMDAfactor_bg * 0.546875	//current is 0.051085
+nmdaArr_bg.x[6] = NMDAfactor_bg * 1.093750	//current is 0.049218
+nmdaArr_bg.x[7] = NMDAfactor_bg * 0.703125	//current is 0.051401
+nmdaArr_bg.x[8] = NMDAfactor_bg * 0.781250	//current is 0.048121
+nmdaArr_bg.x[9] = NMDAfactor_bg * 0.937500	//current is 0.051591
+nmdaArr_bg.x[10] = NMDAfactor_bg * 0.585938	//current is 0.049961
+nmdaArr_bg.x[11] = NMDAfactor_bg * 0.664062	//current is 0.050445
+nmdaArr_bg.x[12] = NMDAfactor_bg * 0.781250	//current is 0.050913
+nmdaArr_bg.x[13] = NMDAfactor_bg * 0.937500	//current is 0.050982
+nmdaArr_bg.x[14] = NMDAfactor_bg * 0.585938	//current is 0.049864
+nmdaArr_bg.x[15] = NMDAfactor_bg * 0.703125	//current is 0.051757
+nmdaArr_bg.x[16] = NMDAfactor_bg * 0.546875	//current is 0.048217
+nmdaArr_bg.x[17] = NMDAfactor_bg * 0.625000	//current is 0.048943
+nmdaArr_bg.x[18] = NMDAfactor_bg * 0.781250	//current is 0.048476
+nmdaArr_bg.x[19] = NMDAfactor_bg * 0.664062	//current is 0.049822
+nmdaArr_bg.x[20] = NMDAfactor_bg * 0.7031	//current is 0.048806 //updated Sep 1st 2014
+nmdaArr_bg.x[21] = NMDAfactor_bg * 0.625000	//current is 0.049126
+nmdaArr_bg.x[22] = NMDAfactor_bg *  0.6250	//current is 0.049715 //VALIDATED: 0.2344, 0.6250, Kiki 0.0005341
+nmdaArr_bg.x[23] = NMDAfactor_bg * 0.625000	//current is 0.051329
+nmdaArr_bg.x[24] = NMDAfactor_bg * 0.703125	//current is 0.050686
+nmdaArr_bg.x[25] = NMDAfactor_bg * 0.468750	//current is 0.051644
+nmdaArr_bg.x[26] = NMDAfactor_bg * 0.625000	//current is 0.050696
+nmdaArr_bg.x[27] = NMDAfactor_bg * 0.429688	//current is 0.051427
+nmdaArr_bg.x[28] = NMDAfactor_bg * 0.585938	//current is 0.049695
+nmdaArr_bg.x[29] = NMDAfactor_bg * 0.429688	//current is 0.048090
+nmdaArr_bg.x[30] = NMDAfactor_bg * 0.781250	//current is 0.051576
+nmdaArr_bg.x[31] = NMDAfactor_bg * 0.585938	//current is 0.049722
+nmdaArr_bg.x[32] = NMDAfactor_bg * 0.4688	//current is 0.051993
+nmdaArr_bg.x[33] = NMDAfactor_bg * 1.015625	//current is 0.048457
+nmdaArr_bg.x[34] = NMDAfactor_bg * 1.015625	//current is 0.050985
+nmdaArr_bg.x[35] = NMDAfactor_bg * 0.625000	//current is 0.050346
+nmdaArr_bg.x[36] = NMDAfactor_bg * 0.664062	//current is 0.049426
+nmdaArr_bg.x[37] = NMDAfactor_bg * 0.468750	//current is 0.050826
+nmdaArr_bg.x[38] = NMDAfactor_bg * 0.507812	//current is 0.049197
+nmdaArr_bg.x[39] = NMDAfactor_bg * 0.585938	//current is 0.049157
+nmdaArr_bg.x[40] = NMDAfactor_bg * 0.585938	//current is 0.050889
+nmdaArr_bg.x[41] = NMDAfactor_bg * 0.703125	//current is 0.048405
+nmdaArr_bg.x[42] = NMDAfactor_bg * 0.742188	//current is 0.049528
+nmdaArr_bg.x[43] = NMDAfactor_bg * 0.703125	//current is 0.051113
+nmdaArr_bg.x[44] = NMDAfactor_bg * 0.429688	//current is 0.051569
+nmdaArr_bg.x[45] = NMDAfactor_bg * 0.859375	//current is 0.050010
+nmdaArr_bg.x[46] = NMDAfactor_bg * 0.781250	//current is 0.048560
+nmdaArr_bg.x[47] = NMDAfactor_bg * 0.625000	//current is 0.049400
+nmdaArr_bg.x[48] = NMDAfactor_bg * 0.742188	//current is 0.050315
+nmdaArr_bg.x[49] = NMDAfactor_bg * 0.507812	//current is 0.051043
+nmdaArr_bg.x[50] = NMDAfactor_bg * 0.625000	//current is 0.048187
+nmdaArr_bg.x[51] = NMDAfactor_bg * 0.390625	//current is 0.048900
+nmdaArr_bg.x[52] = NMDAfactor_bg * 0.546875	//current is 0.049753
+nmdaArr_bg.x[53] = NMDAfactor_bg * 0.625000	//current is 0.051794
+nmdaArr_bg.x[54] = NMDAfactor_bg * 0.429688	//current is 0.051481
+nmdaArr_bg.x[55] = NMDAfactor_bg * 0.507812	//current is 0.048467
+// END OF FILE

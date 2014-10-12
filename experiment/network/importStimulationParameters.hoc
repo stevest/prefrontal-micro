@@ -1,0 +1,85 @@
+// This HOC file was generated with MATLAB
+
+// Override variables
+// Object decleration:
+objref PcellStimList
+PcellStimList = new Vector(nPCcells)
+
+
+// Import parameters:
+
+PcellStimList.x[0] = 0
+PcellStimList.x[1] = 0
+PcellStimList.x[2] = 0
+PcellStimList.x[3] = 0
+PcellStimList.x[4] = 0
+PcellStimList.x[5] = 0
+PcellStimList.x[6] = 0
+PcellStimList.x[7] = 0
+PcellStimList.x[8] = 0
+PcellStimList.x[9] = 0
+PcellStimList.x[10] = 1
+PcellStimList.x[11] = 0
+PcellStimList.x[12] = 0
+PcellStimList.x[13] = 1
+PcellStimList.x[14] = 0
+PcellStimList.x[15] = 0
+PcellStimList.x[16] = 1
+PcellStimList.x[17] = 0
+PcellStimList.x[18] = 0
+PcellStimList.x[19] = 0
+PcellStimList.x[20] = 0
+PcellStimList.x[21] = 0
+PcellStimList.x[22] = 0
+PcellStimList.x[23] = 0
+PcellStimList.x[24] = 0
+PcellStimList.x[25] = 0
+PcellStimList.x[26] = 0
+PcellStimList.x[27] = 0
+PcellStimList.x[28] = 0
+PcellStimList.x[29] = 0
+PcellStimList.x[30] = 0
+PcellStimList.x[31] = 0
+PcellStimList.x[32] = 1
+PcellStimList.x[33] = 0
+PcellStimList.x[34] = 0
+PcellStimList.x[35] = 0
+PcellStimList.x[36] = 1
+PcellStimList.x[37] = 0
+PcellStimList.x[38] = 1
+PcellStimList.x[39] = 0
+PcellStimList.x[40] = 0
+PcellStimList.x[41] = 0
+PcellStimList.x[42] = 0
+PcellStimList.x[43] = 0
+PcellStimList.x[44] = 0
+PcellStimList.x[45] = 0
+PcellStimList.x[46] = 0
+PcellStimList.x[47] = 0
+PcellStimList.x[48] = 0
+PcellStimList.x[49] = 0
+PcellStimList.x[50] = 0
+PcellStimList.x[51] = 1
+PcellStimList.x[52] = 0
+PcellStimList.x[53] = 0
+PcellStimList.x[54] = 0
+PcellStimList.x[55] = 0
+PcellStimList.x[56] = 0
+PcellStimList.x[57] = 0
+PcellStimList.x[58] = 1
+PcellStimList.x[59] = 0
+PcellStimList.x[60] = 0
+PcellStimList.x[61] = 1
+PcellStimList.x[62] = 1
+PcellStimList.x[63] = 0
+PcellStimList.x[64] = 0
+PcellStimList.x[65] = 1
+PcellStimList.x[66] = 1
+PcellStimList.x[67] = 0
+PcellStimList.x[68] = 0
+PcellStimList.x[69] = 0
+PcellStimList.x[70] = 0
+PcellStimList.x[71] = 0
+PcellStimList.x[72] = 0
+PcellStimList.x[73] = 0
+PcellStimList.x[74] = 1

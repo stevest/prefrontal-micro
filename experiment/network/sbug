@@ -1,0 +1,1 @@
+../../mechanism/x86_64/special -nobanner -c "PARALLEL=0" NEURON_BUG.hoc -

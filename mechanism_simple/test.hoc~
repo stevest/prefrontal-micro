@@ -1,0 +1,16 @@
+objref r, vec,f 
+r = new Random(1980)
+test = r.uniform(0,1)
+vec = new Vector(10000);
+
+
+for i=0,10000 { 
+	vec.x(i) = r.repick();
+}
+
+f = new File(f)
+f.wopen('data.dat');
+
+vec.printf(f, "%d\n");
+
+f.close()

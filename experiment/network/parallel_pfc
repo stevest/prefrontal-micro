@@ -7,7 +7,8 @@ res1=$(date +%s.%N)
 
 #../../mechanism/$(arch)/special final.hoc -
 #mpiexec -np 6 ../../mechanism/$(arch)/special -mpi -c "PARALLEL=1" final.hoc -
-mpirun -n 24 ../../mechanism/$(arch)/special -mpi -c "PARALLEL=1" final.hoc  
+# -mca btl ^openib flag inhibit the search for infiniband hardware
+mpirun -n 24 -mca btl ^openib ../../mechanism_complex/$(arch)/special -mpi  -nobanner -c "PARALLEL=1" -c "SIMPLIFIED=0" final.hoc  
 #mpiexec -np 24 nrniv -mpi -dll .
 
 res2=$(date +%s.%N)

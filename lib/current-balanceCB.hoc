@@ -18,25 +18,14 @@ proc current_balanceCB() {
         if (ismembrane("in_ion")) {e_pas(x)=e_pas(x)+in(x)/g_pas(x)} //ican
        if (ismembrane("h")) {e_pas(x)=e_pas(x)+ihi(x)/g_pas(x)}
 
-//        d = distance(1,x)
-//	xdist = find_vector_distance_precise(secname(),x)    // calc. perpedicular distance      
-  //	 printf("x = %e, xdist = %e, d = %e, e_pas = %e mV, rm = %e mA/(mVcm2)\n", x,  xdist, d, e_pas(x), 1./g_pas(x))
-      //	fcurrent()
     }
   }
 
-//finitialize(v_init)
 fcurrent()
-}
-
-
-
-/*
         if (cvode.active()) {
         cvode.re_init()
         }       else {
         fcurrent()
         }
 frecord_init()
-*/
-
+}

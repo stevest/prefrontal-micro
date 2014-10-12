@@ -1,4 +1,10 @@
 function [SG,current] = validateRatio( MODE, PYID, RUN_NO, MINVAR, MAXVAR, MAXERR, TARGET, MAXITER)
+if MODE == 1
+    system(sprintf('rm -rf data/NMDA_AMPA_ratio/1/NMDA*'))
+else
+    system(sprintf('rm -rf data/NMDA_AMPA_ratio/1/AMPA*'))
+end
+
 stopIdiff=MAXERR; %10;
 targetI=TARGET; %45;
 maxiter=MAXITER; %100;
@@ -11,6 +17,7 @@ Idiff=100;
 iter=0;
 while (SG>minSG) && (SG<maxSG) && (iter<maxiter)
 %     setG(SG);   
+fprintf('OPTVAR is %f\n',SG)
     sim(SG, MODE, PYID, RUN_NO)    
     current=mean(getminmax(MODE,PYID));
     Idiff=current-targetI;
@@ -41,8 +48,9 @@ end
 
 
 function sim(OPTVAR, MODE, PYID, RUN_NO)
-    [status,result] = system(['rm data/1/AMPA*']);
-    [status,result] = system(['../../mechanism/$(arch)/special -nobanner ',sprintf('-c "PYID=%d" -c "MODE=%d" -c "RUN_NO=%d" -c "OPTVAR=%f"',PYID,MODE,RUN_NO,OPTVAR),' NMDA_AMPA.hoc']);
+%     [status,result] = unix(['rm data/1/AMPA*']);
+    [status,result] = unix(['../../mechanism_complex/$(arch)/special -nobanner ',sprintf('-c "PYID=%d" -c "MODE=%d" -c "RUN_NO=%d" -c "OPTVAR=%f"',PYID,MODE,RUN_NO,OPTVAR),' NMDA_AMPA.hoc']);
+    disp(result)
 end
 
 % function setG(weight)
@@ -51,7 +59,7 @@ end
 % end
 
 function acc=getminmax(MODE, PYID)
-    indrange=200:600; % HARDCODED RANDE!
+    indrange=500:1500;%200:600; % HARDCODED RANDE!
     vals={'NMDA','AMPA'};
     s=MODE;
     f=dir(sprintf('data/NMDA_AMPA_ratio/%d/%s_%d_*.txt',MODE, vals{s}, PYID));

@@ -24,12 +24,14 @@ x = y = z = 0 // only change via position
 
 create soma, axon, dend[2]
 
+
 soma_nafcr=0.015
 soma_kdrcr=0.018 
 soma_Kslowcr=0.000725
 soma_iCcr=0.00003
 soma_kadcr=0.003
 soma_cancr=0.001
+
 
 soma {
      nseg=1
@@ -137,7 +139,7 @@ dend[1] {
 	connect axon(0), soma(0.5)
 	
  	//xopen("../bash_templates/current-balancecr.hoc")
-	//current_balancecr(v_initcr)  
+	//current_balancecr(v_initcr) */
 }
 
 endtemplate CRcell
@@ -146,7 +148,7 @@ endtemplate CRcell
 objref CRcells, CRgids
 CRcells = new List() 
 CRgids=new Vector()
-proc createCRs(){local i,gid_offset localobj cell,mynil
+proc createCRs(){local i,gid_offset localobj cell,nil
 if(PARALLEL){
 	{PC.barrier()}
 	if(PC.id==0) {printf("initializing CRs...\n")  }    
@@ -161,7 +163,7 @@ if(PARALLEL){
 			//cell.position((i+.5)*len/nCRcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
 			PC.set_gid2node(gid,PC.id)
 			cell.axon {//synapse_source(gid)//,&v(1))
-			PC.cell(gid,new NetCon(&v(1), mynil),1)
+			PC.cell(gid,new NetCon(&v(1), nil),1)
 		}   
 		PC.threshold(gid,-20) 
 		CRcells.append(cell)        

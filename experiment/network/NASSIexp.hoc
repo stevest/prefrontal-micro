@@ -1,0 +1,654 @@
+//--------------Set parameters and run this for the net (4 Pcells and 1 Interneuron)
+//--------------Written 8-5-08, modified 08-10-08
+if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//----------------------------------------Set parameters--------------------------------------------------------------//
+
+//override parameters for this validation runs:
+nPCcells=2
+PARALLEL = 0
+objref PC
+
+tstop=2000
+steps_per_ms=10
+dt=1/steps_per_ms
+n=int(tstop/dt)
+celsius=34
+TOTALRUNS = 21//101
+PLOT = 0
+DEBUG = 0
+objref SYNAPSE_PLAY
+//SYNAPSE_PLAY = new List
+
+objref cv
+cv=new CVode(0)
+
+if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
+//if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
+//if(!cv.cache_efficient(1)){print "ERRORRRR!"}
+
+PYID = 22 //initially load morphology #0
+stimIntensity = 12
+
+
+SIMPLIFIED = 0
+MODE = 7
+
+if (name_declared("MODE")!=5) { 
+MODE = 0 
+printf("No 'MODE' argument passed; reverting to default...\n\n")
+}else{
+printf("'MODE' argument is %f\n\n",MODE)
+}
+
+
+if (name_declared("ERUNS")!=5) { 
+ERUNS = 0 
+quit()
+}else{
+printf("'ERUNS' argument is %f\n\n",ERUNS)
+}
+
+
+/*  MODEs   */
+/*  MODE 1   */
+/*  MODE 2 FS2PC mIPSC GABAa (Woo, 2007)   */
+
+
+//procedure to choose which Pyramidal morphologies we want in network
+if(!xopen("chooseMorphologies.hoc")){print "ERROR	Failed to load choose morphologies!"}
+//argument: percentage of IB cells morphologies in network, random seed:
+chooseMorphologies(60,0)
+if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
+if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
+
+if(!xopen("../RS1cell.hoc")){print "ERROR	Failed to load interneuron hoc!"}
+//	PCcells.o(0){ print L}
+if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
+if(!xopen("importNetworkStimulation.hoc")){print "ERROR	Failed to import network parameters!"}
+if(!xopen("RAPIDimportBackgroundStimParams.hoc")){print "ERROR	Failed to import RAPID parameters!"}
+
+BG_dendSyn = 120//50//30//50
+BG_apicSyn = 120//50//30//50
+BG_rapid = 5
+/*
+GABAaFactor = 1
+NMDAfactor = 0.932
+PC2PC_MaxSyn = 20
+*/
+
+ //nmda_segev
+GABAaFactor = 0//0.3//0.7744//den exei shmasia poso GABA bazw (me NMDA 0.5), (opote den exei simasia poso anebainei to non-unimodal curve??)
+NMDAfactor = 1//0.7//0.55
+PC2PC_MaxSyn = 38//15//20
+//VALIDATED: 0.2344, 0.6250, Kiki 0.0005341
+//NMDAW = 0.871 //NMDA_SEGEV
+NMDAW =0.0018//0.0006485 //NMDA
+
+//--------------------------------------Graphs
+//addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -70, 50)
+
+//---------------------------------------------Multiple Experiments/Runs---------------------------------------------//
+
+//---------------------------------Procedure for various checks------------------------------------------------//
+
+
+// train for fADP validation:
+objref icTrain[5]
+
+proc train() {
+initDelay = 1000
+for i=0,4 {
+		PCcells.o(0).soma { icTrain[i]=new IClamp(0.5) }
+		icTrain[i].del=initDelay	
+		icTrain[i].dur=5
+		icTrain[i].amp=3//(nA)
+		initDelay = initDelay + 50
+}}
+
+//--------------------------------------------------------------IClamp
+objref ic
+proc currentClamp() { 
+	PCcells.o(1).soma { ic=new IClamp(0.5) }
+	ic.del=100
+	ic.dur=1000//2000
+	ic.amp=$1
+}
+
+//--------------------------------------------------------------VClamp
+objref vc[2]
+proc vclamp() {
+	objref vc[2]
+	PCcells.o(0).soma { vc[$3] = new VClamp(0.5) }
+	vc[$3].amp[0] = $1 //FREAKING NEURON WANTS THIS AS AN ARRAY POINTER!!!
+	vc[$3].dur[0] = $2//tstop
+//for FS autapses testing...
+	/*vc.amp[1] = 10
+	vc.dur[1] = 1
+	vc.amp[2] = -70
+	vc.dur[2] = 1999*/
+}
+
+objref vsoma, volt,curr, time
+objref vdend, dvolt,dcurr, dtime
+
+proc rec_soma_Voltage(){
+	volt = new Vector(n)
+	time = new Vector(n) //different dt vector needed from $@#%@$#% NEURON..
+	for j=0,n-1 {time.x[j]=j*dt }
+	PCcells.o($1).dend[0] { cv.record(&cai(0.5),volt,time,1) }
+}
+proc rec_dend_Voltage(){
+	dvolt = new Vector(n)
+	dtime = new Vector(n) //different dt vector needed from $@#%@$#% NEURON..
+	for j=0,n-1 {dtime.x[j]=j*dt }
+	PCcells.o($1).dend[1] { cv.record(&v(0.5),dvolt,dtime,1) }
+}
+proc save_soma_Voltage() {
+	vsoma = new File()		
+	//sprint(temp,"%s_%d.txt", $s1,runs)  //RS/IB classification!
+	sprint(temp,"%s.txt", $s1) 
+	vsoma.wopen(temp)
+	for sb=0, volt.size()-1 { 
+		vsoma.printf ("%f\n",volt.x[sb])
+	}
+	vsoma.close()
+}
+proc save_dend_Voltage() {
+	vdend = new File()		
+	//sprint(temp,"%s_%d.txt", $s1,runs)  //RS/IB classification!
+	sprint(temp,"%s.txt", $s1) 
+	vdend.wopen(temp)
+	for sb=0, dvolt.size()-1 { 
+		vdend.printf ("%f\n",dvolt.x[sb])
+	}
+	vdend.close()
+}
+proc rec_VClamp_Current(){
+	curr=new Vector(n)
+	time=new Vector(n) 
+	for j=0,n-1 {time.x[j]=j*dt }
+	PCcells.o(0).soma[0] { cv.record(&vc[$1].i,curr,time,1) }
+}
+
+proc save_VClamp_Current() {    
+	vsoma = new File()		
+	sprint(temp,"%s_%d.txt", $s1, runs)  //RS/IB classification!
+	vsoma.wopen(temp)
+	for sb=0, curr.size()-1 { 
+		vsoma.printf ("%f\n",curr.x[sb])
+	}
+	vsoma.close()
+}
+
+
+
+//---------------------------------Procedure for various checks------------------------------------------------//	
+objref ampau[TOTALRUNS][100][stimIntensity], nmdau[TOTALRUNS][100][stimIntensity], gabaau[TOTALRUNS][100][stimIntensity]
+objref gabaa_mIPSC, gabaad[4], gababd[4], fsgabaac[4], rsgabaac[12]
+objref nsu,ns40, nsr,ns20
+ns20=new NetStim(0.5)
+ns20.interval=50//(in ms!!!)// 20ms in NMDA SPIKES
+ns20.number=20 
+ns20.start=0
+ns20.noise=0
+nsu=new NetStim(0.5)
+nsu.interval=10//(in ms!!!)// 20ms in NMDA SPIKES
+nsu.number=1 //Unitary NetStim
+nsu.start=0
+nsu.noise=0
+ns40=new NetStim(0.5)
+ns40.interval=10//100Hz
+ns40.number=40 //Thomson 1996 (?)
+ns40.start=0
+ns40.noise=0
+nsr=new NetStim(0.5)
+nsr.interval=50//(in ms!!!)// 20ms in NMDA SPIKES
+nsr.number=1 //Unitary NetStim
+nsr.start=0
+nsr.noise=0
+
+objref nc_mIPSC, nc_gabaad[4], nc_gababd[4], nc_fsgabaac[4], nc_rsgabaac[12]
+objref nc_a[TOTALRUNS][100][stimIntensity]
+objref nc_n[TOTALRUNS][100][stimIntensity]
+		
+
+
+objref tmpnmdaa[nPCcells][200], tmpampaa[nPCcells][200],tmpnmdab[nPCcells][200], tmpampab[nPCcells][200], tmpampar[nPCcells][200],tmpnmdar[nPCcells][200]
+objref tmpgabaa[nPCcells][200], tmpgabab[nPCcells][200]
+objref nc_tmpga[nPCcells][200],nc_tmpgb[nPCcells][200]
+objref nc_tmpaa[nPCcells][200], nc_tmpna[nPCcells][200],nc_tmpab[nPCcells][200], nc_tmpnb[nPCcells][200],nc_tmpar[nPCcells][200], nc_tmpnr[nPCcells][200]
+objref vstima[nPCcells][600], vstimb[nPCcells][600], vstimr[nPCcells][600]
+
+
+objref events_apic[nPCcells][1000],events_dend[nPCcells][1000] ,events_rapid[nPCcells][1000]
+objref conampaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn], connmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
+objref ampaOnPC[nPCcells][nPCcells][PC2PC_MaxSyn], nmdaOnPC[nPCcells][nPCcells][PC2PC_MaxSyn]
+objref sourceEvents[nPCcells], nil
+
+proc simple_stimulation(){ local ApicalNo, BasalNo, cs, cd, ca, PID, trg, src,FIDp, rDendidx,ic  localobj ra, rb, rn, fp, rDend
+	ra = new Random($1)
+	rb = new Random($1+1)
+	rn = new Random($1+2)
+	ApicalNo = 0
+	BasalNo = 0
+	forsec PCcells.o[0].apical { ApicalNo+=1 }
+	ra.uniform(0,ApicalNo-1)
+	forsec PCcells.o[0].basal { BasalNo+=1 }
+	rb.uniform(0,BasalNo-1)
+	rn.uniform(0,1)
+	fp = new Random($1+3)
+	FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
+	rDend = new Random($1+4)
+
+
+for ic = 0, nPCcells-1 {
+	for cs=0, BG_apicSyn-1 {
+		PID=rn.repick()
+		ca = 0//ra.repick()
+		PCcells.o[ic].apic[ca] {
+			vstima[ic][cs] = new VecStim(0.5)
+			vstima[ic][cs].delay = 0
+			vstima[ic][cs].play(Stim_Apic[0][cs])
+
+/*
+			tmpnmdaa[ic][cs] = new nmda_segev(PID)
+			nc_tmpna[ic][cs]=new NetCon(vstima[ic][cs], tmpnmdaa[ic][cs]) //if the source is the same, no recording takes place!!!
+			//events_apic[0][cs] = new Vector(n)
+			//nc_tmpna[ic][cs].record(events_apic[0][cs]) // 8a 8eloume kapoio global ID sto full network (kai oi synapseis!)
+
+			nc_tmpna[ic][cs].delay=0
+			nc_tmpna[ic][cs].weight= NMDAfactor * NMDAW //VALIDATED: 0.2344, 0.6250, Kiki 0.0005341
+			nc_tmpna[ic][cs].threshold=-20
+*/
+			
+			tmpampaa[ic][cs] = new GLU(PID)
+			nc_tmpaa[ic][cs] = new NetCon(vstima[ic][cs], tmpampaa[ic][cs])//vstima[ic][cs]
+			nc_tmpaa[ic][cs].delay=0
+			nc_tmpaa[ic][cs].weight= 0.0001526 //VALIDATED
+			nc_tmpaa[ic][cs].threshold=-20
+
+			tmpgabaa[ic][cs] = new GABAa(PID)
+			nc_tmpga[ic][cs] = new NetCon(vstima[ic][cs], tmpgabaa[ic][cs])
+			nc_tmpga[ic][cs].delay=20
+			nc_tmpga[ic][cs].weight= GABAaFactor * 0.0001526 //VALIDATED
+			nc_tmpga[ic][cs].threshold=-20
+			
+		}
+	}
+
+	for cs= 0,BG_dendSyn-1{
+		PID=rn.repick()
+		cd = 0//rb.repick()
+		PCcells.o[ic].dend[cd] {
+			vstimb[ic][cs] = new VecStim(0.5)
+			vstimb[ic][cs].delay = 0
+			vstimb[ic][cs].play(Stim_Dend[0][cs])
+
+			tmpnmdab[ic][cs] = new NMDA(PID)
+			nc_tmpnb[ic][cs] = new NetCon(vstima[ic][cs], tmpnmdab[ic][cs])
+
+			//events_dend[0][cs] = new Vector(n)
+			//nc_tmpnb[ic][cs].record(events_dend[0][cs]) // 8a 8eloume kapoio global ID sto full network (kai oi synapseis!)
+
+			nc_tmpnb[ic][cs].delay = 0
+			nc_tmpnb[ic][cs].weight =  NMDAfactor * NMDAW //VALIDATED: 0.2344, 0.6250, Kiki 0.0005341
+			nc_tmpnb[ic][cs].threshold=-20
+			
+			tmpampab[ic][cs] = new GLU(PID)
+			nc_tmpab[ic][cs]=new NetCon(vstima[ic][cs], tmpampab[ic][cs])//vstimb[ic][cs]
+			nc_tmpab[ic][cs].delay=0
+			nc_tmpab[ic][cs].weight= 0.0001526 //VALIDATED
+			nc_tmpab[ic][cs].threshold=-20
+
+			tmpgabab[ic][cs] = new GABAa(PID)
+			nc_tmpgb[ic][cs]=new NetCon(vstima[ic][cs], tmpgabab[ic][cs])
+			nc_tmpgb[ic][cs].delay=20
+			nc_tmpgb[ic][cs].weight= GABAaFactor * 0.0001526 //VALIDATED
+			nc_tmpgb[ic][cs].threshold=-20
+		}
+	}
+	
+/*
+	for cs= 0,BG_rapid-1{
+		PID=rn.repick()
+		cd = 0//rb.repick()
+		PCcells.o[ic].dend[cd] {
+			vstimr[ic][cs] = new VecStim(0.5)
+			vstimr[ic][cs].delay = 0
+			vstimr[ic][cs].play(BG_Stim_Rapid[0][cs])
+
+			tmpnmdar[ic][cs] = new nmda_segev(PID)
+			nc_tmpnr[ic][cs]=new NetCon(vstimr[ic][cs], tmpnmdar[ic][cs])
+
+			//events_rapid[0][cs] = new Vector(n)
+			//nc_tmpnr[ic][cs].record(events_rapid[0][cs])
+
+			nc_tmpnr[ic][cs].delay=0
+			nc_tmpnr[ic][cs].weight= NMDAfactor * NMDAW//VALIDATED: 0.2344, 0.6250, Kiki 0.0005341
+			nc_tmpnr[ic][cs].threshold=-20
+		
+			tmpampar[ic][cs] = new GLU(PID)
+			nc_tmpar[ic][cs]=new NetCon(vstimr[ic][cs], tmpampar[ic][cs])
+			nc_tmpar[ic][cs].delay=0
+			nc_tmpar[ic][cs].weight= 0.0001526 //VALIDATED
+			nc_tmpar[ic][cs].threshold=-20
+		}
+	}
+*/
+} //for all the cells
+
+
+	for trg=0, nPCcells-1 { 
+		for src=0,nPCcells-1 {
+		if(trg!=src){
+			for syn=0, (PC2PC_MaxSyn-1) { //for current syn
+				PID=rn.repick()
+				FIDp=abs(fp.repick())
+				if(FIDp<=steps_per_ms){FIDp=steps_per_ms+0.01}
+FIDp = 0
+				rDendidx = int(rDend.uniform(0,PCcells.o(trg).DendNo-1) )
+				PCcells.o(trg).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}
+				PCcells.o(trg).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new NMDA(PID)}
+//if (trg==0 && src==0 && syn==2) {print "DendIDX= ",rDendidx }			
+				PCcells.o(src).axon[0] {
+					connmdaPC2PC[src][trg][syn] = new NetCon(&v(1),nmdaOnPC[src][trg][syn] )
+					connmdaPC2PC[src][trg][syn].delay = FIDp
+					connmdaPC2PC[src][trg][syn].weight = NMDAfactor * NMDAW
+					connmdaPC2PC[src][trg][syn].threshold = -20
+					sourceEvents[src] = new NetCon(&v(1),nil )
+					sourceEvents[src].delay = 1
+					sourceEvents[src].threshold = -20
+					sourceEvents[src].record("print \"NMDA event @\", t")
+				}
+				PCcells.o(src).axon[0] {
+					conampaPC2PC[src][trg][syn] = new NetCon(&PCcells.o(src).axon.v(1),ampaOnPC[src][trg][syn])
+					conampaPC2PC[src][trg][syn].threshold = -20
+					conampaPC2PC[src][trg][syn].delay = FIDp
+					conampaPC2PC[src][trg][syn].weight = 0.0001526 
+
+				}
+			}
+		}
+		}
+	}
+}
+
+
+objref eventsVect[nPCcells]
+
+proc rec_NMDA_events(){ local src
+	//for trg=0,nPCcells-1 {
+		for src=0,nPCcells-1 {
+			//if(trg!=src){
+				eventsVect[src] = new Vector(n)
+				//connmdaPC2PC[src][trg][0].record(eventsVect[src])
+				sourceEvents[src].record(eventsVect[src])
+			//}
+		}
+	//}
+}
+
+objref eventFile[nPCcells]
+proc save_NMDA_events(){ local src, i
+	//for trg=0,nPCcells-1 {
+		for src=0,nPCcells-1 {
+			//if(trg!=src){
+				eventFile[src] = new File()		
+				sprint(temp,"%s_%d.txt", $s1, src)
+				eventFile[src].wopen(temp)
+				for i=0, eventsVect[src].size()-1 { 
+					eventFile[src].printf ("%f\n",eventsVect[src].x[i])
+				}
+				eventFile[src].close()
+			//}
+		}
+	//}
+}
+
+
+
+
+
+objref nmdavc[1000], nmdanc[1000]
+objref ampavc[1], ampanc[1]
+
+objref vstim_apic[nPCcells][1000],vstim_dend[nPCcells][1000],vstim_rapid[nPCcells][1000]
+
+
+/*
+// Create synapses at random basal dendrite locations:
+proc NMDAVC() { local cs localobj r,rp 
+	r = new Random($1)
+	rp = new Random($1+2)
+	BasalNo=0
+	forsec PCcells.o[0].basal { BasalNo+=1 }
+	r.uniform(0,BasalNo-1)
+	rp.uniform(0,1)
+	cd = 0//r.repick()
+	for cs=0, BG_apicSyn-1 {
+
+		vstim_apic[0][cs] = new VecStim(0.5)
+		vstim_apic[0][cs].delay = 0
+		vstim_apic[0][cs].play(Stim_Apic[0][cs])
+
+		nc_tmpna[cs]=new NetCon(vstim_apic[0][cs], tmpnmdaa[cs]) //connect new play vector to the existing synapse
+		nc_tmpna[cs].delay=0
+		nc_tmpna[cs].weight= NMDAfactor//0.7812 //VALIDATED Segev = 0.6250
+		nc_tmpna[cs].threshold=-20
+
+		nc_tmpaa[cs]=new NetCon(vstim_apic[0][cs], tmpampaa[cs])
+		nc_tmpaa[cs].delay=0
+		nc_tmpaa[cs].weight= 0.0001526 //VALIDATED
+		nc_tmpaa[cs].threshold=-20
+
+		nc_tmpga[cs]=new NetCon(vstim_apic[0][cs], tmpgabaa[cs])
+		nc_tmpga[cs].delay=20
+		nc_tmpga[cs].weight= 0.0001526 //VALIDATED
+		nc_tmpga[cs].threshold=-20
+
+		
+	}
+
+	for cs=0, BG_dendSyn-1 {
+
+		vstim_dend[0][cs] = new VecStim(0.5)
+		vstim_dend[0][cs].delay = 0
+		vstim_dend[0][cs].play(Stim_Dend[0][cs])
+
+		nc_tmpnb[cs]=new NetCon(vstim_dend[0][cs], tmpnmdab[cs]) //connect new play vector to the existing synapse
+
+		nc_tmpnb[cs].delay = 400
+		nc_tmpnb[cs].weight =  NMDAfactor//0.7812 //VALIDATED KIKIS W = 0.0005341
+		nc_tmpnb[cs].threshold=-20
+
+		nc_tmpab[cs]=new NetCon(vstim_dend[0][cs], tmpampab[cs])
+		nc_tmpab[cs].delay=400
+		nc_tmpab[cs].weight= 0.0001526 //VALIDATED
+		nc_tmpab[cs].threshold=-20
+
+		nc_tmpgb[cs]=new NetCon(vstim_dend[0][cs], tmpgabab[cs])
+		nc_tmpgb[cs].delay=20
+		nc_tmpgb[cs].weight= 0.0001526 //VALIDATED
+		nc_tmpgb[cs].threshold=-20
+	}
+
+	for cs= 0, BG_rapid-1{
+		vstim_rapid[0][cs] = new VecStim(0.5)
+		vstim_rapid[0][cs].delay = 0
+		vstim_rapid[0][cs].play(BG_Stim_Rapid[0][cs])
+
+		nc_tmpnr[cs]=new NetCon(vstim_rapid[0][cs], tmpnmdar[cs])
+		nc_tmpnr[cs].delay=0
+		nc_tmpnr[cs].weight= NMDAfactor//VALIDATED
+		nc_tmpnr[cs].threshold=-20
+
+		nc_tmpar[cs]=new NetCon(vstim_rapid[0][cs], tmpampar[cs])
+		nc_tmpar[cs].delay=0
+		nc_tmpar[cs].weight= 0.0001526 //VALIDATED
+		nc_tmpar[cs].threshold=-20
+	}
+
+}
+*/
+
+//------------------------------------Pharmacological procedures
+fadp=0//2//0.5//0.23
+proc sadp_soma() {
+	forsec PCsoma_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0001*fadp } 
+		}}}
+proc sadp_dend() {
+	forsec PCdend_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0001*0.1*fadp} 
+		}}}
+proc sadp_apical() {
+	forsec PCapical_list {
+		for(x) {
+			if(ismembrane("ican"))  for(x) { gbar_ican(x)= 0.0001*0.1*fadp} 
+		}}}
+
+proc KblockNassiOLD(){
+forall{
+for(x){
+	fk=0
+	//if(ismembrane("kdr")) for(x) { gkdrbar_kdr(x)= gkdrbar_kdr(x)*fk }	// H Nassi DEN to mplokare (commented) //den mplokarontai apo tous blockers tou Kaliou!
+	if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*fk }
+	if(ismembrane("Ks"))  for(x) { gKsbar_Ks(x)= gKsbar_Ks(x)*fk } 
+	if(ismembrane("kca")) { for(x) {  gbar_kca(x)= gbar_kca(x)*fk }}  //slow Ca
+	if(ismembrane("mykca")) { for(x) {  gkbar_mykca(x)= gkbar_mykca(x)*fk }} //fast Ca
+	if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+	if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+	if(ismembrane("can")) for(x) {  gcalbar_can(x)= gcalbar_can(x)*0 }
+	if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 } //mplokaroume k ta Ca, giati den kanoun diafora sto amplitude, alla einai pio sta8era sto Vclamp!	
+	if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
+	//if(ismembrane("calc")) for(x) {  gcabar_calc(x)= gcabar_calc(x)*0 }
+	if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
+	}}}
+
+proc TTX() {
+forall {
+    for(x) {
+    if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+    if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+    }
+}
+}
+
+
+//-----------------------------------------------------Multiple Runs
+
+strdef syscmd, foldername, filename
+//foldername = "miniNet"
+foldername = "miniNet2"
+
+
+
+//Run the model simulation recording every state:
+runs = 0
+//sadp_soma()
+//sadp_dend()
+//sadp_apical()
+
+
+//if(runs==0){
+	simple_stimulation(runs)
+	//currentClamp(0.6)
+
+	//addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -100,80)
+
+	//addgraph_2("PCcells.o(1).dend[0].v(0.5)", 0,tstop, -100,80)
+	//addgraph_2("PCcells.o(1).soma.ik_mykca", 0,tstop, -100,80)
+//	addgraph_2("PCcells.o(1).soma.ik_kad", 0,tstop, -100,80)
+//	addgraph_2("PCcells.o(1).soma.gkabar_kad", 0,tstop, -100,80)
+//	addgraph_2("PCcells.o(1).soma.tmpn_kad", 0,tstop, -100,80)
+//	addgraph_2("PCcells.o(1).soma.tmpl_kad", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(1).soma.v(0.5)", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -100,80)
+//	addgraph_2("PCcells.o(1).soma.ek(0.5)", 0,tstop, -100,80)
+
+/*	addgraph_2("tmpnmdab[0][0].gnmda", 0,tstop, -100,80)
+	addgraph_2("tmpnmdab[0][0].inmda", 0,tstop, -100,80)
+	addgraph_2("tmpnmdab[0][0].ica", 0,tstop, -100,80)
+
+	addgraph_2("tmpampab[0][0].g", 0,tstop, -100,80)
+	addgraph_2("tmpampab[0][0].ina", 0,tstop, -100,80)
+	addgraph_2("tmpampab[0][0].iglu", 0,tstop, -100,80)
+*/
+
+/*	addgraph_2("nmdaOnPC[0][1][2].gnmda", 0,tstop, -100,80)
+	addgraph_2("nmdaOnPC[0][1][2].inmda", 0,tstop, -100,80)
+//	addgraph_2("PCcells.o(1).soma.eca(0.5)", 0,tstop, -100,80)
+	
+	addgraph_2("PCcells.o(1).soma.ica(0.5)", 0,tstop, -100,80)
+
+//	addgraph_2("PCcells.o(1).dend[0].eca(0.5)", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(1).dend[0].cai(0.5)", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(1).dend[0].ica(0.5)", 0,tstop, -100,80)
+*/
+//	addgraph_2("PCcells.o(1).soma.ca_cad(0.5)", 0,tstop, -100,80)
+//	addgraph_2("PCcells.o(1).soma.ica_cad(0.5)", 0,tstop, -100,80)
+
+/*	addgraph_2("PCcells.o(0).soma.ik", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(0).soma.cai", 0,tstop, -100,80) //Den fainetai na einai afto (to consentration peftei..)
+	addgraph_2("PCcells.o(0).soma.blah_ican", 0,tstop, -100,80) 
+	addgraph_2("PCcells.o(0).soma.ica", 0,tstop, -100,80) 
+*/
+
+/*
+	addgraph_2("PCcells.o(0).soma.gkabar_kad", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(0).soma.gbar_kca", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(0).soma.gkbar_mykca", 0,tstop, -100,80)
+	addgraph_2("PCcells.o(0).soma.gKsbar_Ks", 0,tstop, -100,80)
+*/
+
+
+
+
+	rec_soma_Voltage(1)
+	//rec_dend_Voltage(0)
+	//rec_NMDA_events()
+//vclamp(-10.4, tstop,0)
+//TTX()
+	run()
+	//vclampa += 1
+	//sprint(filename,"%s/%s",foldername,"NMDAevents") 
+	//save_NMDA_events(filename)
+	//sprint(filename,"%s/%s",foldername,"SIMULATIONd") 
+	//save_dend_Voltage(filename)
+	sprint(filename,"%s/%s",foldername,"SIMULATION") 
+	save_soma_Voltage(filename)
+//} else {
+
+/*
+//Run the DSA using each known previous state:
+vclampa = -100 + ((runs-1)*5)
+
+for runs = 1, TOTALRUNS-1 {
+runs
+//	sadp_soma()
+//	sadp_dend()
+//	sadp_apical()
+//	simple_stimulation(runs)
+//	NMDAVC(runs)
+//	addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -100,80)
+addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -100,80)
+addgraph_2("PCcells.o(0).soma.ik_kad(0.5)", 0,tstop, -100,80)
+	//AMPAVC(runs)
+	vclamp(vclampa, tstop,0)
+	print "VClamp @ ", vclampa
+	//KblockNassiOLD()
+	TTX()
+	addgraph_2("vc[0].i", 0,tstop, -0.01, 0.01)
+	rec_VClamp_Current(0)
+	run()
+	sprint(filename,"%s/%s",foldername,"NMDAVC") 
+	save_VClamp_Current(filename)
+	vclampa += 10
+}*/
+
+
+
+
+
