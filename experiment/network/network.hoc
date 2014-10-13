@@ -147,7 +147,7 @@ objref PCsw[nPCcells], PVsw[nPCcells], CBsw[nPCcells], CRsw[nPCcells]
 proc noise() { local i
 	i=0
 	forsec PCsoma_list {
-			PCns[i] = new Random(i+$1) 
+			PCns[i] = new Random(i+ID*$1) 
 			PCns[i].poisson(0.02)		
 			PCsw[i] = new membNoise(0.5)
 			PCsw[i].del=0
@@ -160,7 +160,7 @@ proc noise() { local i
 
 	i=0
 	forsec PVsoma_list {
-			PVns[i] = new Random(i+$1+1) 
+			PVns[i] = new Random(i+ID*$1+1) 
 			PVns[i].poisson(0.02)		
 			PVsw[i] = new membNoise(0.5)
 			PVsw[i].del=0
@@ -173,7 +173,7 @@ proc noise() { local i
 
 	i=0
 	forsec CBsoma_list {
-			CBns[i] = new Random(i+$1+2) 
+			CBns[i] = new Random(i+ID*$1+2) 
 			CBns[i].poisson(0.02)		
 			CBsw[i] = new membNoise(0.5)
 			CBsw[i].del=0
@@ -187,7 +187,7 @@ proc noise() { local i
 
 	i=0
 	forsec CRsoma_list {
-			CRns[i] = new Random(i+$1+3) 
+			CRns[i] = new Random(i+ID*$1+3) 
 			CRns[i].poisson(0.035)		
 			CRsw[i] = new membNoise(0.5)
 			CRsw[i].del=0
@@ -235,10 +235,10 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 		print "RVECT[",i,"] = ",rvect.x[i]
 	}
 
-	r = new Random($1+165)
+	r = new Random(ID*$1+165)
 	PID = r.uniform(0, 1)
-	rApic = new Random($1+12)
-	rBasal = new Random($1+67)
+	rApic = new Random(ID*$1+12)
+	rBasal = new Random(ID*$1+67)
 
 	for i=0, nPCcells - 1  { 
 		if(PcellStimList.x(i)){
@@ -360,12 +360,12 @@ StimFreq = 1 // Hz
 StimNo = StimDur/1000 * StimFreq
 */
 
-r = new Random($1 + 300)
-rv = new Random($1 +400)
+r = new Random(ID*$1 + 300)
+rv = new Random(ID*$1 +400)
 RV = rv.uniform(1, StimDur)
 PID = r.uniform(0,1)
-rlb = new Random($1+160)
-rla = new Random($1+560)
+rlb = new Random(ID*$1+160)
+rla = new Random(ID*$1+560)
 //BGweight = 0.001//0.0007
 
 /*dendSyn = int(SynapsesNo/3)
@@ -519,7 +519,7 @@ for i=0, nPCcells-1 {
 //----------------------------------------------PV background activity-------------------------------------------------------//
 proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 150)
+	r = new Random(ID*$1 + 150)
 	PID = r.uniform(0,1)
 
 		for trg=0, nPVcells-1 {
@@ -562,7 +562,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 //----------------------------------------------CB background activity-------------------------------------------------------//
 proc backgroundActivityCB() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 150)
+	r = new Random(ID*$1 + 150)
 	PID = r.uniform(0,1)
 
 		for trg=0, nCBcells-1 {
@@ -606,7 +606,7 @@ proc backgroundActivityCB() { local PID,trg,syn,bool,localID,trgGID localobj r
 //----------------------------------------------CB background activity-------------------------------------------------------//
 proc backgroundActivityCR() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 150)
+	r = new Random(ID*$1 + 150)
 	PID = r.uniform(0,1)
 
 		for trg=0, nCRcells-1 {
@@ -646,6 +646,19 @@ proc backgroundActivityCR() { local PID,trg,syn,bool,localID,trgGID localobj r
 	}
 } //end procedure
 
+// recurrent synaptic clusternig algorithm (for variation)
+funct clustbias(){ local rb,oldPID localobj rbo
+	//arguments (many!)
+	//$1 = PID old
+	//$2 = runs serial number
+	oldPID = $1
+	rbo = Random(ID*$2)
+	rb = rbo.uniform(0,1)
+	//when CLUSTBIAS==0: new PID == old PID
+	//when CLUSTBIAS==1: new PID == Random(0,1)
+	return ((rb-oldPID)* CLUSTBIAS) + oldPID 
+}
+
 
 // ---------------------------------PC-PC connections, basal dendrite(Thomson, 1997)------------------------------------//
 
@@ -660,24 +673,24 @@ clusterDIST = new Vector(nPCcells)
 proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,bool,localID,trgGID,srcGID localobj r,fp,rDend
 	if(PARALLEL){ PC.barrier() }
 
+	//set parallel PID randomness
 	if(PARALLEL){
-		r = new Random($1 + 350 + PC.id ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
+		r = new Random(ID*$1 + 350 + PC.id ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 	} else {
-		r = new Random($1 + 350 ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
+		r = new Random(ID*$1 + 350 ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 	}
-
 	
 
 	PID = r.uniform(0,1)
-	fp = new Random($1+3)	
+	fp = new Random(ID*$1+3)	
 	//rDend = new Random($1+4 + PC.id ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
-	rDend = new Random($1+4) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
+	rDend = new Random(ID*$1+4) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 	FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
 
 
 	//Create clustering connectivity lists for recurrent connections:
 	//for i=0, PCcells.count()-1 {
-	i=0
+		i=0
 		for syn=0, (PC2PC_MaxSyn-1) {
 			rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
 			clusterDend[i].append(rDendidx)
@@ -765,13 +778,13 @@ if(srcGID!=trgGID){
 					if(FIDp<=steps_per_ms){FIDp=steps_per_ms+0.01}
 					//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 					if(SIMPLIFIED){	clusterDend[0].x(syn) = 0 }
-					PCcells.o(localID).dend[clusterDend[0].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
+					PCcells.o(localID).dend[clusterDend[0].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(clustbias(clusterPID[0].x(syn),$1))}					
 					//print "@cell ",trgGID," synapse on dend ",clusterDend.x(localID), " on PID ", syn*0.2+0.1
 					
 					EXEC_CMD = ""
-					sprint(EXEC_CMD,"PCcells.o(%d).dend[%d] {nmdaOnPC[%d][%d][%d] = new %s(%f)}",localID,clusterDend[0].x(syn),src,trg,syn,NMDA_MECH,clusterPID[0].x(syn))
+					sprint(EXEC_CMD,"PCcells.o(%d).dend[%d] {nmdaOnPC[%d][%d][%d] = new %s(%f)}",localID,clusterDend[0].x(syn),src,trg,syn,NMDA_MECH,clustbias(clusterPID[0].x(syn),$1))
 					execute(EXEC_CMD)
-print "DEND ",clusterDend[0].x(syn),"PID ",clusterPID[0].x(syn),"weight ",nmdaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID]
+//print "DEND ",clusterDend[0].x(syn),"PID ",clusterPID[0].x(syn),"weight ",nmdaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID]
 					//PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new NMDA(PID)}
 					//PCcells.o(localID).dend[clusterDend.x(localID)] {nmdaOnPC[src][trg][syn] = new nmda_segev(syn*0.2+0.1)}
 					if(SIMPLIFIED){
@@ -810,9 +823,9 @@ print "DEND ",clusterDend[0].x(syn),"PID ",clusterPID[0].x(syn),"weight ",nmdaAr
 
 proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fpvpv
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 250)
+	r = new Random(ID*$1 + 250)
 	PID = r.uniform(0,1)
-	fpvpv = new Random($1-100)
+	fpvpv = new Random(ID*$1-100)
 	delstimpvpv=fpvpv.normal(1.76,0.07)		//latency from IN-IN, according to Bacci (2003)   
 
 	for src=0, nPVcells-1 {
@@ -862,9 +875,9 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 //----------------------------------------------PC-PV connections-------------------------------------------------------//
 proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fpcpv
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 150)
+	r = new Random(ID*$1 + 150)
 	PID = r.uniform(0,1)
-	fpcpv = new Random($1*2)
+	fpcpv = new Random(ID*$1*2)
 	delstimpcpv=fpcpv.normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999)
 
 	for src=0, nPCcells-1 {
@@ -904,10 +917,10 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 //------------------------------------------------PV-PC connections-----------------------------------------------------//
 proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fpvpc,rDend
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 180)
+	r = new Random(ID*$1 + 180)
 	PID = r.uniform(0,1)
-	fpvpc = new Random($1*8)
-	rDend = new Random($1+5)
+	fpvpc = new Random(ID*$1*8)
+	rDend = new Random(ID*$1+5)
 	delstimpvpc=fpvpc.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
 	NoSynapsesSoma = int(PV2PC_MaxSyn * 46 / 100) //percentage (paper?)
 	NoSynapsesDend = PV2PC_MaxSyn - NoSynapsesSoma
@@ -978,7 +991,7 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 //----------------------------------------------PC-CB connections-------------------------------------------------------//
 proc connectPC2CB() {local i, j, k,delstimpccb,src,trg,syn,bool,localID,trgGID,srcGID localobj fpccb
 	if(PARALLEL){ PC.barrier() }
-	fpccb = new Random($1*2)
+	fpccb = new Random(ID*$1*2)
 	delstimpccb=fpccb.normal(0.6, 0.2)		//latency from Pc-Cb, according to Thomson(2007), also Angulo,Audinat(1999)
 
 	for src=0, nPCcells-1 {
@@ -1015,7 +1028,7 @@ proc connectPC2CB() {local i, j, k,delstimpccb,src,trg,syn,bool,localID,trgGID,s
 //----------------------------------------------PC-CR connections-------------------------------------------------------//
 proc connectPC2CR() {local i, j, k ,BasalNo,delstimpccr,src,trg,syn,bool,localID,trgGID,srcGID localobj fpccr
 	if(PARALLEL){ PC.barrier() }
-	fpccr = new Random($1*2)
+	fpccr = new Random(ID*$1*2)
 	delstimpccr=fpccr.normal(0.6, 0.2)		//latency from Pc-Cb, according to Thomson(2007), also Angulo,Audinat(1999)
 
 	for src=0, nPCcells-1 {
@@ -1056,10 +1069,10 @@ proc connectPC2CR() {local i, j, k ,BasalNo,delstimpccr,src,trg,syn,bool,localID
 //------------------------------------------------CB-PC connections to d2--------------------------------------------------//
 proc connectCB2PC() {local BasalNo,PID,delstimcbpc,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID  localobj r,fcbpc,rDend
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 170)
+	r = new Random(ID*$1 + 170)
 	PID = r.uniform(0,1)
-	rDend = new Random($1+6)
-	fcbpc = new Random($1*9)
+	rDend = new Random(ID*$1+6)
+	fcbpc = new Random(ID*$1*9)
 	delstimcbpc=fcbpc.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
 	//delstimcbp=1.8
 
@@ -1106,10 +1119,10 @@ proc connectCB2PC() {local BasalNo,PID,delstimcbpc,rDendidx,rApicidx,src,trg,syn
 //------------------------------------------------CR-PC connections to d2---------------------------------------------------//
 proc connectCR2PC() {local delstimcrpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID  localobj fcrpc,rDend
 	if(PARALLEL){ PC.barrier() }
-	r = new Random($1 + 180)
+	r = new Random(ID*$1 + 180)
 	PID = r.uniform(0,1)
-	fcrpc = new Random($1*9)
-	rDend = new Random($1+6)
+	fcrpc = new Random(ID*$1*9)
+	rDend = new Random(ID*$1+6)
 	delstimcrpc=fcrpc.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
 
 	for src=0, nCRcells-1 {
@@ -1160,7 +1173,7 @@ proc connectCR2PC() {local delstimcrpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 
 proc connectCR2CB() {local BasalNo,delstimcrcb,src,trg,syn,bool,localID,trgGID,srcGID localobj fcrcb
 	if(PARALLEL){ PC.barrier() }
-	fcrcb = new Random($1*9)
+	fcrcb = new Random(ID*$1*9)
 	delstimcrcb=fcrcb.normal(1.8, 0.8)	//latency from CB-Pc, according to Thomson(2007)
 
 	for src=0, nCRcells-1 {
