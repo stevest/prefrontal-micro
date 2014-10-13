@@ -27,7 +27,7 @@ function [S,D,UPs]=findUPstates(mv, lt, ut, rmp, dt )
     UPs = cell(length(D),1);
     
     for i=1:length(UPs)
-        UPs{i} = mv(S(i):S(i)+D(i));
+        UPs{i} = mv(S(i):S(i)+D(i)-1);
     end
 
 end
