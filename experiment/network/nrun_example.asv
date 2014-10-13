@@ -19,7 +19,7 @@ pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
     
     
 %%
-for sn = 1:1
+for sn = 1:2
     clearvars -except states sn tmpSPK pathprefix
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     run = nrun(12,75,sn,2,1,5000);
@@ -92,12 +92,12 @@ RUNS_str = {};
 Sid=1;
 fprintf('Loading runs...');
 PCcells_str = {};
-for clu=1:run.NC_str(Sid)
+for stc=1:run.NC_str(Sid)
     clu
     for ru = 1:run.nruns
         for c=1:run.nPC
             if (run.ISBINARY)
-                mycell = ncell(nrn_vread(sprintf('%s%s/STR_%d/%d_%d_%d.bin',pathprefix,run.path,run.state,clu-1,c-1,ru-1),'n'),10);
+                mycell = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,clu-1,c-1,ru-1),'n'),10);
             else
                 mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,clu-1,c-1,ru-1)),10);
             end

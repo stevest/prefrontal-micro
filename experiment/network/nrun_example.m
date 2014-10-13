@@ -19,7 +19,7 @@ pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
     
     
 %%
-for sn = 1:1
+for sn = 1:2
     clearvars -except states sn tmpSPK pathprefix
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     run = nrun(12,75,sn,2,1,5000);
@@ -92,14 +92,14 @@ RUNS_str = {};
 Sid=1;
 fprintf('Loading runs...');
 PCcells_str = {};
-for clu=1:run.NC_str(Sid)
-    clu
+for stc=1:run.NC_str(Sid)
+    stc
     for ru = 1:run.nruns
         for c=1:run.nPC
             if (run.ISBINARY)
-                mycell = ncell(nrn_vread(sprintf('%s%s/STR_%d/%d_%d_%d.bin',pathprefix,run.path,run.state,clu-1,c-1,ru-1),'n'),10);
+                mycell = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
             else
-                mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,clu-1,c-1,ru-1)),10);
+                mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,stc-1,c-1,ru-1)),10);
             end
             %             mycell = ncell(load(sprintf('%sexperiment_10_10Hz_Stim/%s/%d_%d_%d.txt',mypath,'STR',t,c-1,ru-1)),10);
             mycell.clusterID = run.labels_str(c,Sid);
@@ -127,7 +127,7 @@ for clu=1:run.NC_str(Sid)
         %             CRcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
         %         end
     end
-    RUNS_str{1,clu} = PCcells_str(:,:);
+    RUNS_str{1,stc} = PCcells_str(:,:);
     %     all(leastSynapses)
 end
 fprintf('DONE!\n');
