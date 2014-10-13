@@ -647,16 +647,20 @@ proc backgroundActivityCR() { local PID,trg,syn,bool,localID,trgGID localobj r
 } //end procedure
 
 // recurrent synaptic clusternig algorithm (for variation)
-funct clustbias(){ local rb,oldPID localobj rbo
+func clustbias(){ local rb,oldPID localobj rbo
 	//arguments (many!)
 	//$1 = PID old
 	//$2 = runs serial number
 	oldPID = $1
-	rbo = Random(ID*$2)
+	rbo = new Random(ID*$2)
 	rb = rbo.uniform(0,1)
-	//when CLUSTBIAS==0: new PID == old PID
-	//when CLUSTBIAS==1: new PID == Random(0,1)
-	return ((rb-oldPID)* CLUSTBIAS) + oldPID 
+	//this function may be implemented weird: the (default/old) PID is clustering synapses in the same point on a specific dend,
+	//the new PID is deviating from clustering synapses by a random amount with weight 1-CLUSTBIAS.
+	//So, smaller values of CLUSTBIAS mean more deviation from clustering the synapses.
+	//when CLUSTBIAS==0: new PID == Random(0,1) (non clustered synapses)
+	//when CLUSTBIAS==1: new PID == old PID (clustered synapses - default)
+
+	return ((rb-oldPID)* (1-CLUSTBIAS)) + oldPID 
 }
 
 

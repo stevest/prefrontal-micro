@@ -19,7 +19,7 @@ function [S,D,UPs]=findUPstates(mv, lt, ut, rmp, dt )
 
     % locate UP states that pass lower threshold
     [M,S] = regexp(sprintf('%i',A),'1+','match'); 
-    [~,I] = find(cellfun('length',M)>dt) % Duration threshold
+    [~,I] = find(cellfun('length',M)>dt); % Duration threshold
     D = cellfun('length',M(I)) ; % duration of UP states
     S = S(I);  % start times of UP states
     
