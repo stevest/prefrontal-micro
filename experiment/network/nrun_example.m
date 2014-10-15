@@ -109,7 +109,7 @@ for stc=1:run.NC_str(Sid)
             mycell.clusterID = run.labels_str(c,Sid);
             %             mycell.position = PCsomata(c,1:3);
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
-            [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),10, 3, -66, 3000 );
+            [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
             if ~isempty(S);
                 mycell.persistentActivity = 1;
             else
@@ -157,7 +157,7 @@ for stc=1:run.NC_rnd(Sid)
             mycell.clusterID = run.labels_rnd(c,Sid);
             %             mycell.position = PCsomata(c,1:3);
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
-            [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),10, 3, -66, 3000 );
+            [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
             if ~isempty(S);
                 mycell.persistentActivity = 1;
             else
