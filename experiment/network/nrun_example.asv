@@ -20,15 +20,15 @@ pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
     
 %%
 clustbiasRange = 0:0.1:1;
-for sn = 1:10
+for sn = 2
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,10,5000);
+    run = nrun(ID,75,SN,ST,1,5000);
     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
-    
+    run.SIMPLIFIED = 1;
     run.init(states);
     
     % Insert cynaptic clustering bias: 0 = clustered, 1 = random (no
@@ -89,7 +89,7 @@ end
 %% Load STR
 % close all; clear all; clc;
 % load(sprintf('STR_%d_%d.mat',12,8)) % 8,10
-load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,1,1)) % 8,10
+% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,2,1)) % 8,10
 
 
 RUNS_str = {};
@@ -136,21 +136,22 @@ for stc=1:run.NC_str(Sid)
 end
 fprintf('DONE!\n');
 %% Load RND
-close all; clear all; clc;
-load(sprintf('STR_%d_%d.mat',12,2))
+% close all; clear all; clc;
+% load(sprintf('STR_%d_%d.mat',12,2))
+% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,2,1)) % 8,10
 
 RUNS_rnd = {};
 Sid=1;
 fprintf('Loading runs...');
 PCcells_rnd = {};
-for clu=1:run.NC_rnd(Sid)
-    clu
+for stc=1:run.NC_rnd(Sid)
+    stc
     for ru = 1:run.nruns
         for c=1:run.nPC
             if (run.ISBINARY)
-                mycell = ncell(nrn_vread(sprintf('%s%s/RND_%d/%d_%d_%d.bin',pathprefix,run.path,run.state,clu-1,c-1,ru-1),'n'),10);
+                mycell = ncell(nrn_vread(sprintf('%s%s/RND_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
             else
-                mycell = ncell(load(sprintf('%s/RND_%d/%d_%d_%d.txt',run.path,run.state,clu-1,c-1,ru-1)),10);
+                mycell = ncell(load(sprintf('%s/RND_%d/%d_%d_%d.txt',run.path,run.state,stc-1,c-1,ru-1)),10);
             end
             %             mycell = ncell(load(sprintf('%sexperiment_10_10Hz_Stim/%s/%d_%d_%d.txt',mypath,'STR',t,c-1,ru-1)),10);
             mycell.clusterID = run.labels_rnd(c,Sid);
@@ -165,10 +166,10 @@ for clu=1:run.NC_rnd(Sid)
             PCcells_rnd{c,ru} = mycell ;
             %             leastSynapses(c) = PCcells_str{c,ru}.nspikes;
         end
-        %         for c=run.nPC+1:run.nPC+run.nPV
-        %             mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,t-1,c-1,ru-1)),10);
-        %             PVcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
-        %         end
+        for c=run.nPC+1:run.nPC+run.nPV
+            mycell = ncell(nrn_vread(sprintf('%s%s/RND_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
+            PVcells_rnd{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
+        end
         %         for c=run.nPV+1:run.nPV+run.nCB
         %             mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,t-1,c-1,ru-1)),10);
         %             CBcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
@@ -178,7 +179,8 @@ for clu=1:run.NC_rnd(Sid)
         %             CRcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
         %         end
     end
-    RUNS_rnd{1,clu} = PCcells_rnd(:,:);
+    RUNS_rnd{1,stc} = PCcells_rnd(:,:);
+    PV_rnd{1,stc} = PVcells_rnd(:,:);
     %     all(leastSynapses)
 end
 fprintf('DONE!\n');
@@ -198,7 +200,7 @@ sum(sum(PVconns)) / (run.nPV*run.nPC)
 close all;
 
 clu= 1;% what cluster is stimulated
-ru = 2 ;% what run of this cluster
+ru = 1 ;% what run of this cluster
 Sid = 1;
 CellsPerClust=zeros(run.NC_str(Sid),1);
 PAPerClust=zeros(run.NC_str(Sid),1);
@@ -317,7 +319,7 @@ if (exist('RUNS_rnd','var'))
                 for c=1:run.nPC
                     if(RUNS_rnd{1,stc}{c,ru}.clusterID == clu)
                         if(RUNS_rnd{1,stc}{c,ru}.persistentActivity)
-                            PAPerClust_rnd(clu,stc,ru) = PAPerClust_rnd(clu,stc) +1;
+                            PAPerClust_rnd(clu,stc,ru) = PAPerClust_rnd(clu,stc,ru) +1;
                         end
                     end
                 end
@@ -448,7 +450,7 @@ close all;
 % if enabled the Hamming distance contains all the cells (not the
 % thresholded activation of each cluster) the threshold is defined in the
 % next variable:
-allCells = 0 ;
+allCells = 1 ;
 activeClusterThreshold = 0.5 ;
 activationThreshold = 1;
 
@@ -967,4 +969,4 @@ end
 states.gparams = gparams;
 % Save them in a structure nice and tidy..
 
-save('states_07_G.mat','states')
+save('states_06_G.mat','states')
