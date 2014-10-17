@@ -15,6 +15,7 @@ fco = 4; % Frequency cutoff
 fmv=filter(gaussfiltcoef(SR,fco),1,mv);
 
 % fmv = [zeros(10,1);ones(10,1)*5;ones(10,1)*50;ones(10,1)*5;ones(10,1)*50;ones(10,1)*0;ones(10,1)*30;ones(10,1)*0]'-66
+% Eipame me ti Yiota: Duration of depolarization above the plateau potential >>  the mean background plateau
 
 L = (fmv-rmp)>lt ;% 2mv lower threshold , given baseline (noise) equal 1mV, as in Yousheng, 2003
 U = (fmv-rmp)>ut ;% upper threshold

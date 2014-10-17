@@ -504,23 +504,38 @@ classdef nrun < handle
             obj.SpikesBgCR = cell(1,1,1);
             
             if ( obj.SIMPLIFIED)
-                stimPoisson = find(poissrnd(0.006,obj.tstop,1))'  ;
-%                 stimPoissonCell = cell(obj.nruns,1);
-%                 for i=1:obj.nruns
-%                     stimPoissonCell{i} = find(poissrnd(0.006,obj.tstop*2,1))'  ;
-%                     stimPoisson(i,1)
-%                 end
+                %                 stimPoisson = find(poissrnd(0.006,obj.tstop,1))'  ;
+                % Generate different poisson events for each NEURON run:
+                stimPoissonCell = cell(obj.nruns,1);
+                for i=1:obj.nruns
+                    stimPoissonCell{i} = find(poissrnd(0.006,obj.tstop,1))'  ;
+                end
+                % Put them tidly in a matrix (padded with zeros)
+                maxLength = max(cellfun(@length,stimPoissonCell));
+                stimPoisson=cell2mat(cellfun(@(x)cat(2,x,zeros(1,maxLength-length(x))*NaN),stimPoissonCell,'UniformOutput',false));
+                
                 
                 TID=100;
-                poil = length(stimPoisson) ;
-                total = obj.nruns*((obj.nPC*num_exc*3)+(obj.nPV*num_inha)) ;
-                slack = round(total*25/100); % 25% compensation for rows containing identical values (discarted)
-                
-                % Fast generated spike matrix:
-                obj.fastSpikesMatBackground = sort(round( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson,total+slack,1) ) ,2);
-                
-                fastSpikesMatBackgroundIdx = find(all(diff(obj.fastSpikesMatBackground,1,2),2));
-                obj.fastSpikesMatBackground = obj.fastSpikesMatBackground(fastSpikesMatBackgroundIdx(1:total),:);
+                poil = size(stimPoisson,2) ;
+                obj.fastSpikesMatBackground = [];
+                % repeat for each run:
+                for i=1:obj.nruns
+                    try
+                        total = ((obj.nPC*num_exc*3)+(obj.nPV*num_inha)) ;
+                        slack = round(total*100/100); % 45% compensation for rows containing identical values (discarted)
+                        % Fast generated spike matrix:
+                        tmpfastSpikesMatBackground = sort(round( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
+                        fastSpikesMatBackgroundIdx = find(all(diff(tmpfastSpikesMatBackground,1,2),2));
+                        tmpfastSpikesMatBackground = tmpfastSpikesMatBackground(fastSpikesMatBackgroundIdx(1:total),:);
+                        obj.fastSpikesMatBackground = [obj.fastSpikesMatBackground; tmpfastSpikesMatBackground];
+                    catch err
+                        size(fastSpikesMatBackgroundIdx)
+                        total
+                        size(tmpfastSpikesMatBackground)
+                        error('paparia!')
+                    end
+                        
+                end
                 obj.fastSpikesMatBackground(obj.fastSpikesMatBackground<=0) = NaN;
                 obj.fastSpikesMatBackground(obj.fastSpikesMatBackground>=obj.tstop) = NaN;
                 fprintf('Background Noise generated in a jiffy!\n');

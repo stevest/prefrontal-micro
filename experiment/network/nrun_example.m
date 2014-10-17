@@ -20,20 +20,20 @@ pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
     
 %%
 clustbiasRange = 0:0.1:1;
-for sn = 2
+for sn = 12
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,1,5000);
+    run = nrun(ID,75,SN,ST,100,5000);
     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
     run.init(states);
     
     % Insert cynaptic clustering bias: 0 = clustered, 1 = random (no
     % clustering)
-    run.CLUSTBIAS = 0;%clustbiasRange(sn);
+    run.CLUSTBIAS = 1; % keep synapses in original locations (no rand jittering)
     
 %     sum(sum(run.stateSTR(1:run.nPC,1:run.nPC)))            / (run.nPC*run.nPC)
     save(sprintf('%s/EXP_ID%d_SN%d_ST%d.mat',run.path,run.id,run.sn,run.state),'run');
@@ -89,7 +89,7 @@ end
 %% Load STR
 % close all; clear all; clc;
 % load(sprintf('STR_%d_%d.mat',12,8)) % 8,10
-% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,2,1)) % 8,10
+% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,12,1)) % 8,10
 
 
 RUNS_str = {};
@@ -200,7 +200,7 @@ sum(sum(PVconns)) / (run.nPV*run.nPC)
 close all;
 
 clu= 1;% what cluster is stimulated
-ru = 1 ;% what run of this cluster
+ru = 9 ;% what run of this cluster
 Sid = 1;
 CellsPerClust=zeros(run.NC_str(Sid),1);
 PAPerClust=zeros(run.NC_str(Sid),1);
@@ -233,7 +233,7 @@ bar(PAPerClust,'r');
 close all;
 
 clu= 1;% what cluster is stimulated
-ru =1 ;% what run of this cluster
+ru =10 ;% what run of this cluster
 Sid = 1;
 CellsPerClust=zeros(run.NC_rnd(Sid),1);
 PAPerClust=zeros(run.NC_rnd(Sid),1);
@@ -262,6 +262,12 @@ end
 figure();
 bar(CellsPerClust,'b');hold on;
 bar(PAPerClust,'r');
+
+figure;
+figure;
+for i=76:88
+    plot(PV_rnd{1,1}{i}.mv);hold on;
+end
 %%
 close all;
 Sid = 1;
