@@ -2,7 +2,8 @@ clear all;close all;clc;
 cd('C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network')
 % cd('E:\NEURON_RUNS')
 load('states_07_G.mat')
-pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
+% pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
+pathprefix = 'H:/NEURON_RUNS/';
 
 % states.PC2PC_rnd = PC2PC_rnd;
 % states.PC2PC_str = PC2PC_str;
@@ -200,7 +201,7 @@ sum(sum(PVconns)) / (run.nPV*run.nPC)
 close all;
 
 clu= 1;% what cluster is stimulated
-ru = 9 ;% what run of this cluster
+ru = 5 ;% what run of this cluster
 Sid = 1;
 CellsPerClust=zeros(run.NC_str(Sid),1);
 PAPerClust=zeros(run.NC_str(Sid),1);

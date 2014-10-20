@@ -1,2 +1,4 @@
 # ignore compiled folders:
 x86_64/
+# ignore tmp files
+*.*~

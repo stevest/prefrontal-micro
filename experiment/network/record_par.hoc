@@ -137,6 +137,7 @@ proc par_save_vclamp_current() {local i,s localobj vfilePC
 
 }
 
+
 //record the spike events for each source cell:
 objref cLocalID
 cLocalID = new Vector()
@@ -194,3 +195,4 @@ for i=0, PC.nhost-1 {
 }
 
 }
+

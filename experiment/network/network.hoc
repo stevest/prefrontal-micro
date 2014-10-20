@@ -118,26 +118,26 @@ objref sinw[nPCcells], w[lala][total][nPCcells], ramp//membrane noise
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             strdef tmpstr */
 //--------------------Background activity 
 
-objref vstimd[nPCcells][600]
-objref vstima[nPCcells][600]
-objref vstimp[nPCcells][600]
-objref ampaBGd[nPCcells][500]
-objref nmdaBGd[nPCcells][500]
-objref ampaBGp[nPCcells][500]
-objref nmdaBGp[nPCcells][500]
-objref ampaBGa[nPCcells][500]
-objref nmdaBGa[nPCcells][500]
-objref gabaaBG[nPCcells][500]
-objref gababBG[nPCcells][500]
-objref VSvector[nPCcells][600]
-objref BG_AMPAd[nPCcells][500]
-objref BG_NMDAd[nPCcells][500]
-objref BG_AMPAa[nPCcells][500]
-objref BG_NMDAa[nPCcells][500]
-objref BG_AMPAp[nPCcells][500]
-objref BG_NMDAp[nPCcells][500]
-objref BG_GABAa[nPCcells][500]
-objref BG_GABAb[nPCcells][500]
+objref vstimd[nPCcells][BG_dendSyn]
+objref vstima[nPCcells][BG_apicSyn]
+objref vstimp[nPCcells][BG_apicprSyn]
+objref ampaBGd[nPCcells][BG_dendSyn]
+objref nmdaBGd[nPCcells][BG_dendSyn]
+objref ampaBGp[nPCcells][BG_apicprSyn]
+objref nmdaBGp[nPCcells][BG_apicprSyn]
+objref ampaBGa[nPCcells][BG_apicSyn]
+objref nmdaBGa[nPCcells][BG_apicSyn]
+//objref gabaaBG[nPCcells][500]
+//objref gababBG[nPCcells][500]
+//objref VSvector[nPCcells][600]
+objref BG_AMPAd[nPCcells][BG_dendSyn]
+objref BG_NMDAd[nPCcells][BG_dendSyn]
+objref BG_AMPAa[nPCcells][BG_apicSyn]
+objref BG_NMDAa[nPCcells][BG_apicSyn]
+objref BG_AMPAp[nPCcells][BG_apicprSyn]
+objref BG_NMDAp[nPCcells][BG_apicprSyn]
+//objref BG_GABAa[nPCcells][500]
+//objref BG_GABAb[nPCcells][500]
 
 //----------------------------------------------Insert noise-----------------------------------------------------------//
 //INSERT MOD FILE FOR SINE WAVE
@@ -148,55 +148,49 @@ proc noise() { local i
 	i=0
 	forsec PCsoma_list {
 			PCns[i] = new Random(i+ID*$1) 
-			PCns[i].poisson(0.02)		
+			PCns[i].poisson(0.5)	//was (0.02)	
 			PCsw[i] = new membNoise(0.5)
-			PCsw[i].del=0
-			PCsw[i].dur=tstop
-			PCsw[i].freq = 180 //80
+			PCsw[i].dur = tstop //duration of injection
+			PCsw[i].freq = 100//180 //80 //how many sinusoidals in a second
+			PCsw[i].pkampMax = 0.2 //(nA) injected current amplitude 
 			PCsw[i].getRandObjPtr(PCns[i])
 			i = i +1
-		 
 	}
 
 	i=0
 	forsec PVsoma_list {
 			PVns[i] = new Random(i+ID*$1+1) 
-			PVns[i].poisson(0.02)		
+			PVns[i].poisson(0.5)	//was (0.02)	
 			PVsw[i] = new membNoise(0.5)
-			PVsw[i].del=0
-			PVsw[i].dur=tstop
-			PVsw[i].freq = 180
+			PVsw[i].dur=tstop //duration of injection
+			PVsw[i].freq = 100 //180 //how many sinusoidals in a second
+			PVsw[i].pkampMax = 0.2 //(nA) injected current amplitude 
 			PVsw[i].getRandObjPtr(PVns[i])
 			i = i +1
-		 
 	}
 
 	i=0
 	forsec CBsoma_list {
 			CBns[i] = new Random(i+ID*$1+2) 
-			CBns[i].poisson(0.02)		
+			CBns[i].poisson(0.5)		
 			CBsw[i] = new membNoise(0.5)
-			CBsw[i].del=0
-			CBsw[i].dur=tstop
-			CBsw[i].freq = 180
-			CBsw[i].bias = 0.008
+			CBsw[i].dur=tstop //duration of injection
+			CBsw[i].freq = 100 //180 //how many sinusoidals in a second
+			CBsw[i].pkampMax = 0.2 //(nA) injected current amplitude 
 			CBsw[i].getRandObjPtr(CBns[i])
 			i = i +1
-		 
 	}
 
 	i=0
 	forsec CRsoma_list {
 			CRns[i] = new Random(i+ID*$1+3) 
-			CRns[i].poisson(0.035)		
+			CRns[i].poisson(0.5)		
 			CRsw[i] = new membNoise(0.5)
-			CRsw[i].del=0
-			CRsw[i].dur=tstop
-			CRsw[i].freq = 180
-			CRsw[i].bias = -0.007
+			CRsw[i].dur=tstop //duration of injection
+			CRsw[i].freq = 100 //180 //how many sinusoidals in a second
+			CRsw[i].pkampMax = 0.2 //(nA) injected current amplitude 
 			CRsw[i].getRandObjPtr(CRns[i])
 			i = i +1
-		 
 	}
 
 	
@@ -207,12 +201,7 @@ proc noise() { local i
 //---------------------------Initial stimulation (proximal dendrite)(Kuroda, 1998, Constantinides, 2001)---------------//
 
 
-objref nsr
-nsr=new NetStim(0.5)
-nsr.interval=50//(in ms!!!)// 20ms in NMDA SPIKES
-nsr.number=20 //Unitary NetStim
-nsr.start=0
-nsr.noise=0.01
+
 
 proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx  localobj r,rApic,rBasal,ri,rvect
 	//interval = 50//50
@@ -222,7 +211,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 
 	//Use Fisher-Yates shuffle algorithm to permute the different stimulation vectors between cells in each run:
 	//http://stackoverflow.com/questions/5131341/what-distribution-do-you-get-from-this-broken-random-shuffle
-	ri = new Random(ID*$1)
+	/*ri = new Random(ID*$1)
 	rvect = new Vector(nPCcells)
 	for i=0,nPCcells-1 {
 		rvect.x[i] = i
@@ -233,7 +222,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 		rvect.x[i] = rvect.x[ridx]
 		rvect.x[ridx] = tmp
 		print "RVECT[",i,"] = ",rvect.x[i]
-	}
+	}*/
 
 	r = new Random(ID*$1+165)
 	PID = r.uniform(0, 1)
@@ -268,7 +257,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 
 					vstim_stim[i][j] = new VecStim(0.5)
 					vstim_stim[i][j].delay = 0
-					vstim_stim[i][j].play(Stim_Apic[rvect.x[i]][j])
+					vstim_stim[i][j].play(Stim_Apic[$2][i][j]) //rvect.x[i]
 
 //if (PC.id == 0) {print "Creating synapse # ", j}
 
@@ -307,7 +296,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 
 						vstim_stim[i][j] = new VecStim(0.5)
 						vstim_stim[i][j].delay = 0
-						vstim_stim[i][j].play(Stim_Dend[rvect.x[i]][j-Stim_MaxSyn_apic])
+						vstim_stim[i][j].play(Stim_Dend[$2][i][j-Stim_MaxSyn_apic]) //rvect.x[i]]
 
 						ncAMPA[i][j]=new NetCon(vstim_stim[i][j], ampapr[i][j])
 						ncAMPA[i][j].delay=500
@@ -402,7 +391,7 @@ for i=0, nPCcells-1 {
 			RLB = rlb.repick()
 			vstimd[i][j] = new VecStim(0.5)
 			vstimd[i][j].delay = 0
-			vstimd[i][j].play(BG_Stim_basal[0][i][j])
+			vstimd[i][j].play(BG_Stim_basal[$2][i][j])
 			BG_AMPAd[i][j]=new NetCon(vstimd[i][j], ampaBGd[i][j])
 			BG_AMPAd[i][j].delay=0
 			if(SIMPLIFIED){
@@ -438,7 +427,7 @@ for i=0, nPCcells-1 {
 			RLA = rla.repick()
 			vstima[i][j] = new VecStim(0.5)
 			vstima[i][j].delay = 0
-			vstima[i][j].play(BG_Stim_Apic[0][i][j])
+			vstima[i][j].play(BG_Stim_Apic[$2][i][j])
 			BG_AMPAa[i][j]=new NetCon(vstima[i][j], ampaBGa[i][j])
 			BG_AMPAa[i][j].delay=0
 			if(SIMPLIFIED){
@@ -473,7 +462,7 @@ for i=0, nPCcells-1 {
 			//RLA = rla.repick()
 			vstimp[i][j] = new VecStim(0.5)
 			vstimp[i][j].delay = 0
-			vstimp[i][j].play(BG_Stim_Apicpr[0][i][j])
+			vstimp[i][j].play(BG_Stim_Apicpr[$2][i][j])
 			BG_AMPAp[i][j]=new NetCon(vstimp[i][j], ampaBGp[i][j])
 			BG_AMPAp[i][j].delay=0
 			if(SIMPLIFIED){
@@ -541,7 +530,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 			
 						vstim_pv[trg][syn] = new VecStim(0.5)
 						vstim_pv[trg][syn].delay = 0
-						vstim_pv[trg][syn].play(BG_Stim_SomaPV[0][trg][syn])
+						vstim_pv[trg][syn].play(BG_Stim_SomaPV[$2][trg][syn])
 
 						BGPV_AMPA[trg][syn]=new NetCon(vstim_pv[trg][syn], ampaBGPV[trg][syn])
 						BGPV_AMPA[trg][syn].delay=0
@@ -686,11 +675,10 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	
 
 	PID = r.uniform(0,1)
-	fp = new Random(ID*$1+3)	
+	fp = new Random(ID*$2+3)	
 	//rDend = new Random($1+4 + PC.id ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 	rDend = new Random(ID*$1+4) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 	FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
-
 
 	//Create clustering connectivity lists for recurrent connections:
 	//for i=0, PCcells.count()-1 {
@@ -698,7 +686,10 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 		for syn=0, (PC2PC_MaxSyn-1) {
 			rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
 			clusterDend[i].append(rDendidx)
-			PID=r.repick()
+			//PID=r.repick()
+			//uniformly distribute synapses along basals:
+			PID = (1/PC2PC_MaxSyn)/2 + ((1/PC2PC_MaxSyn)*syn)
+//print " uniform spreaded synapse#",syn," is @ PID = ",PID
 			clusterPID[i].append(PID)
 		}
 		//PID=r.repick()
@@ -829,7 +820,7 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 	if(PARALLEL){ PC.barrier() }
 	r = new Random(ID*$1 + 250)
 	PID = r.uniform(0,1)
-	fpvpv = new Random(ID*$1-100)
+	fpvpv = new Random(ID*$2-100)
 	delstimpvpv=fpvpv.normal(1.76,0.07)		//latency from IN-IN, according to Bacci (2003)   
 
 	for src=0, nPVcells-1 {
@@ -881,7 +872,7 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 	if(PARALLEL){ PC.barrier() }
 	r = new Random(ID*$1 + 150)
 	PID = r.uniform(0,1)
-	fpcpv = new Random(ID*$1*2)
+	fpcpv = new Random(ID*$2*2)
 	delstimpcpv=fpcpv.normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999)
 
 	for src=0, nPCcells-1 {
@@ -923,7 +914,7 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 	if(PARALLEL){ PC.barrier() }
 	r = new Random(ID*$1 + 180)
 	PID = r.uniform(0,1)
-	fpvpc = new Random(ID*$1*8)
+	fpvpc = new Random(ID*$2*8)
 	rDend = new Random(ID*$1+5)
 	delstimpvpc=fpvpc.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
 	NoSynapsesSoma = int(PV2PC_MaxSyn * 46 / 100) //percentage (paper?)
@@ -1274,5 +1265,6 @@ objref ic2[5]
 		initDelay = initDelay + 50
 	}
 }
+
 
 

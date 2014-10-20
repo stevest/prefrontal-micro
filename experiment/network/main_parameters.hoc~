@@ -71,28 +71,28 @@ if (name_declared("EXPERIMENT")!=5){
 	exit(1)
 }
 
-if (name_declared("EXPID")!=5){
+
+if (name_declared("ST")!=5){
 	exit(1)
 }
 
-
-strdef EXP
-if( EXPERIMENT ){
-	sprint(EXP,"STR_%d",EXPID)
-} else {
-	sprint(EXP,"RND_%d",EXPID)
-}
 
 if (name_declared("ID")!=5){
 	exit(1)
 } else {
-	print "Experiment ID is: ", ID
+	if(PC.id==0){ print "Experiment ID is: ", ID }
 }
 
 if (name_declared("SN")!=5){
 	exit(1)
 } else {
-	print "Experiment Serial Number is: ", SN
+	if(PC.id==0){ print "Experiment Serial Number is: ", SN }
+	strdef EXP
+	if( EXPERIMENT ){
+		sprint(EXP,"STR_SN%d_ST%d",SN,ST)
+	} else {
+		sprint(EXP,"RND_SN%d_ST%d",SN,ST)
+	}
 }
 
 
@@ -101,9 +101,9 @@ if (name_declared("PARALLEL")!=5) { // PARALLEL has not been assigned a numerica
 }
 if(PARALLEL){
 	{PC=new ParallelContext()}
-	if(PC.id==0){printf("Microcircuit running in %d CORES !\n\n", PC.nhost())}
+	if(PC.id==0){ printf("Microcircuit running in %d CORES !\n\n", PC.nhost()) }
 }else{
-	printf("Microcircuit running in 'SINGLE CORE' !\n\n")
+	if(PC.id==0){ printf("Microcircuit running in 'SINGLE CORE' !\n\n") }
 }
 
 if (name_declared("SIMPLIFIED")!=5) { // PARALLEL has not been assigned a numerical value from command line
@@ -111,15 +111,17 @@ if (name_declared("SIMPLIFIED")!=5) { // PARALLEL has not been assigned a numeri
 }
 if(SIMPLIFIED){
 	NMDA_MECH = "nmda_segev"
-	printf("Microcircuit running with simplified morphologies !\n\n")
+	if(PC.id==0){ printf("Microcircuit running with simplified morphologies !\n\n") }
 }else{
 	NMDA_MECH = "nmda_segev"	
-	printf("Microcircuit running with complex morphologies !\n\n")
+	if(PC.id==0){ printf("Microcircuit running with complex morphologies !\n\n") }
 }
 
 if (name_declared("VCLAMP")!=5) { // Do Vclamp to check UP/DOWN states conductance
 	VCLAMP = 0 //If ==0 No vclamp
-}else{ print "VCLAMP value is ", VCLAMP}
+}else{ 
+	if(PC.id==0){ print "VCLAMP value is ", VCLAMP }
+}
 
 if (name_declared("ISBINARY")!=5){
 	exit(1)
@@ -131,7 +133,9 @@ if (name_declared("CLUSTBIAS")!=5){
 
 if (name_declared("GPYID")!=5) { // Do Vclamp to check UP/DOWN states conductance
 	GPYID = 0 //If ==0 No vclamp
-}else{ print "GPYID value is ", GPYID}
+}else{ 
+	if(PC.id==0){ print "GPYID value is ", GPYID }
+}
 
 /*//Global mechanism definitions:
 if (name_declared("NMDA_MECH")!=5) { // Which NMDA mechanism to be used?
@@ -145,6 +149,7 @@ objref offsets
 {offsets = new Vector()}
 {offsets.append(0,nPCcells,nPVcells,nCBcells,nCRcells)}
 {offsets.append(offsets.sum(0,offsets.size()-1))}
+
 //global_gid=offsets.v[offsets.size()-1]  // points to the next available gid
 func ind2gid(){local i  
   if(numarg()<2) { printf("wrong number of arguments to func ind2gid") }

@@ -55,7 +55,7 @@ ASSIGNED {
 
 
 INITIAL {
-	rate(v)
+	rate(v, ar2)
 	m = NAFX_minf
 	h = NAFX_hinf
 	s = NAFX_sinf

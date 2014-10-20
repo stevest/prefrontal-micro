@@ -82,7 +82,7 @@ soma{
 
 dend[0]{
 	//basal dendrites
-	nseg=9
+	nseg=5//9 //changed to 5 segments to accommodate uniformly spreaded synapses
 	L=150
 	diam=1 
 	insert pas

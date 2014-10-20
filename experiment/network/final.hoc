@@ -95,9 +95,9 @@ if(SIMPLIFIED){
 	nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 	autogabaweight=	5.1e-4			//According to Bacci (2003) 
 	//------------------Set # of synapses
-	synapses_backb=60//100
-	synapses_backpr=60//100
-	synapses_backa=60//100
+	synapses_backb=16//18//60//100
+	synapses_backpr=16//18//60//100
+	synapses_backa=16//18//60//100
 	synapses_backinh=40
 	synapses_inh=1
 
@@ -105,9 +105,10 @@ if(SIMPLIFIED){
 	BG_dendSyn = synapses_backb
 	BG_apicSyn = synapses_backa
 	BG_apicprSyn = synapses_backpr
+	BG_PVSyn = synapses_backinh
 
 
-	Stim_MaxSyn_apic = 90			//initial stimulation
+	Stim_MaxSyn_apic = 40//27//90			//initial stimulation
 	Stim_MaxSyn_basal=0//120	//initial stimulation
 
 	/*
@@ -378,31 +379,34 @@ for runs = 0, TOTALRUNS-1 {
 	//ECA_30()
 	//thinner_basal()
 	//thinner_apical()
-	stimulation(runs)   //0 for not saving PID data, 1 for saving PID data.
+	stimulation(0,runs)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
-	/*backgroundActivity(runs) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
-	backgroundActivityPV(runs) //~11Hz Petersen Carl
-	backgroundActivityCB(runs) //~2Hz Petersen Carl
+	backgroundActivity(0,runs) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
+	backgroundActivityPV(0,runs) //~11Hz Petersen Carl
+	/*backgroundActivityCB(runs) //~2Hz Petersen Carl
 	backgroundActivityCR(runs) //~2Hz Petersen Carl
 	*/
 	
-	connectPC2PC(runs)
-	connectPV2PV(runs)
-	connectPC2PV(runs)
-	connectPV2PC(runs)
+	//if runs is a constant Randoms do not change (synapse location etc..)
+	connectPC2PC(0,runs)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PV(0,runs)// ssynaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PV(0,runs)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PC(0,runs)// synaptic location Random seed, axon conductanse delay Random seed
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)
 	connectCR2PC(runs)
 	connectCR2CB(runs)*/
-	//noise(runs)
+	noise(0)
 	//train()
 	//TTX_proc(GPYID) 
 	//iclamp_proc(0,-0.1)
 
+	/*
 	if (VCLAMP){
 		vclamp_proc(GPYID,VCLAMP)
 	}
+	*/
 
 	//PCcells.o(0).dend[0] { sectionPointMechSnapshot() }
 	//PCcells.o(2).soma[0] { sectionMembraneMechSnapshot("somaMech.txt") }
@@ -413,9 +417,9 @@ for runs = 0, TOTALRUNS-1 {
 		for lala=0,offsets.x(5)-1{ // record all cells!
 		  par_rec_membrane_voltage(lala)
 		}
-		record_source_spikes()
+		//record_source_spikes()
 
-		if(VCLAMP){par_rec_vclamp_current(GPYID)}
+		//if(VCLAMP){par_rec_vclamp_current(GPYID)}
 
 		stdinit()
 		runtime=startsw()
@@ -434,18 +438,18 @@ for runs = 0, TOTALRUNS-1 {
 	}else{
 		rec_membrane_voltage()
 
-if(PLOT){
-	for j=0, PCcells.count()-1 {
-		PCcells.o(j).soma { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
-			addgraph_2("v(0.5)", 0,tstop, -70, 50)
+		if(PLOT){
+		for j=0, PCcells.count()-1 {
+			PCcells.o(j).soma { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
+				addgraph_2("v(0.5)", 0,tstop, -70, 50)
+			}
 		}
-	}
-	PCcells.o(0).dend[11] { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
-			addgraph_2("v(0.5)", 0,tstop, -70, 50)
-	}
-	//PCcells.o(0) { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
-		addgraph_2("nmdaOnPC[0][0][0].inmda(0.5)", 0,tstop, -70, 50)
-	//}
+		PCcells.o(0).dend[11] { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
+				addgraph_2("v(0.5)", 0,tstop, -70, 50)
+		}
+		//PCcells.o(0) { //etsi doulevei sto @$#%!@#$%@#$% NEURON...
+			addgraph_2("nmdaOnPC[0][0][0].inmda(0.5)", 0,tstop, -70, 50)
+		//}
 }
 
 
@@ -480,4 +484,5 @@ if(PARALLEL){
 	print "Success"
 	quit()
 }
+
 
