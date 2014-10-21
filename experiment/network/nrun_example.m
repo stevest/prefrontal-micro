@@ -3,7 +3,8 @@ cd('C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network')
 % cd('E:\NEURON_RUNS')
 load('states_07_G.mat')
 % pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
-pathprefix = 'H:/NEURON_RUNS/';
+% pathprefix = 'H:/NEURON_RUNS/';
+pathprefix = 'I:/data\demory_backup/NEURON_PROJECTS/NEW_RUNS/';
 
 % states.PC2PC_rnd = PC2PC_rnd;
 % states.PC2PC_str = PC2PC_str;
@@ -111,6 +112,11 @@ for stc=1:run.NC_str(Sid)
             %             mycell.position = PCsomata(c,1:3);
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
             [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
+            % For MEMORY concerns reduce object's size:
+            mycell.mv = single(mycell.mv(1:mycell.dt:end));
+            mycell.dt=1;
+            mycell.spikes = single(mycell.spikes);
+            
             if ~isempty(S);
                 mycell.persistentActivity = 1;
             else
@@ -159,6 +165,11 @@ for stc=1:run.NC_rnd(Sid)
             %             mycell.position = PCsomata(c,1:3);
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
             [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
+            % For MEMORY concerns reduce object's size:
+            mycell.mv = single(mycell.mv(1:mycell.dt:end));
+            mycell.dt=1;
+            mycell.spikes = single(mycell.spikes);
+            
             if ~isempty(S);
                 mycell.persistentActivity = 1;
             else
@@ -167,10 +178,10 @@ for stc=1:run.NC_rnd(Sid)
             PCcells_rnd{c,ru} = mycell ;
             %             leastSynapses(c) = PCcells_str{c,ru}.nspikes;
         end
-        for c=run.nPC+1:run.nPC+run.nPV
-            mycell = ncell(nrn_vread(sprintf('%s%s/RND_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
-            PVcells_rnd{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
-        end
+%         for c=run.nPC+1:run.nPC+run.nPV
+%             mycell = ncell(nrn_vread(sprintf('%s%s/RND_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
+%             PVcells_rnd{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
+%         end
         %         for c=run.nPV+1:run.nPV+run.nCB
         %             mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,t-1,c-1,ru-1)),10);
         %             CBcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
@@ -181,8 +192,7 @@ for stc=1:run.NC_rnd(Sid)
         %         end
     end
     RUNS_rnd{1,stc} = PCcells_rnd(:,:);
-    PV_rnd{1,stc} = PVcells_rnd(:,:);
-    %     all(leastSynapses)
+%     PV_rnd{1,stc} = PVcells_rnd(:,:);
 end
 fprintf('DONE!\n');
 
@@ -365,7 +375,7 @@ end
 % if enabled the Hamming distance contains all the cells (not the
 % thresholded activation of each cluster) the threshold is defined in the
 % next variable:
-allCells = 1 ;
+allCells = 0 ;
 activeClusterThreshold = 0.5 ;
 activationThreshold = 1;
 
