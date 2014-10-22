@@ -78,7 +78,7 @@ ASSIGNED {
 	v		(mV)		: postsynaptic voltage
 	iglu 		(nA)		: current = g*(v - Erev)     :i
 	g 		(umho)		: conductance
-	Rinf				: steady state channels open
+	Rinf		(/ms)		: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
 	synon
 	gmax
@@ -118,8 +118,10 @@ NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 			t0 = t
 			on = 1
 			synon = synon + weight
-			state_discontinuity(Ron, Ron + r0)
-			state_discontinuity(Roff, Roff - r0)
+			:state_discontinuity(Ron, Ron + r0)
+			Ron = Ron + r0
+			:state_discontinuity(Roff, Roff - r0)
+			Roff = Roff - r0
 		}
 		: come again in Cdur with flag = current value of nspike
 		net_send(Cdur, nspike)
@@ -128,8 +130,10 @@ NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 		r0 = weight*Rinf + (r0 - weight*Rinf)*exp(-(t - t0)/Rtau)
 		t0 = t
 		synon = synon - weight
-		state_discontinuity(Ron, Ron - r0)
-		state_discontinuity(Roff, Roff + r0)
+		:state_discontinuity(Ron, Ron - r0)
+		Ron = Ron - r0
+		:state_discontinuity(Roff, Roff + r0)
+		Roff = Roff + r0
 		on = 0
 	}
 gmax=weight

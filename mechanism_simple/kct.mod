@@ -9,7 +9,7 @@ Copyright	  Maciej Lazarewicz, 2001
 ENDCOMMENT
 
 NEURON {
-	THERADSAFE
+	THREADSAFE
 	SUFFIX iC
 	USEION k READ ko, ki WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
 	USEION ca READ cai   

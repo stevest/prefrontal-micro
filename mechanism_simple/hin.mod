@@ -21,7 +21,7 @@ UNITS {
 
 PARAMETER {              : parameters that can be entered when function is called in cell-setup
         ena    = 55    (mV)
-        ehi     = -10   (mV)
+        :ehi     = -10   (mV) :WILL BE IGNORED AND SET BY NEURON
 	K      = 10.0   (mV)	:8.5
 	gbar   = 0     (mho/cm2)  : initialize conductance to zero
 	HIN_vhalf  = -90   (mV)       : half potential
@@ -38,6 +38,8 @@ ASSIGNED {             : parameters needed to solve DE
 	HIN_ninf
 	HIN_taun (ms)
 	g
+
+	ehi
 }
 
         

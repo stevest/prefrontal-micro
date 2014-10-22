@@ -15,13 +15,15 @@ UNITS {
 
 PARAMETER {
 	gNafbar= 0.086 (mho/cm2) <0,1e9>
-	ena = 55 (mV)
+	:ena = 55 (mV) :WILL BE IGNORED AND ASET BY NEURON
 }
 
 ASSIGNED {
         v   (mV)
 	ina (mA/cm2)
 	gna (mho/cm2)
+
+	ena
 }
 
 STATE {

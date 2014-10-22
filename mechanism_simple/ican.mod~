@@ -50,8 +50,8 @@ UNITS {
 
 PARAMETER {
 v               (mV)
-celsius	= 36    (degC)
-en      = -20   (mV)            	: reversal potential
+:celsius	= 36    (degC) :WILL BE IGNORED AND SET BY NEURON
+:en      = -20   (mV)            	: reversal potential :WILL BE IGNORED AND SET BY NEURON
 cai     	(mM)           		: initial [Ca]i
 gbar    = 0.00025(mho/cm2)
 beta 	= 0.00015                     	: 0.0003  0.00015
@@ -71,6 +71,8 @@ ASSIGNED {
      m_inf
      tau_m   (ms)
      tadj
+
+	celsius
 }
 
 BREAKPOINT { 

@@ -13,6 +13,7 @@ Copyright	  Maciej Lazarewicz, 2001
 ENDCOMMENT
 
 NEURON {
+	THREADSAFE
 	SUFFIX  mykca
 	USEION k READ ek WRITE ik
 	USEION ca READ cai   
@@ -48,7 +49,8 @@ ASSIGNED {
 STATE { cst ost ist }
 
 BREAKPOINT { 
-	SOLVE kin METHOD sparse
+	:SOLVE kin METHOD sparse
+	SOLVE kin METHOD cnexp
 :printf("==%f\n",ost+ist+cst) : EQUALS 1
 	ik = gkbar * ost *( v - ek ) 
 }

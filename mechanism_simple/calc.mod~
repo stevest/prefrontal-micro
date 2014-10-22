@@ -23,16 +23,18 @@ UNITS {
         (mA)    = (milliamp)
         (mV)    = (millivolt)
         (mM)    = (milli/liter)
-        FARADAY = 96480 (coul)
-        R       = 8.314 (volt-coul/degK)
+        :FARADAY = 96480 (coul)
+        :R       = 8.314 (volt-coul/degK)
+	FARADAY = (faraday) (coulomb)
+	R	= (k-mole) (joule/degC)
 }
 
 PARAMETER {
         v                       (mV)
-        celsius = 23            (degC)
+        :celsius = 23            (degC) :WILL BE IGNORED AND SET BY NEURON
         dt                      (ms)
-        cai = 50e-6             (mM)
-        cao = 2                 (mM)
+        :cai = 50e-6             (mM) :WILL BE IGNORED AND SET BY NEURON
+        :cao = 2                 (mM) :WILL BE IGNORED AND SET BY NEURON
         gcabar= 0.000276        (cm/s)          
 }
 
@@ -48,8 +50,7 @@ ASSIGNED {
 }
 
 BREAKPOINT { 
-        :SOLVE states :METHOD euler
-        SOLVE states METHOD cnexp
+        SOLVE states :METHOD euler
         ica = gcabar * m*m * ghk(v,cai,cao,2)
 }
 

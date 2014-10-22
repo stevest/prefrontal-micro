@@ -1,7 +1,13 @@
-TITLE simple AMPA receptors
+TITLE simple NMDA receptors
 
 COMMENT
 -----------------------------------------------------------------------------
+
+Essentially the same as /examples/nrniv/netcon/ampa.mod in the NEURON
+distribution - i.e. Alain Destexhe's simple AMPA model - but with
+different binding and unbinding rates and with a magnesium block.
+Modified by Andrew Davison, The Babraham Institute, May 2000
+
 
 	Simple model for glutamate AMPA receptors
 	=========================================
@@ -42,6 +48,9 @@ References
    common kinetic formalism, Journal of Computational Neuroscience 1: 
    195-230, 1994.
 
+Kiki Sidiropoulou
+Adjusted Cdur and Beta for better nmda spikes
+
 -----------------------------------------------------------------------------
 ENDCOMMENT
 
@@ -49,10 +58,11 @@ ENDCOMMENT
 
 NEURON {
 	THREADSAFE
-	POINT_PROCESS GLU         
-	RANGE R, gmax, g             
-	NONSPECIFIC_CURRENT  iglu             : i
-	GLOBAL Cdur, Alpha, Beta, Erev, Rinf, Rtau
+	POINT_PROCESS NMDA
+	RANGE g, Alpha, Beta, e, gmax, ica
+	USEION ca WRITE ica
+	NONSPECIFIC_CURRENT  iNMDA            
+	GLOBAL Cdur, mg, Cmax
 }
 UNITS {
 	(nA) = (nanoamp)
@@ -62,42 +72,66 @@ UNITS {
 }
 
 PARAMETER {
-        Cmax	= 1	(mM)		: max transmitter concentration
-	Cdur	= 0.3	(ms)		: transmitter duration (rising phase)
-	Alpha	= 10	(/ms)		: forward (binding) rate
-:	Beta	= 0.31	(/ms)		: backward (unbinding) rate 
-	Beta	= 0.15	(/ms)		: backward (unbinding) rate Until March 2010, then changed 0.15
-        Erev	= 0	(mV)		:0 reversal potential
+	Cmax	= 1	 (mM)           : max transmitter concentration
+	Cdur	= 1	 (ms)		: transmitter duration (rising phase) (1) :increase by kiki 5/2/08
+:	Cdur	= 20	 (ms)		: transmitter duration (rising phase) :Nassi
+:	Alpha	= 10	 (/ms /mM)	: forward (binding) rate
+	Alpha	= 4	 (/ms /mM)	: forward (binding) rate (4)
+	Beta	= 0.015 (/ms)		: backward (unbinding) rate THIS IS VALIDATED
+:	Beta	=0.03	(/ms)		: kiki, july2008, nmda was too slow, used until March 2010
+:	e	= 45	 (mV)		: reversal potential
+	e	= 0	 (mV)		: reversal potential
+        mg      = 1      (mM)           : external magnesium concentration
+
 }
 
 
 ASSIGNED {
 	v		(mV)		: postsynaptic voltage
-	iglu 		(nA)		: current = g*(v - Erev)     :i
+	iNMDA 		(nA)		: current = g*(v - e)
 	g 		(umho)		: conductance
 	Rinf				: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
 	synon
-	gmax
+        B 
+	gmax                              : magnesium block
+	ica
 }
 
 STATE {Ron Roff}
 
 INITIAL {
-        Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
-       	Rtau = 1 / ((Alpha * Cmax) + Beta)
+	Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
+	Rtau = 1 / (Cmax*Alpha + Beta)
 	synon = 0
 }
 
 BREAKPOINT {
 	SOLVE release METHOD cnexp
-	g = (Ron + Roff)*1(umho)
-	iglu = g*(v - Erev)  :i
+        B = mgblock(v)
+	g = (Ron + Roff)*1(umho) * B
+	iNMDA = g*(v - e)
+        ica = 7*iNMDA/10   :(5-10 times more permeable to Ca++ than Na+ or K+, Ascher and Nowak, 1988)
+:       ica = 0
+        iNMDA = 3*iNMDA/10
+
 }
 
 DERIVATIVE release {
 	Ron' = (synon*Rinf - Ron)/Rtau
 	Roff' = -Beta*Roff
+}
+
+FUNCTION mgblock(v(mV)) {
+        TABLE 
+        DEPEND mg
+        FROM -140 TO 80 WITH 1000
+
+        : from Jahr & Stevens
+
+      
+	 mgblock = 1 / (1 + exp(0.072 (/mV) * -v) * (mg / 3.57 (mM)))  :was 0.062, changed to 0.072 to get a better voltage-dependence of NMDA currents, july 2008, kiki
+	
 }
 
 : following supports both saturation from single input and
@@ -106,6 +140,7 @@ DERIVATIVE release {
 : ie. transmitter concatenates but does not summate
 : Note: automatic initialization of all reference args to 0 except first
 
+			
 NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 	: flag is an implicit argument of NET_RECEIVE and  normally 0
         if (flag == 0) { : a spike, so turn on if not already in a Cdur pulse
@@ -115,24 +150,21 @@ NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 			t0 = t
 			on = 1
 			synon = synon + weight
-			:state_discontinuity(Ron, Ron + r0)
-			Ron = Ron + r0
-			:state_discontinuity(Roff, Roff - r0)
-			Roff = Roff - r0
+			state_discontinuity(Ron, Ron + r0)
+			state_discontinuity(Roff, Roff - r0)
 		}
-		: come again in Cdur with flag = current value of nspike
+:		 come again in Cdur with flag = current value of nspike
 		net_send(Cdur, nspike)
-        }
+       }
 	if (flag == nspike) { : if this associated with last spike then turn off
 		r0 = weight*Rinf + (r0 - weight*Rinf)*exp(-(t - t0)/Rtau)
 		t0 = t
 		synon = synon - weight
-		:state_discontinuity(Ron, Ron - r0)
-		Ron = Ron - r0
-		:state_discontinuity(Roff, Roff + r0)
-		Roff = Roff + r0
+		state_discontinuity(Ron, Ron - r0)
+		state_discontinuity(Roff, Roff + r0)
 		on = 0
 	}
-gmax=weight
+gmax = weight
 }
+
 

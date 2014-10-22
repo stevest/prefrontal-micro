@@ -27,7 +27,7 @@ PARAMETER {              : parameters that can be entered when function is calle
         ena    = 55    (mV)
 :        eh     = -10   (mV)
 :        ehi     = -30   (mV)
-        ehi     = -10   (mV)
+        :ehi     = -10   (mV) :WILL BE IGNORED AND SET BY NEURON
 	K      = 10.0   (mV)	:8.5
 	gbar   = 0     (mho/cm2)  : initialize conductance to zero
 	vhalf  = -90   (mV)       : half potential
@@ -45,6 +45,8 @@ ASSIGNED {             : parameters needed to solve DE
 	ninf
 	taun (ms)
 	g
+
+	ehi
 }
 
         
