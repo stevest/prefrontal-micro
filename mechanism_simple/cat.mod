@@ -9,10 +9,10 @@ NEURON {
 	THREADSAFE
 	SUFFIX cat
 	USEION ca READ cai, eca    
-        :USEION Ca WRITE iCa VALENCE 2
-        : The T-current does not activate calcium-dependent K-currents
-        RANGE gcatbar, iCa
-        RANGE gcatbar, ica
+	:USEION Ca WRITE iCa VALENCE 2
+	: The T-current does not activate calcium-dependent K-currents
+	RANGE gcatbar, iCa
+	RANGE gcatbar, ica
 	GLOBAL hinf, minf
 }
 
@@ -45,8 +45,8 @@ ASSIGNED {     : parameters needed to solve DE
 	ica          (mA/cm2)
 	cai          (mM)       :5e-5 initial internal Ca++ concentration
 	eca          (mV)       : initial external Ca++ concentration
-        minf
-        hinf
+	minf
+	hinf
 }
 
 
@@ -57,17 +57,15 @@ STATE {
 
 INITIAL {
 	rates(v)
-        m = minf
-        h = hinf
+	m = minf
+	h = hinf
 }
 
 BREAKPOINT {
 	SOLVE states METHOD cnexp
-
 :	ecat = (1e3) * (R*(celsius+273.15))/(2*FARADAY) * log (cao/cai)
 :	iCa = gcatbar*m*m*h*(v-eca)	: dummy calcium current induced by this channel
 	ica = gcatbar*m*m*h*(v-eca)	: dummy calcium current induced by this channel
-
 }
 
 FUNCTION ghk(v(mV), ci(mM), co(mM)) (.001 coul/cm3) {
@@ -97,26 +95,26 @@ DERIVATIVE states {
 
 
 PROCEDURE rates(v (mV)) { 
-        LOCAL a, b
-        
+	LOCAL a, b
+
 	a = alpm(v)
-	minf = 1/(1+a)
-        
-        b = alph(v)
-	hinf = 1/(1+b)
+	PROTECT minf = 1/(1+a)
+
+	b = alph(v)
+	PROTECT hinf = 1/(1+b)
 }
 
 
 
 FUNCTION alpm(v(mV)) {
 UNITSOFF
-  alpm = exp(1.e-3*zetam*(v-vhalfm)*9.648e4/(8.315*(273.16+celsius))) 
+	alpm = exp(1.e-3*zetam*(v-vhalfm)*9.648e4/(8.315*(273.16+celsius))) 
 UNITSON
 }
 
 FUNCTION alph(v(mV)) {
 UNITSOFF
-  alph = exp(1.e-3*zetah*(v-vhalfh)*9.648e4/(8.315*(273.16+celsius))) 
+	alph = exp(1.e-3*zetah*(v-vhalfh)*9.648e4/(8.315*(273.16+celsius))) 
 UNITSON
 }
 

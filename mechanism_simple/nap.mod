@@ -38,7 +38,8 @@ ASSIGNED {
 	mtau (ms)
 	htau (ms)
 	gna (mho/cm2)
-	
+
+	ena	
 }
 
 INITIAL {

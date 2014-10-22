@@ -4,10 +4,9 @@
 
 NEURON {
 	THREADSAFE
-        SUFFIX kdyn				
-        USEION k READ ko,ik WRITE ko 
-        RANGE ko, ki
-	
+	SUFFIX kdyn				
+	USEION k READ ko,ik WRITE ko 
+	RANGE ko, ki
 }
 
 UNITS {

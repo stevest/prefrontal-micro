@@ -83,9 +83,9 @@ PROCEDURE rates(cai(mM)) {
 	
 :old equations	
 	a = cai/b
-	m_inf = a/(a+1)
+	PROTECT m_inf = a/(a+1)
 :	tau_m=600
-	tau_m = taumin+ 1(ms)*1(mM)*b/(cai+b)
+	PROTECT tau_m = taumin+ 1(ms)*1(mM)*b/(cai+b)
 
 :inactivation
 :	h_inf= ah/(ah+1)

@@ -2,24 +2,24 @@
 
 NEURON {
 	THREADSAFE
-        SUFFIX cadyn
-        USEION ca READ ica, cai WRITE cai 
-        RANGE ca 
+	SUFFIX cadyn
+	USEION ca READ ica, cai WRITE cai 
+	RANGE ca 
 	GLOBAL depth,cainf,taur 
 }
 
 UNITS {
-        (molar) = (1/liter)		
-        (mM) = (millimolar)
+	(molar) = (1/liter)		
+	(mM) = (millimolar)
 	(um)	= (micron) 
-        (mA) = (milliamp)
+	(mA) = (milliamp)
 	(msM)	= (ms mM)  
-        FARADAY    = (faraday) (coulomb)
+	FARADAY    = (faraday) (coulomb)
 }
 
 PARAMETER {
-       	depth	= .1	(um)		: depth of shell 
-        taur =  200 (ms)	: rate of calcium removal for stress conditions
+	depth	= .1	(um)		: depth of shell 
+	taur =  200 (ms)	: rate of calcium removal for stress conditions
 	cainf	= 50e-6(mM)	:changed oct2
 	cai		(mM)
 }

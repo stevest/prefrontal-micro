@@ -11,7 +11,7 @@ NEURON {
 	THREADSAFE
 	SUFFIX car
 	USEION ca READ cai, cao WRITE ica
-        RANGE gcabar, m, h,ica
+	RANGE gcabar, m, h,ica
 	RANGE inf, fac, tau
 }
 
@@ -27,11 +27,11 @@ UNITS {
 
 ASSIGNED {               : parameters needed to solve DE
 	ica (mA/cm2)
-:	iCa (mA/cm2)
-        inf[2]
+	:	iCa (mA/cm2)
+	inf[2]
 	tau[2]		(ms)
-        v               (mV)
-        celsius 	(degC)
+	v               (mV)
+	celsius 	(degC)
 	ecar    	(mV)      
 	cai             (mM)      : initial internal Ca++ concentration
 	cao             (mM)      : initial external Ca++ concentration

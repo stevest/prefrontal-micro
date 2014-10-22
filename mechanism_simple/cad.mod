@@ -41,7 +41,7 @@ NEURON {
 	THREADSAFE
 	SUFFIX cadyn_out
 	USEION ca READ ica, cai WRITE cai	
-        RANGE ca
+	RANGE ca
 	GLOBAL depth,cainf,taur
 }
 

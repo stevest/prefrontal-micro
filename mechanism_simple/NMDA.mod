@@ -74,15 +74,10 @@ UNITS {
 PARAMETER {
 	Cmax	= 1	 (mM)           : max transmitter concentration
 	Cdur	= 1	 (ms)		: transmitter duration (rising phase) (1) :increase by kiki 5/2/08
-:	Cdur	= 20	 (ms)		: transmitter duration (rising phase) :Nassi
-:	Alpha	= 10	 (/ms /mM)	: forward (binding) rate
 	Alpha	= 4	 (/ms /mM)	: forward (binding) rate (4)
 	Beta	= 0.015 (/ms)		: backward (unbinding) rate THIS IS VALIDATED
-:	Beta	=0.03	(/ms)		: kiki, july2008, nmda was too slow, used until March 2010
-:	e	= 45	 (mV)		: reversal potential
 	e	= 0	 (mV)		: reversal potential
-        mg      = 1      (mM)           : external magnesium concentration
-
+    mg      = 1      (mM)           : external magnesium concentration
 }
 
 
@@ -93,7 +88,7 @@ ASSIGNED {
 	Rinf				: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
 	synon
-        B 
+    B 
 	gmax                              : magnesium block
 	ica
 }
@@ -150,8 +145,10 @@ NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 			t0 = t
 			on = 1
 			synon = synon + weight
-			state_discontinuity(Ron, Ron + r0)
-			state_discontinuity(Roff, Roff - r0)
+			:state_discontinuity(Ron, Ron + r0)
+			Ron = Ron + r0
+			:state_discontinuity(Roff, Roff - r0)
+			Roff = Roff - r0
 		}
 :		 come again in Cdur with flag = current value of nspike
 		net_send(Cdur, nspike)
@@ -160,8 +157,10 @@ NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 		r0 = weight*Rinf + (r0 - weight*Rinf)*exp(-(t - t0)/Rtau)
 		t0 = t
 		synon = synon - weight
-		state_discontinuity(Ron, Ron - r0)
-		state_discontinuity(Roff, Roff + r0)
+		:state_discontinuity(Ron, Ron - r0)
+		Ron = Ron - r0
+		:state_discontinuity(Roff, Roff + r0)
+		Roff = Roff + r0
 		on = 0
 	}
 gmax = weight

@@ -13,40 +13,40 @@ INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
 NEURON {
 	THREADSAFE
-        SUFFIX calc
+	SUFFIX calc
 	:SUFFIX cal
-        USEION ca READ cai,cao WRITE ica
-        RANGE gcabar, m_inf, tau_m, ica
+	USEION ca READ cai,cao WRITE ica
+	RANGE gcabar, m_inf, tau_m, ica
 }
 
 UNITS {
-        (mA)    = (milliamp)
-        (mV)    = (millivolt)
-        (mM)    = (milli/liter)
-        :FARADAY = 96480 (coul)
-        :R       = 8.314 (volt-coul/degK)
+	(mA)    = (milliamp)
+	(mV)    = (millivolt)
+	(mM)    = (milli/liter)
+	:FARADAY = 96480 (coul)
+	:R       = 8.314 (volt-coul/degK)
 	FARADAY = (faraday) (coulomb)
 	R	= (k-mole) (joule/degC)
 }
 
 PARAMETER {
-        v                       (mV)
-        :celsius = 23            (degC) :WILL BE IGNORED AND SET BY NEURON
-        dt                      (ms)
-        :cai = 50e-6             (mM) :WILL BE IGNORED AND SET BY NEURON
-        :cao = 2                 (mM) :WILL BE IGNORED AND SET BY NEURON
-        gcabar= 0.000276        (cm/s)          
+	v                       (mV)
+	:celsius = 23            (degC) :WILL BE IGNORED AND SET BY NEURON
+	dt                      (ms)
+	:cai = 50e-6             (mM) :WILL BE IGNORED AND SET BY NEURON
+	:cao = 2                 (mM) :WILL BE IGNORED AND SET BY NEURON
+	gcabar= 0.000276        (cm/s)          
 }
 
 STATE {
-        m
+	m
 }
 
 ASSIGNED {
-        ica             (mA/cm2)
-        tau_m           (ms)
-        m_inf 
-        tadj
+	ica             (mA/cm2)
+	tau_m           (ms)
+	m_inf 
+	tadj
 
 	celsius
 	cai
@@ -54,8 +54,8 @@ ASSIGNED {
 }
 
 BREAKPOINT { 
-        SOLVE states :METHOD euler
-        ica = gcabar * m*m * ghk(v,cai,cao,2)
+	SOLVE states :METHOD euler
+	ica = gcabar * m*m * ghk(v,cai,cao,2)
 }
 
 :DERIVATIVE states {
@@ -65,8 +65,8 @@ BREAKPOINT {
 :}
   
 PROCEDURE states() {
-        rates(v)
-        m= m + (1-exp(-dt/tau_m))*(m_inf-m)
+	rates(v)
+	m= m + (1-exp(-dt/tau_m))*(m_inf-m)
 }
 
 UNITSOFF

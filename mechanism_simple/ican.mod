@@ -31,12 +31,12 @@ INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
 NEURON {
 	THREADSAFE
-     SUFFIX ican
-     USEION n READ en WRITE in VALENCE 1
-     USEION ca READ cai
-     USEION na WRITE ina
-     RANGE gbar, m_inf, tau_m, in, mystart
-     GLOBAL beta, cac, taumin 
+	SUFFIX ican
+	USEION n READ en WRITE in VALENCE 1
+	USEION ca READ cai
+	USEION na WRITE ina
+	RANGE gbar, m_inf, tau_m, in, mystart
+	GLOBAL beta, cac, taumin 
 }
 
 
@@ -49,15 +49,15 @@ UNITS {
 
 
 PARAMETER {
-v               (mV)
-:celsius	= 36    (degC) :WILL BE IGNORED AND SET BY NEURON
-:en      = -20   (mV)            	: reversal potential :WILL BE IGNORED AND SET BY NEURON
-cai     	(mM)           		: initial [Ca]i
-gbar    = 0.00025(mho/cm2)
-beta 	= 0.00015                     	: 0.0003  0.00015
-cac	= 0.0001			: 0.0004 0.0001
-taumin  = 0.1   (ms)            	: minimal value of time constant
-mystart	= 0 (ms)
+	v               (mV)
+	:celsius	= 36    (degC) :WILL BE IGNORED AND SET BY NEURON
+	:en      = -20   (mV)            	: reversal potential :WILL BE IGNORED AND SET BY NEURON
+	cai     	(mM)           		: initial [Ca]i
+	gbar    = 0.00025(mho/cm2)
+	beta 	= 0.00015                     	: 0.0003  0.00015
+	cac	= 0.0001			: 0.0004 0.0001
+	taumin  = 0.1   (ms)            	: minimal value of time constant
+	mystart	= 0 (ms)
 }
 
 
@@ -66,11 +66,11 @@ STATE {
 }
 
 ASSIGNED {
-     in      (mA/cm2)
-     ina     (mA/cm2)
-     m_inf
-     tau_m   (ms)
-     tadj
+	in      (mA/cm2)
+	ina     (mA/cm2)
+	m_inf
+	tau_m   (ms)
+	tadj
 
 	celsius
 	en
@@ -78,38 +78,38 @@ ASSIGNED {
 
 BREAKPOINT { 
 if (t>mystart)  { 
-     :SOLVE states METHOD euler
+	:SOLVE states METHOD euler
 	SOLVE states METHOD cnexp
-     in = gbar * m*m * (v - en)
-     ina = 0.7* in }
+	in = gbar * m*m * (v - en)
+	ina = 0.7* in }
 }
 
 DERIVATIVE states { 
-     evaluate_fct(v,cai)
+	evaluate_fct(v,cai)
 
-     m' = (m_inf - m) / tau_m
+	m' = (m_inf - m) / tau_m
 }
 
 UNITSOFF
 INITIAL {
-:
-:  activation kinetics are assumed to be at 22 deg. C
-:  Q10 is assumed to be 3
-:
-     tadj = 3 ^ ((celsius-22.0)/10)   
+	:
+	:  activation kinetics are assumed to be at 22 deg. C
+	:  Q10 is assumed to be 3
+	:
+	tadj = 3 ^ ((celsius-22.0)/10)   
 
-     evaluate_fct(v,cai)
-     m = m_inf
+	evaluate_fct(v,cai)
+	m = m_inf
 }
 
 
 PROCEDURE evaluate_fct(v(mV),cai(mM)) {  LOCAL alpha2
 
-     alpha2 = beta * (cai/cac)^2
+	alpha2 = beta * (cai/cac)^2
 
-     tau_m = 1 / (alpha2 + beta) / tadj
-     m_inf = alpha2 / (alpha2 + beta)
+	tau_m = 1 / (alpha2 + beta) / tadj
+	m_inf = alpha2 / (alpha2 + beta)
 
-     if(tau_m < taumin) { tau_m = taumin }   : min value of time cst
+	if(tau_m < taumin) { tau_m = taumin }   : min value of time cst
 }
 UNITSON

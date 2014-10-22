@@ -18,7 +18,7 @@ PARAMETER {
 	v (mV)
 	dt (ms)
 	gnafbar= 0.086 (mho/cm2) <0,1e9>
-	ena = 55 (mV)
+	:ena = 55 (mV) :WILL BE IGNORED AND SET BY NEURON
 }
 
 STATE {
@@ -31,6 +31,8 @@ ASSIGNED {
 	NAFCR_mtau (ms)
 	NAFCR_htau (ms)
 	NAFCR_gna (mho/cm2)
+
+	ena
 }
 
 INITIAL {

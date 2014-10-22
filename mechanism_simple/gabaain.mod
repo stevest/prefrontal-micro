@@ -103,8 +103,8 @@ STATE {Ron Roff}
 
 INITIAL {
 
-	Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
-	Rtau = 1 / ((Alpha * Cmax) + Beta)
+	PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
+	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
 	synon = 0
 }
 
