@@ -1,9 +1,7 @@
 : Fast Na+ channel
-: For interneuron
 
 NEURON {
-	THREADSAFE
-	SUFFIX NafIN
+	SUFFIX Naf
 	USEION na READ ena WRITE ina
 	RANGE gnafbar, ina, gna
 }
@@ -59,7 +57,6 @@ DERIVATIVE states {
 UNITSOFF
 
 FUNCTION malf( v){ LOCAL va 
-	:va=v+38
 	va=v+28
 	if (fabs(va)<1e-04){
 	   malf= -0.2816*(-9.3 + va*0.5)
@@ -81,22 +78,20 @@ FUNCTION mbet(v(mV))(/ms) { LOCAL vb
 
 FUNCTION half(v(mV))(/ms) { LOCAL vc 
 	vc=v+43.1
-	:vc=v+15.1
 	if (fabs(vc)<1e-04){
 	   half=0.098*(20 + vc*0.5)
 	}else{
-	   half=0.098/exp((v+23.1)/20):*2
+	   half=0.098/exp((v+23.1)/20) :was 43.1
 }
 }
 
 
 FUNCTION hbet(v(mV))(/ms) { LOCAL vd
-	:vd=v+23.1
 	vd=v+13.1
 	if (fabs(vd)<1e-04){
 	   hbet=1.4*(10 + vd*0.5)
 	}else{
-	   hbet=1.4/(1+exp(-(v+25.1)/10)):*2
+	   hbet=1.4/(1+exp(-(v+25.1)/10)) :was 13.1 changed july 30, 2007
 } 
 }
 

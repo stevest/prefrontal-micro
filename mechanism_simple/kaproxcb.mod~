@@ -5,7 +5,7 @@ TITLE K-A channel from Klee Ficker and Heinemann
 
 NEURON {
 	THREADSAFE
-	SUFFIX kap
+	SUFFIX kapcb
 	USEION k READ ko, ki WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
         RANGE gkabar, ik
         GLOBAL ninf,linf,taul,taun,lmin

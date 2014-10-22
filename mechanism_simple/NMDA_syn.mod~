@@ -9,6 +9,7 @@ ENDCOMMENT
 TITLE NMDA synapse 
 
 NEURON {
+	THREADSAFE
 	POINT_PROCESS nmda_segev
 	USEION ca READ cai WRITE ica VALENCE 2
 	NONSPECIFIC_CURRENT inmda 
@@ -33,7 +34,7 @@ UNITS {
 PARAMETER {
 	gmax=1	(nS)
 	e= 0.0	(mV)
-	tau1=10	(ms): Was 90	
+	tau1=90	(ms): Was 90	
 	tau2=5	(ms)	
 	gama=0.08 :0.08 	(/mV) :Was 0.08
 	dt (ms)

@@ -36,8 +36,7 @@ STATE {
 
 
 BREAKPOINT {
-	:SOLVE state METHOD euler
-	SOLVE state METHOD cnexp
+	SOLVE state METHOD euler
 }
 
 DERIVATIVE state { 

@@ -3,7 +3,6 @@
 : Modified by Nassi, 23 Aprile 2010, comments to understand NModl, seeking to see what's wrong with K+ in our model....
 
 NEURON {
-	THREADSAFE
         SUFFIX kdyn				
         USEION k READ ko,ik WRITE ko 
         RANGE ko, ki

@@ -1,6 +1,7 @@
 : Fast Na+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX Naf
 	USEION na READ ena WRITE ina
 	RANGE gnafbar, ina, gna

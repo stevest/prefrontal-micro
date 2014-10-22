@@ -4,7 +4,7 @@ TITLE Slow Ca-dependent potassium current
 
 NEURON {
 	THREADSAFE
-	SUFFIX kca
+	SUFFIX kcain
 	USEION k READ ko, ki WRITE ik
 	USEION ca READ cai
 	RANGE  gbar, po, ik

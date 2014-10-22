@@ -2,7 +2,6 @@
 : For interneuron
 
 NEURON {
-	THREADSAFE
 	SUFFIX NafIN
 	USEION na READ ena WRITE ina
 	RANGE gnafbar, ina, gna

@@ -2,6 +2,7 @@ TITLE  H-current that uses Na ions
 : Updated to use Cvode by Yiota Poirazi 12/1/2005
 
 NEURON {
+	THREADSAFE
 	SUFFIX hin
         RANGE  gbar,HIN_vhalf, K, HIN_taun, HIN_ninf, g, ihi   
 	USEION hi READ ehi WRITE ihi VALENCE 1      

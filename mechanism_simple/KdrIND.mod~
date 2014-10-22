@@ -2,7 +2,6 @@
 : from Durstewitz & Gabriel (2006), Cerebral Cortex
 
 NEURON {
-	THREADSAFE
 	SUFFIX KdrIN
 	USEION k READ ki, ko WRITE ik
 	RANGE gKdrbar, gk

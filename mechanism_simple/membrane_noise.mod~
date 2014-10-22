@@ -48,12 +48,6 @@ BREAKPOINT {
 	}else{ 
 		if (t < del+dur) {
 			randGen()
-			:pkamp = randomEvent * pkamp
-			if(pkamp > 0){
-				:printf("dur = %.10f\n",dur)
-				:printf("randomEvent = %.10f\n",randomEvent)
-				printf("pkamp = %.10f\n",pkamp)
-			}
 			i = pkamp*sin(2*PI*freq*(t-del)/1000+phase)+bias
 			:printf("I = %.10f\n",i)
 		}else{ 

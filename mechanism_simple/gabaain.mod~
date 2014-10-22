@@ -60,11 +60,10 @@ COMMENT
 ENDCOMMENT
 
 NEURON {
-	THREADSAFE
-	POINT_PROCESS GABAa
+	POINT_PROCESS GABAain
 	RANGE R, g, gmax 
 	NONSPECIFIC_CURRENT i
-	GLOBAL Cmax, Cdur, Alpha, Beta, Erev, Rinf, Rtau
+	:GLOBAL Cmax, Cdur, Alpha, Beta, Erev, Rinf, Rtau
 	RANGE i
 }
 
@@ -80,8 +79,10 @@ PARAMETER {
 	Cmax	= 1	(mM)		: max transmitter concentration
 	Cdur	= 1	(ms)		: transmitter duration (rising phase)
 	Alpha	= 5	(/ms mM)	: forward (binding) rate
-	Beta	= 0.18	(/ms)		: backward (unbinding) rate
+	Beta	= 0.2	(/ms)		: backward (unbinding) rate
+	:Beta	= 0.18	(/ms)		: backward (unbinding) rate
 	Erev	= -80	(mV)		: reversal potential
+	:Erev	= -16	(mV)		: reversal potential
 }
 
 

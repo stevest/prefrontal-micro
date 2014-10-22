@@ -1,6 +1,7 @@
 : Persistent Na+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX nap
 	USEION na READ ena WRITE ina
 	RANGE gnabar, ina, gna

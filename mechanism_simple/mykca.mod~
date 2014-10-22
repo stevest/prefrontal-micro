@@ -13,7 +13,6 @@ Copyright	  Maciej Lazarewicz, 2001
 ENDCOMMENT
 
 NEURON {
-	THREADSAFE
 	SUFFIX  mykca
 	USEION k READ ek WRITE ik
 	USEION ca READ cai   

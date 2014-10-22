@@ -7,7 +7,6 @@ TITLE Ca R-type channel with medium threshold for activation
 : this current mimicks the ip3 receptor, October 2006
 
 NEURON {
-	THREADSAFE
 	SUFFIX ip3
 	:SUFFIX somacar
 	:NONSPECIFIC_CURRENT i

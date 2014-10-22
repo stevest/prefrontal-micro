@@ -1,4 +1,4 @@
-pathprefix = 'I:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS';
+pathprefix = 'C:/Users/user/Desktop/TEMP';
 
 %%
 run.nruns=1;
@@ -52,5 +52,6 @@ end
 fprintf('DONE!\n');
 
 %%
+plot(RUNS_str_CL_S{1,stc}{1}.mv,'k');hold on;
 plot(RUNS_str_CL{1,stc}{1}.mv,'b');hold on;
 plot(RUNS_str_GL{1,stc}{1}.mv,'r')

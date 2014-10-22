@@ -59,15 +59,14 @@ COMMENT
 -----------------------------------------------------------------------------
 ENDCOMMENT
 
+
 NEURON {
-	THREADSAFE
-	POINT_PROCESS GABAa
-	RANGE R, g, gmax 
+	POINT_PROCESS GABAb
+	RANGE g, gmax, R
 	NONSPECIFIC_CURRENT i
 	GLOBAL Cmax, Cdur, Alpha, Beta, Erev, Rinf, Rtau
 	RANGE i
 }
-
 UNITS {
 	(nA) = (nanoamp)
 	(mV) = (millivolt)
@@ -77,10 +76,13 @@ UNITS {
 
 PARAMETER {
 
-	Cmax	= 1	(mM)		: max transmitter concentration
-	Cdur	= 1	(ms)		: transmitter duration (rising phase)
-	Alpha	= 5	(/ms mM)	: forward (binding) rate
-	Beta	= 0.18	(/ms)		: backward (unbinding) rate
+	Cmax	= 10	(mM)		: max transmitter concentration
+	Cdur	= 10	(ms)		: transmitter duration (rising phase)
+:	Cdur	= 80	(ms)		: transmitter duration (rising phase)
+	Alpha	= 0.001	(/ms mM)	: forward (binding) rate
+:	Alpha	= 0.016	(/ms mM)	: forward (binding) rate
+:	Beta	= 0.01	(/ms)		: backward (unbinding) rate
+	Beta	= 0.0047	(/ms)		: backward (unbinding) rate
 	Erev	= -80	(mV)		: reversal potential
 }
 
@@ -89,18 +91,16 @@ ASSIGNED {
 	v		(mV)		: postsynaptic voltage
 	i 		(nA)		: current = g*(v - Erev)
 	g 		(umho)		: conductance
-	Rinf				: steady state channels open
+        Rinf				: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
         synon
-       	gmax
+	gmax
 }
 
 STATE {Ron Roff}
 
-
-
 INITIAL {
-
+	
 	Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
 	Rtau = 1 / ((Alpha * Cmax) + Beta)
 	synon = 0

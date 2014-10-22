@@ -1,6 +1,7 @@
 : Slowly inactivating K+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX IKscb
 	USEION k READ ki, ko WRITE ik
 	RANGE gKsbar, ik, gk

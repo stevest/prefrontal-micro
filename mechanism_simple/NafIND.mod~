@@ -2,7 +2,6 @@
 : from Durstewitz & Gabriel (2006), Cerebral Cortex
 
 NEURON {
-	THREADSAFE
 	SUFFIX NafIN_out
 	USEION na READ ena WRITE ina
 	RANGE gNafbar, gna, ena
