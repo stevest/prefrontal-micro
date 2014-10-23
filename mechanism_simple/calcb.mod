@@ -8,7 +8,7 @@ NEURON {
 	THREADSAFE
 	SUFFIX calcb
 	USEION ca READ cai, eca WRITE ica
-        RANGE gcalbar, ica, po
+    RANGE gcalbar, ica, po
 	GLOBAL inf, s_inf, tau_m
 }
 
@@ -88,9 +88,9 @@ UNITSON
 
 PROCEDURE rates(v(mV), cai(mM)) {LOCAL a, alpha2
 		a = alp(v)
-		inf = 1/(1+a)
+		PROTECT inf = 1/(1+a)
 		alpha2 = (cai/b)^2
-		s_inf = alpha2 / (alpha2 + 1)
-		tau_m = taumin+ 1(ms)*1(mM)/(cai+ba)
+		PROTECT s_inf = alpha2 / (alpha2 + 1)
+		PROTECT tau_m = taumin+ 1(ms)*1(mM)/(cai+ba)
 }
 

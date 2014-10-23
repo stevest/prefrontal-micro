@@ -1,0 +1,280 @@
+//--------------Set parameters and run this for the net (generated from MATLAB scripts)
+//--------------Written 1/8/13 Stefanos
+if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+
+// Size of area, after Migliore 2010
+//len = 1000 // size of the linear domain, mitral positions range from 0 to len
+objref PC
+if(PARALLEL){
+	{PC=new ParallelContext()}
+	if(PC.id==0){ printf("Microcircuit running in %d CORES !\n\n", PC.nhost()) }
+}else{
+	if(PC.id==0){ printf("Microcircuit running in 'SINGLE CORE' !\n\n") }
+}
+
+SIMPLIFIED = 1
+
+// Experimental setup
+tstop=200 //defined externaly
+steps_per_ms=10
+dt=1/steps_per_ms
+n=int(tstop/dt)
+celsius=34
+TOTALRUNS = 1
+PLOT = 0
+DEBUG = 1
+
+nPCcells = 1
+Stim_MaxSyn_apic = 1
+
+objref vstim_stim[nPCcells][Stim_MaxSyn_apic]
+objref ncAMPA[nPCcells][Stim_MaxSyn_apic], ncNMDA[nPCcells][Stim_MaxSyn_apic], ampapr[nPCcells][Stim_MaxSyn_apic], nmdapr[nPCcells][Stim_MaxSyn_apic]
+
+objref Stim_Apic[1][1][1]
+Stim_Apic[0][0][0] = new Vector(25)
+Stim_Apic[0][0][0].x[0] = 0
+Stim_Apic[0][0][0].x[1] = 35
+Stim_Apic[0][0][0].x[2] = 69
+Stim_Apic[0][0][0].x[3] = 103
+Stim_Apic[0][0][0].x[4] = 138
+Stim_Apic[0][0][0].x[5] = 172
+Stim_Apic[0][0][0].x[6] = 207
+Stim_Apic[0][0][0].x[7] = 241
+Stim_Apic[0][0][0].x[8] = 276
+Stim_Apic[0][0][0].x[9] = 310
+Stim_Apic[0][0][0].x[10] = 345
+Stim_Apic[0][0][0].x[11] = 379
+Stim_Apic[0][0][0].x[12] = 414
+Stim_Apic[0][0][0].x[13] = 448
+Stim_Apic[0][0][0].x[14] = 483
+Stim_Apic[0][0][0].x[15] = 517
+Stim_Apic[0][0][0].x[16] = 552
+Stim_Apic[0][0][0].x[17] = 586
+Stim_Apic[0][0][0].x[18] = 621
+Stim_Apic[0][0][0].x[19] = 655
+Stim_Apic[0][0][0].x[20] = 690
+Stim_Apic[0][0][0].x[21] = 724
+Stim_Apic[0][0][0].x[22] = 759
+Stim_Apic[0][0][0].x[23] = 793
+Stim_Apic[0][0][0].x[24] = 828
+//Stim_Apic[0][0][0].x[25] = 862
+//Stim_Apic[0][0][0].x[26] = 897
+//Stim_Apic[0][0][0].x[27] = 931
+//Stim_Apic[0][0][0].x[28] = 966
+//Stim_Apic[0][0][0].x[29] = 1000
+
+
+//-----Objects for record data
+objref cv, vc, ic[10]
+cv=new CVode(0)
+strdef foutput
+
+if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
+if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
+if(!cv.cache_efficient(1)){print "ERRORRRR!"}
+
+// given a cell index ($1) and the type of cell ($2), return the gid
+// As for $2, 0 stands for pyramidal cells, 1 for PVs, 2 for CBs, and 3 for CRs
+objref offsets
+{offsets = new Vector()}
+{offsets.append(0,nPCcells)}
+{offsets.append(offsets.sum(0,offsets.size()-1))}
+
+//global_gid=offsets.v[offsets.size()-1]  // points to the next available gid
+func ind2gid(){local i  
+  if(numarg()<2) { printf("wrong number of arguments to func ind2gid") }
+  i=$1+offsets.sum(0,$2)
+  if(i>=offsets.sum(0,$2+1)) { i-=1 }   
+  return i 
+}
+
+if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
+if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
+if(!xopen("pfc_pc_temp.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
+
+
+// see this here on the topic of storing membrane voltage in a parallel context: http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=1987
+objref r_volts[offsets.x[offsets.size()-1]],r_msec[offsets.x[offsets.size()-1]]
+objref r_curr[offsets.x[offsets.size()-1]]
+// each recorded range variable must have a separate tvec which will be different for different cells
+objref recordedCells
+recordedCells = new Vector()
+// recording routines for the parallel context
+proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
+	if (PC.gid_exists($1)) { 
+		s=recordedCells.size()
+		r_volts[s]=new Vector(n)
+		r_msec[s]=new Vector(n)
+		for q=0,n-1 {r_msec[s].x[q]=q*dt }
+		PC.gid2cell($1).soma {cv.record(&v(0.5),r_volts[s],r_msec[s],0)}
+		recordedCells.append($1)
+	}
+}
+
+
+proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
+
+{ PC.barrier() } 
+strdef ext
+if ($4) {
+	ext = "bin"
+} else {
+	ext = "txt"
+}
+
+for s=0,recordedCells.size()-1{
+	vfilePC = new File()	
+	sprint(vfilePC_filename,"experiment_%d/%s/%d_%d_%d.%s", $3,EXP,$2,recordedCells.x(s), runs,ext) 
+	vfilePC.wopen(vfilePC_filename)
+	if ($4) {
+		for j=0, r_volts[s].size()-1 {
+			vfilePC.vwrite(&r_volts[s].x[j])
+		}
+	} else {
+		r_volts[s].printf(vfilePC,"%8.4f\n")
+	}
+	vfilePC.close()
+}
+
+{ PC.barrier() } 
+}
+
+
+// register the connection target locally given a synapse gid and a synapse mechanism as arguments
+// if given additional arguments, it will set them as weight, delay, and threshold, respectively
+// http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2158
+obfunc makeSynapse(){ localobj nc, src
+	if(PARALLEL){
+		nc=PC.gid_connect($3,$o4)
+
+	}else{
+		src = $o1
+		access src.o($2).axon
+		nc = new NetCon(&v(x),$o4)
+	}
+	nc.threshold = $5
+	nc.delay = $6
+	nc.weight = $7
+	return nc
+}
+
+func gid2local(){local i localobj arg
+	arg = $o1
+	for i=0, arg.size()-1 {
+		if(arg.x(i) == $2){
+			return i
+		}
+	}
+	return -1 //if error
+}
+
+
+
+
+
+
+proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx  localobj r,rApic,rBasal,ri,rvect
+	if(PARALLEL){ PC.barrier() }
+
+	for i=0, nPCcells - 1  { 
+		//print " Procceding with stimulation" 
+			if(PARALLEL){
+				tmpGID = ind2gid(i,0) //ONLY FOR PC CELLS!
+				bool = PC.gid_exists(tmpGID)
+				localID = gid2local(PCgids,tmpGID) //target cell
+			}else{
+				bool=1
+				localID = i
+			}
+
+			if( bool ){ //&& PcellStimList.x(i)
+				// Apical input:
+				for j=0, (Stim_MaxSyn_apic-1) {
+					PID=0.5
+					if(SIMPLIFIED){ rApicIdx = 0 } //PROXIMAL!
+					PCcells.o(localID).apic[rApicIdx] {ampapr[i][j] = new GLU(PID)}
+					PCcells.o(localID).apic[rApicIdx] {nmdapr[i][j] = new nmda_segev(PID)}
+
+					vstim_stim[i][j] = new VecStim(0.5)
+					vstim_stim[i][j].delay = 0
+					vstim_stim[i][j].play(Stim_Apic[0][i][j]) //rvect.x[i]
+
+
+					ncAMPA[i][j] = new NetCon(vstim_stim[i][j], ampapr[i][j]) //vstim_stim[i][j]
+					ncAMPA[i][j].delay=1
+					ncAMPA[i][j].weight = 0.00019	* 0
+					ncAMPA[i][j].threshold=-20 
+
+					/*ncNMDA[i][j] = new NetCon(vstim_stim[i][j], nmdapr[i][j])
+					ncNMDA[i][j].delay=1
+					ncNMDA[i][j].weight = 0.22 
+					ncNMDA[i][j].threshold=-20*/
+				}
+			} //if bool
+	} //for PC cells
+//print "DONE STIMULATION PROC"
+} //end proc
+
+	
+	
+
+
+for runs = 0, TOTALRUNS-1 {
+	if(PARALLEL){
+
+		{ PC.barrier()	}
+		{ PC.set_maxstep(steps_per_ms) }
+		if (PC.id==0){ 
+			printf("Current run is: %d\n",runs)
+			print "Loading ... ",runs, " in host ", PC.id
+			print "maxstep=",steps_per_ms
+		}  
+	}else{
+		foutput = "single_core"
+		//{xopen("recordandsave/record.hoc")}
+		//{xopen("recordandsave/save_data.hoc")}
+	}
+
+	stimulation(runs)
+	
+
+	if(PARALLEL){
+		recordedCells = new Vector()
+		for lala=0,offsets.x(0)-1{ // record all cells!
+		  //par_rec_membrane_voltage(lala)
+		}
+
+		stdinit()
+		runtime=startsw()
+		PC.psolve(tstop)
+		runtime = startsw() - runtime
+
+		if (PC.id==0){
+			print "node ", PC.id, "reached tstop"
+		}
+		
+		{ PC.barrier()	} 
+		//par_save_membrane_voltage(data_dir,CLUSTER_ID,ID, ISBINARY)
+
+	}else{
+
+		runtime=startsw()
+		run()
+		runtime = startsw() - runtime
+		printf("Runtime: %10.4g\n", runtime)
+
+		//save_membrane_voltage(data_dir,CLUSTER_ID,ID)
+
+	}
+
+}
+
+if(PARALLEL){
+	//printallkbars()
+	//print "Work done on node ", PC.id
+	printf("Runtime: %10.4g\n", runtime)
+	{ PC.runworker() }
+	{ PC.done() }// tell workers to quit
+	print "Success"
+	quit()
+}

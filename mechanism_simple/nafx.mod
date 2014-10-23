@@ -50,7 +50,8 @@ ASSIGNED {
 	NAFX_htau (ms)
 	NAFX_stau (ms)
 	gna (mho/cm2)
-	
+
+	ena	
 }
 
 

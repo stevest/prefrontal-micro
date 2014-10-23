@@ -1,0 +1,1 @@
+mpirun -v -n $1 ../../mechanism_simple/x86_64/special -mpi -nobanner -c "PARALLEL=1" -c "SIMPLIFIED=1" -c "CLUSTER_ID=0" -c "EXPERIMENT=1" -c "ST=1" -c "ID=12" -c "SN=12" -c "VCLAMP=0.0" -c "ISBINARY=1" -c "CLUSTBIAS=1.0" final.hoc | tee c.txt

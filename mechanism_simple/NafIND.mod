@@ -28,7 +28,7 @@ ASSIGNED {
 
 STATE {
 	m 
-        h 
+    h 
 }
 
 INITIAL {

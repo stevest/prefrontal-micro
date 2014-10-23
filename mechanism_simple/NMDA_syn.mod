@@ -26,8 +26,10 @@ UNITS {
 	(mV)	= (millivolt)
 	(nS) 	= (nanomho)
 	(mM)    = (milli/liter)
-        F	= 96480 (coul)
-        R       = 8.314 (volt-coul/degC)
+	:F	= 96480 (coul)
+	:R       = 8.314 (volt-coul/degC)
+	FARADAY = (faraday) (coulomb)
+	R	= (k-mole) (joule/degC)
 
 }
 
@@ -54,13 +56,12 @@ STATE {
 }
 
 INITIAL {
-      gnmda=0 
+	gnmda=0 
 	A=0
 	B=0
 }
 
 BREAKPOINT {
-	
 	SOLVE state METHOD cnexp
 	
 	gnmda=(A-B)/(1+n*exp(-gama*v))
@@ -78,7 +79,8 @@ DERIVATIVE state {
 
 NET_RECEIVE (weight) {
 	gmax=weight
-	state_discontinuity( A, A+ gmax)
-	state_discontinuity( B, B+ gmax)
-}
+	:state_discontinuity( A, A+ gmax)
+	A = A + gmax
+	:state_discontinuity( B, B+ gmax)
+	B = B + gmax}
 

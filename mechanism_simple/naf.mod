@@ -32,6 +32,7 @@ ASSIGNED {
 	htau (ms)
 	gna (mho/cm2)
 	
+	ena	
 }
 
 

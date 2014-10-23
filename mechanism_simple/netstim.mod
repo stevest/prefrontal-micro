@@ -12,7 +12,7 @@ NEURON	{
 PARAMETER {
 	interval	= 10 (ms) <1e-9,1e9>: time between spikes (msec)
 	number 		= 10
-        start		= 100 (ms)	: start of first spike
+    start		= 100 (ms)	: start of first spike
 	noise		= 0 <0,1>	: amount of randomeaness (0.0 - 1.0)
 	burstP		= 100 (ms)      : period of bursts or recursive events
 
@@ -32,7 +32,6 @@ PROCEDURE seed(x) {
 INITIAL {
 	on = 0
 	y = 0
-:	i = 0
 	if (noise < 0) {
 		noise = 0
 	}

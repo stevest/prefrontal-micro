@@ -62,12 +62,12 @@ UNITS {
 }
 
 PARAMETER {
-        Cmax	= 1	(mM)		: max transmitter concentration
+	Cmax	= 1	(mM)		: max transmitter concentration
 	Cdur	= 0.3	(ms)		: transmitter duration (rising phase)
 	Alpha	= 10	(/ms)		: forward (binding) rate
-:	Beta	= 0.31	(/ms)		: backward (unbinding) rate 
+	:	Beta	= 0.31	(/ms)		: backward (unbinding) rate 
 	Beta	= 0.15	(/ms)		: backward (unbinding) rate Until March 2010, then changed 0.15
-        Erev	= 0	(mV)		:0 reversal potential
+	Erev	= 0	(mV)		:0 reversal potential
 }
 
 
@@ -84,15 +84,28 @@ ASSIGNED {
 STATE {Ron Roff}
 
 INITIAL {
-        Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
-       	Rtau = 1 / ((Alpha * Cmax) + Beta)
-	synon = 0
+        PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
+       	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
+		synon = 0
 }
 
 BREAKPOINT {
 	SOLVE release METHOD cnexp
 	g = (Ron + Roff)*1(umho)
-	iglu = g*(v - Erev)  :i
+	iglu = g*(v - Erev)  
+	:printf("@%10f\n",t)
+	:printf("Ron=%10f\n",Ron)
+	:printf("Roff=%10f\n",Roff)
+	:printf("gmax=%10f\n",gmax)
+	:printf("g=%10f\n",g)
+	:printf("iGLU=%10f\n",iglu)
+	:printf("Cdur=%10f\n",Cdur)
+	:printf("Alpha=%10f\n",Alpha)
+	:printf("Beta=%10f\n",Beta)
+	:printf("Erev=%10f\n",Erev)
+	:printf("Rinf=%10f\n",Rinf)
+	:printf("Rtau=%10f\n",Rtau)
+	:printf("----------------------------------------------------------------\n")
 }
 
 DERIVATIVE release {
@@ -121,6 +134,18 @@ NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 			Roff = Roff - r0
 		}
 		: come again in Cdur with flag = current value of nspike
+		:VERBATIM
+			:printf("---------------------------------------------\n");
+			:printf("@ %10f\n",t);
+			:printf("weight=%10f\n",_args[0]);
+			:printf("on=%10f\n",_args[1]);
+			:printf("nspike=%10f\n",_args[2]);
+			:printf("r0=%10f\n",_args[3]);
+			:printf("t0=%10f\n",_args[4]);
+			:printf("Cdur=%10f\n",Cdur);
+			:printf("-(t - t0) = %10f\n", - ( t - _args[4] ));
+			:printf("Rtau = %10f\n", Rtau);
+		:ENDVERBATIM
 		net_send(Cdur, nspike)
         }
 	if (flag == nspike) { : if this associated with last spike then turn off

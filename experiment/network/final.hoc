@@ -381,8 +381,8 @@ for runs = 0, TOTALRUNS-1 {
 	//thinner_apical()
 	stimulation(0,runs)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
-	backgroundActivity(0,runs) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
-	backgroundActivityPV(0,runs) //~11Hz Petersen Carl
+	//backgroundActivity(0,runs) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
+	//backgroundActivityPV(0,runs) //~11Hz Petersen Carl
 	/*backgroundActivityCB(runs) //~2Hz Petersen Carl
 	backgroundActivityCR(runs) //~2Hz Petersen Carl
 	*/
@@ -397,7 +397,7 @@ for runs = 0, TOTALRUNS-1 {
 	connectCB2PC(runs)
 	connectCR2PC(runs)
 	connectCR2CB(runs)*/
-	noise(0)
+	//noise(0)
 	//train()
 	//TTX_proc(GPYID) 
 	//iclamp_proc(0,-0.1)

@@ -52,19 +52,18 @@ ENDCOMMENT
 
 NEURON {
 	THREADSAFE
-    POINT_PROCESS NMDA_Mg
-    :POINTER C
-    RANGE U, Cl, D1, D2, O, UMg, ClMg, D1Mg, D2Mg, OMg
-    RANGE g, gmax, rb, rmb, rmu, rbMg,rmc1b,rmc1u,rmc2b,rmc2u
-    GLOBAL Erev, mg, Rb, Ru, Rd1, Rr1, Rd2, Rr2, Ro, Rc, Rmb, Rmu
-    GLOBAL RbMg, RuMg, Rd1Mg, Rr1Mg, Rd2Mg, Rr2Mg, RoMg, RcMg
-    GLOBAL Rmd1b,Rmd1u,Rmd2b,Rmd2u,rmd1b,rmd1u,rmd2b,rmd2u
-    GLOBAL Rmc1b,Rmc1u,Rmc2b,Rmc2u
-    GLOBAL vmin, vmax, valence, memb_fraction
-    GLOBAL Cdur
-    NONSPECIFIC_CURRENT iNMDA
-    RANGE Cmax, fac, ica
-    USEION ca WRITE ica
+	POINT_PROCESS NMDA_Mg
+	RANGE U, Cl, D1, D2, O, UMg, ClMg, D1Mg, D2Mg, OMg
+	RANGE g, gmax, rb, rmb, rmu, rbMg,rmc1b,rmc1u,rmc2b,rmc2u
+	GLOBAL Erev, mg, Rb, Ru, Rd1, Rr1, Rd2, Rr2, Ro, Rc, Rmb, Rmu
+	GLOBAL RbMg, RuMg, Rd1Mg, Rr1Mg, Rd2Mg, Rr2Mg, RoMg, RcMg
+	GLOBAL Rmd1b,Rmd1u,Rmd2b,Rmd2u,rmd1b,rmd1u,rmd2b,rmd2u
+	GLOBAL Rmc1b,Rmc1u,Rmc2b,Rmc2u
+	GLOBAL vmin, vmax, valence, memb_fraction
+	GLOBAL Cdur
+	NONSPECIFIC_CURRENT iNMDA
+	RANGE Cmax, fac, ica
+	USEION ca WRITE ica
 }
 
 UNITS {

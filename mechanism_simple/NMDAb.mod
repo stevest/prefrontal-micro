@@ -69,16 +69,11 @@ UNITS {
 
 PARAMETER {
 	Cmax	= 1	 (mM)           : max transmitter concentration
-:	Cdur	= 30	 (ms)		: transmitter duration (rising phase)
 	Cdur	= 1.1	 (ms)		: transmitter duration (rising phase)
-:	Alpha	= 0.072	 (/ms /mM)	: forward (binding) rate
 	Alpha	= 10	 (/ms /mM)	: forward (binding) rate
 	Beta	= 0.0066 (/ms)		: backward (unbinding) rate
-:	Beta	= 0.0125 (/ms)		: backward (unbinding) rate
-:	e	= 45	 (mV)		: reversal potential
 	e	= 0	 (mV)		: reversal potential
-        mg      = 1      (mM)           : external magnesium concentration
-
+    mg      = 1      (mM)           : external magnesium concentration
 }
 
 
@@ -89,7 +84,7 @@ ASSIGNED {
 	Rinf				: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
 	synon
-        B 
+    B 
 	gmax                              : magnesium block
 
 }
@@ -104,10 +99,9 @@ INITIAL {
 
 BREAKPOINT {
 	SOLVE release METHOD cnexp
-        B = mgblock(v)
+    B = mgblock(v)
 	g = (Ron + Roff)*1(umho) * B
 	iNMDA = g*(v - e)
-
 }
 
 DERIVATIVE release {

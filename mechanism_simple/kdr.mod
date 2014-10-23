@@ -5,7 +5,6 @@ NEURON {
 	SUFFIX kdr
 	USEION k READ ki, ko WRITE ik
 	RANGE gkdrbar, ik, gk
-	
 }
 
 UNITS {

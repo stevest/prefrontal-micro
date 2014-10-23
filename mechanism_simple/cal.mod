@@ -8,7 +8,7 @@ NEURON {
 	THREADSAFE
 	SUFFIX cal
 	USEION ca READ cai, eca WRITE ica
-        RANGE gcalbar, ica, po
+	RANGE gcalbar, ica, po
 	GLOBAL inf, s_inf, tau_m
 }
 
@@ -23,27 +23,27 @@ UNITS {
 
 
 PARAMETER {     
-  	ki     = 0.025  (mM)            : middle point of inactivation fct
+	ki     = 0.025  (mM)            : middle point of inactivation fct
 	gcalbar = 0   (mho/cm2)  : initialized conductance
- 	taumin  = 180    (ms)            : minimal value of the time cst
-        vhalf = -1 (mV)       :half potential for activation 
+	taumin  = 180    (ms)            : minimal value of the time cst
+	vhalf = -1 (mV)       :half potential for activation 
 	zeta=-4.6
 	t0=1.5(ms)
 	b = 0.01	(mM) :young cell 0.01
-        ba = 0.01	(mM)
+	ba = 0.01	(mM)
 	bo = 8
 }
 
 
 ASSIGNED {      : parameters needed to solve DE
-        v               (mV)
- 	celsius         (degC)
+	v               (mV)
+	celsius         (degC)
 	cai             (mM)      : initial internal Ca++ concentration
 	ica             (mA/cm2)
 	eca             (mV)
-:	ical             (mA/cm2)
+	:	ical             (mA/cm2)
 	po
-        inf
+	inf
 	s_inf
 	tau_m           (ms)
 }
@@ -87,9 +87,9 @@ UNITSON
 
 PROCEDURE rates(v(mV), cai(mM)) {LOCAL a, alpha2
 		a = alp(v)
-		inf = 1/(1+a)
+		PROTECT inf = 1/(1+a)
 		alpha2 = (cai/b)^2
-		s_inf = alpha2 / (alpha2 + 1)
-		tau_m = taumin+ 1(ms)*1(mM)/(cai+ba)
+		PROTECT s_inf = alpha2 / (alpha2 + 1)
+		PROTECT tau_m = taumin+ 1(ms)*1(mM)/(cai+ba)
 }
 

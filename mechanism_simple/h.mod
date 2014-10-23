@@ -4,10 +4,10 @@ TITLE  H-current that uses Na ions
 NEURON {
 	THREADSAFE
 	SUFFIX h
-        RANGE  gbar,vhalf, K, taun, ninf, g, ihi
-:	USEION na READ ena WRITE ina      
+	RANGE  gbar,vhalf, K, taun, ninf, g, ihi
+	:	USEION na READ ena WRITE ina      
 	USEION hi READ ehi WRITE ihi VALENCE 1      
-:	NONSPECIFIC_CURRENT i
+	:	NONSPECIFIC_CURRENT i
 }
 
 UNITS {
@@ -22,12 +22,12 @@ UNITS {
 :INDEPENDENT {t FROM 0 TO 1 WITH 100 (ms)}
 
 PARAMETER {              : parameters that can be entered when function is called in cell-setup
-:        dt             (ms)
-:	v              (mV)
-        ena    = 55    (mV)
-:        eh     = -10   (mV)
-:        ehi     = -30   (mV)
-        :ehi     = -10   (mV) :WILL BE IGNORED AND SET BY NEURON
+	:        dt             (ms)
+	:	v              (mV)
+	ena    = 55    (mV)
+	:        eh     = -10   (mV)
+	:        ehi     = -30   (mV)
+	:ehi     = -10   (mV) :WILL BE IGNORED AND SET BY NEURON
 	K      = 10.0   (mV)	:8.5
 	gbar   = 0     (mho/cm2)  : initialize conductance to zero
 	vhalf  = -90   (mV)       : half potential
@@ -74,7 +74,6 @@ DERIVATIVE states {
 }
 
 PROCEDURE rates() {  
- 
  	if (v > -10) {
 	   taun = 1
 	} else {
