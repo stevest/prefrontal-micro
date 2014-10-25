@@ -451,7 +451,7 @@ classdef nrun < handle
             
 %             obj.fastSpikesMatStimulation = sort(round(repmat(linspace(0,obj.stimdur,nStim),...
 %                 total+slack,1) + ((rand(total+slack,nStim)-0.5)*randShift)),2);
-            obj.fastSpikesMatStimulation = sort((repmat(linspace(0,obj.stimdur,nStim),...
+            obj.fastSpikesMatStimulation = sort(round(repmat(linspace(0,obj.stimdur,nStim),...
                 total+slack,1) + ((rand(total+slack,nStim)-0.5)*randShift)),2);
             
             fastMatSpikesStimulationIdx = find(all(diff(obj.fastSpikesMatStimulation,1,2),2));
@@ -527,8 +527,7 @@ classdef nrun < handle
                         total = ((obj.nPC*num_exc*3)+(obj.nPV*num_inha)) ;
                         slack = round(total*100/100); % 45% compensation for rows containing identical values (discarted)
                         % Fast generated spike matrix:
-%                         tmpfastSpikesMatBackground = sort(round( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
-                        tmpfastSpikesMatBackground = sort(( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
+                        tmpfastSpikesMatBackground = sort(round( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
                         fastSpikesMatBackgroundIdx = find(all(diff(tmpfastSpikesMatBackground,1,2),2));
                         tmpfastSpikesMatBackground = tmpfastSpikesMatBackground(fastSpikesMatBackgroundIdx(1:total),:);
                         obj.fastSpikesMatBackground = [obj.fastSpikesMatBackground; tmpfastSpikesMatBackground];
@@ -765,7 +764,7 @@ classdef nrun < handle
                 %             fprintf(fid,'objref Stim_Dend[%d][%d][%d], Stim_Apic[%d][%d][%d]\n',...
                 %                 obj.nruns,length(obj.SpikesStimDend),length(obj.SpikesStimApic),obj.nruns,size(obj.SpikesStimDend,2),size(obj.SpikesStimApic,2));
                 fprintf(fid,'objref Stim_Dend[%d][%d][%d], Stim_Apic[%d][%d][%d]\n',...
-                    1,obj.nPC,size(obj.SpikesStimDend,3),1,obj.nPC,size(obj.SpikesStimApic,3));
+                    obj.nruns,obj.nPC,size(obj.SpikesStimDend,3),obj.nruns,obj.nPC,size(obj.SpikesStimApic,3));
                 
                 fprintf(fid,'\n\n// Import parameters: \n\n');
                 
@@ -826,9 +825,9 @@ classdef nrun < handle
                     1,obj.nPC,size(obj.SpikesBgBasal,3),...
                     1,obj.nPC,size(obj.SpikesBgProximal,3),...
                     1,obj.nPC,size(obj.SpikesBgApical,3),...
-                    1,size(obj.SpikesBgPV,2),size(obj.SpikesBgPV,3),...
-                    1,size(obj.SpikesBgCB,2),size(obj.SpikesBgCB,3),...
-                    1,size(obj.SpikesBgCR,2),size(obj.SpikesBgCR,3));
+                    size(obj.SpikesBgPV,1),size(obj.SpikesBgPV,2),size(obj.SpikesBgPV,3),...
+                    size(obj.SpikesBgCB,1),size(obj.SpikesBgCB,2),size(obj.SpikesBgCB,3),...
+                    size(obj.SpikesBgCR,1),size(obj.SpikesBgCR,2),size(obj.SpikesBgCR,3));
                 
                 
                 fprintf(fid,'BG_dendSyn = %d\n',size(obj.SpikesBgBasal,3));
