@@ -754,6 +754,14 @@ classdef nrun < handle
             fclose(fid);
 
             % Export stimulation spikes in .hoc file:
+            fprintf('Exporting importNetworkStimulationHeader.hoc...\n');
+            fid = fopen([exportpath,obj.SLASH,'importNetworkStimulationHeader.hoc'],'W');
+            fprintf(fid,'// This HOC file was generated with MATLAB\n\n');
+            fprintf(fid,'// Object decleration:\n');
+            fprintf(fid,'objref Stim_Dend[%d][%d][%d], Stim_Apic[%d][%d][%d]\n',...
+                1,obj.nPC,size(obj.SpikesStimDend,3),1,obj.nPC,size(obj.SpikesStimApic,3));
+            fclose(fid);
+            
             fprintf('Exporting importNetworkStimulation.hoc...\n');
             ln=1;
             reverseStr = '';
@@ -795,7 +803,7 @@ classdef nrun < handle
                         msg = sprintf('%3.1f',(ln/size(obj.fastSpikesMatStimulation,1))*100);  
                         fprintf([reverseStr, msg]);
                         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-                        fprintf(fid,'print "stimulation apic synapse @ %d\\n"\n',i);
+%                         fprintf(fid,'print "stimulation apic synapse @ %d\\n"\n',i);
                     end
 %                     fprintf(fid,'print "stimulation cell @ %f\\n"\n',c/obj.nPC);
 %                       fprintf(fid,'print "stimulation cell @ %d\\n"\n',c);
@@ -806,10 +814,26 @@ classdef nrun < handle
             
             
             % Export Background spikes in .hoc file:
-            fprintf('Exporting importBackgroundStimParams.hoc...\n');
+            fprintf('Exporting importBackgroundStimParamsHeader.hoc...\n');
+            fid = fopen([exportpath,obj.SLASH,'importBackgroundStimParamsHeader.hoc'],'W');
+            fprintf(fid,'// Object decleration:\n');
+            fprintf(fid,'objref BG_Stim_basal[%d][%d][%d], BG_Stim_Apicpr[%d][%d][%d], BG_Stim_Apic[%d][%d][%d], BG_Stim_SomaPV[%d][%d][%d], BG_Stim_SomaCB[%d][%d][%d], BG_Stim_SomaCR[%d][%d][%d]\n',....
+                1,obj.nPC,size(obj.SpikesBgBasal,3),...
+                1,obj.nPC,size(obj.SpikesBgProximal,3),...
+                1,obj.nPC,size(obj.SpikesBgApical,3),...
+                1,size(obj.SpikesBgPV,2),size(obj.SpikesBgPV,3),...
+                1,size(obj.SpikesBgCB,2),size(obj.SpikesBgCB,3),...
+                1,size(obj.SpikesBgCR,2),size(obj.SpikesBgCR,3));
+            fprintf(fid,'BG_dendSyn = %d\n',size(obj.SpikesBgBasal,3));
+            fprintf(fid,'BG_apicSyn = %d\n',size(obj.SpikesBgApical,3));
+            fprintf(fid,'BG_apicprSyn = %d\n',size(obj.SpikesBgProximal,3));
+            fprintf(fid,'BG_PVSyn = %d\n',size(obj.SpikesBgPV,3));
+            fprintf(fid,'BG_CBSyn = %d\n',size(obj.SpikesBgCB,3));
+            fprintf(fid,'BG_CRSyn = %d\n',size(obj.SpikesBgCR,3));
+            fclose(fid);
             
+            fprintf('Exporting importBackgroundStimParams.hoc...\n');
             ln=1;
-%             n=-1;
             reverseStr = '';
             for many_times=1:obj.nruns
                 fid = fopen([exportpath,obj.SLASH,sprintf('importBackgroundStimParams_run_%04d.hoc',many_times)],'W');

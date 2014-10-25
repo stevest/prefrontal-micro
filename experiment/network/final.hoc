@@ -14,7 +14,7 @@ if (EXPERIMENT) { //if Structured...
 execute(EXEC_CMD)
 
 EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulation.hoc\")",ID)
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulationHeader.hoc\")",ID)
 execute(EXEC_CMD)
 /*EXEC_CMD = ""
 sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
@@ -22,7 +22,7 @@ execute(EXEC_CMD)*/
 //if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
 
 EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParams.hoc\")",ID)
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParamsHeader.hoc\")",ID)
 execute(EXEC_CMD)
 //if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
 
@@ -376,6 +376,15 @@ for runs = 0, TOTALRUNS-1 {
 
 	
 
+	//Import respective stimulation/background spikes:
+	EXEC_CMD = ""
+	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")",ID,runs)
+	print EXEC_CMD
+	execute(EXEC_CMD)
+	EXEC_CMD = ""
+	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")",ID,runs)
+	print EXEC_CMD
+	execute(EXEC_CMD)
 	//ECA_30()
 	//thinner_basal()
 	//thinner_apical()
