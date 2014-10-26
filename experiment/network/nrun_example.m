@@ -29,7 +29,7 @@ for sn = 13
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,2,5000);
+    run = nrun(ID,75,SN,ST,200,5000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
@@ -95,7 +95,7 @@ end
 %% Load STR
 % close all; clear all; clc;
 % load(sprintf('STR_%d_%d.mat',12,8)) % 8,10
-% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,12,1)) % 8,10
+% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,13,1)) % 8,10
 
 
 RUNS_str = {};
@@ -215,7 +215,7 @@ sum(sum(PVconns)) / (run.nPV*run.nPC)
 close all;
 
 clu= 1;% what cluster is stimulated
-ru = 1 ;% what run of this cluster
+ru = 2 ;% what run of this cluster
 Sid = 1;
 CellsPerClust=zeros(run.NC_str(Sid),1);
 PAPerClust=zeros(run.NC_str(Sid),1);

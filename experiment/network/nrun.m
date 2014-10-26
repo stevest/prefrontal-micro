@@ -453,10 +453,11 @@ classdef nrun < handle
 %                 total+slack,1) + ((rand(total+slack,nStim)-0.5)*randShift)),2);
             obj.fastSpikesMatStimulation = sort((repmat(linspace(0,obj.stimdur,nStim),...
                 total+slack,1) + ((rand(total+slack,nStim)-0.5)*randShift)),2);
+            obj.fastSpikesMatStimulation = sort( round(obj.fastSpikesMatStimulation *100)/100 ,2);
             
             fastMatSpikesStimulationIdx = find(all(diff(obj.fastSpikesMatStimulation,1,2),2));
             obj.fastSpikesMatStimulation = obj.fastSpikesMatStimulation(fastMatSpikesStimulationIdx(1:total),:);
-            obj.fastSpikesMatStimulation(obj.fastSpikesMatStimulation<0) = NaN;
+            obj.fastSpikesMatStimulation(obj.fastSpikesMatStimulation<=0) = NaN;
 %             fastMat(fastMat>obj.stimdur) = NaN;
             fprintf('Stimulation generated in a jiffy!\n');
             
@@ -494,8 +495,8 @@ classdef nrun < handle
             % Background activity must result in ~1.2Hz in the post-synaptic cell as in
             % Carl C.H.Petersen Neuron, 2013
             
-            num_exc = 160;%100;
-            num_inha = 75;%75
+            num_exc = 20;%160;%100;
+            num_inha = 40;%75;%75
             num_inhb = 30;%30
             num_inhc = 30;%30
             
@@ -529,6 +530,7 @@ classdef nrun < handle
                         % Fast generated spike matrix:
 %                         tmpfastSpikesMatBackground = sort(round( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
                         tmpfastSpikesMatBackground = sort(( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
+                        tmpfastSpikesMatBackground = sort( round(tmpfastSpikesMatBackground *100)/100 ,2);
                         fastSpikesMatBackgroundIdx = find(all(diff(tmpfastSpikesMatBackground,1,2),2));
                         tmpfastSpikesMatBackground = tmpfastSpikesMatBackground(fastSpikesMatBackgroundIdx(1:total),:);
                         obj.fastSpikesMatBackground = [obj.fastSpikesMatBackground; tmpfastSpikesMatBackground];
@@ -781,10 +783,10 @@ classdef nrun < handle
                     for i=1:size(obj.SpikesStimDend,3)
 %                         fprintf(fid,'Stim_Dend[%d][%d][%d] = new Vector(%d)\n',ru-1,c-1,i-1,length(obj.SpikesStimDend{c,i}));
                         acceptedValues = obj.fastSpikesMatStimulation(ln,~isnan(obj.fastSpikesMatStimulation(ln,:)));
-                        fprintf(fid,'Stim_Dend[%d][%d][%d] = new Vector(%d)\n',ru-1,c-1,i-1, length(acceptedValues) );
+                        fprintf(fid,'Stim_Dend[%d][%d][%d] = new Vector(%d)\n',0,c-1,i-1, length(acceptedValues) );
                         for j=1:length(acceptedValues)
 %                             fprintf(fid,'Stim_Dend[%d][%d][%d].x[%d] = %d\n',ru-1,c-1,i-1,j-1, abs(obj.SpikesStimDend{c,i}(j)));
-                            fprintf(fid,'Stim_Dend[%d][%d][%d].x[%d] = %d\n',ru-1,c-1,i-1,j-1, abs(acceptedValues(j)) );
+                            fprintf(fid,'Stim_Dend[%d][%d][%d].x[%d] = %d\n',0,c-1,i-1,j-1, abs(acceptedValues(j)) );
                         end
                         ln = ln+1;
                         msg = sprintf('%3.1f',(ln/size(obj.fastSpikesMatStimulation,1))*100);  
@@ -794,10 +796,10 @@ classdef nrun < handle
                     for i=1:size(obj.SpikesStimApic,3)
 %                         fprintf(fid,'Stim_Apic[%d][%d][%d] = new Vector(%d)\n',ru-1,c-1,i-1,length(obj.SpikesStimApic{c,i}));
                         acceptedValues = obj.fastSpikesMatStimulation(ln,~isnan(obj.fastSpikesMatStimulation(ln,:)));
-                        fprintf(fid,'Stim_Apic[%d][%d][%d] = new Vector(%d)\n',ru-1,c-1,i-1,length(acceptedValues));
+                        fprintf(fid,'Stim_Apic[%d][%d][%d] = new Vector(%d)\n',0,c-1,i-1,length(acceptedValues));
                         for j=1:length(acceptedValues)
 %                             fprintf(fid,'Stim_Apic[%d][%d][%d].x[%d] = %d\n',ru-1,c-1,i-1,j-1, abs(obj.SpikesStimApic{c,i}(j)));
-                            fprintf(fid,'Stim_Apic[%d][%d][%d].x[%d] = %d\n',ru-1,c-1,i-1,j-1, abs(acceptedValues(j)) );
+                            fprintf(fid,'Stim_Apic[%d][%d][%d].x[%d] = %d\n',0,c-1,i-1,j-1, abs(acceptedValues(j)) );
                         end
                         ln = ln+1;
                         msg = sprintf('%3.1f',(ln/size(obj.fastSpikesMatStimulation,1))*100);  
@@ -869,9 +871,9 @@ classdef nrun < handle
                     for i=1:size(obj.SpikesBgBasal,3)
 %                         fprintf(fid,'BG_Stim_basal[%d][%d][%d] = new Vector(%d)\n',many_times-1, c-1,i-1,length(obj.SpikesBgBasal{many_times, c,i}));
                         acceptedValues = obj.fastSpikesMatBackground(ln,~isnan(obj.fastSpikesMatBackground(ln,:)));
-                        fprintf(fid,'BG_Stim_basal[%d][%d][%d] = new Vector(%d)\n',many_times-1, c-1,i-1,length(acceptedValues) );
+                        fprintf(fid,'BG_Stim_basal[%d][%d][%d] = new Vector(%d)\n',0, c-1,i-1,length(acceptedValues) );
                         for j=1:length(acceptedValues)
-                            fprintf(fid,'BG_Stim_basal[%d][%d][%d].x[%d] = %d\n',many_times-1, c-1,i-1,j-1, abs(acceptedValues(j)));
+                            fprintf(fid,'BG_Stim_basal[%d][%d][%d].x[%d] = %d\n',0, c-1,i-1,j-1, abs(acceptedValues(j)));
                         end
                         ln = ln+1;
                         msg = sprintf('%3.1f',(ln/size(obj.fastSpikesMatBackground,1))*100);  
@@ -881,9 +883,9 @@ classdef nrun < handle
                     for i=1:size(obj.SpikesBgProximal,3)
 %                         fprintf(fid,'BG_Stim_Apicpr[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(obj.SpikesBgProximal{many_times, c,i}));
                         acceptedValues = obj.fastSpikesMatBackground(ln,~isnan(obj.fastSpikesMatBackground(ln,:)));
-                        fprintf(fid,'BG_Stim_Apicpr[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(acceptedValues) );
+                        fprintf(fid,'BG_Stim_Apicpr[%d][%d][%d] = new Vector(%d)\n',0,c-1,i-1,length(acceptedValues) );
                         for j=1:length(acceptedValues)
-                            fprintf(fid,'BG_Stim_Apicpr[%d][%d][%d].x[%d] = %d\n',many_times-1,c-1,i-1,j-1, abs(acceptedValues(j)));
+                            fprintf(fid,'BG_Stim_Apicpr[%d][%d][%d].x[%d] = %d\n',0,c-1,i-1,j-1, abs(acceptedValues(j)));
                         end
                         ln = ln+1;
                         msg = sprintf('%3.1f',(ln/size(obj.fastSpikesMatBackground,1))*100);  
@@ -893,9 +895,9 @@ classdef nrun < handle
                     for i=1:size(obj.SpikesBgApical,3)
 %                         fprintf(fid,'BG_Stim_Apic[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(obj.SpikesBgApical{many_times, c,i}));
                         acceptedValues = obj.fastSpikesMatBackground(ln,~isnan(obj.fastSpikesMatBackground(ln,:)));
-                        fprintf(fid,'BG_Stim_Apic[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(acceptedValues) );
+                        fprintf(fid,'BG_Stim_Apic[%d][%d][%d] = new Vector(%d)\n',0,c-1,i-1,length(acceptedValues) );
                         for j=1:length(acceptedValues)
-                            fprintf(fid,'BG_Stim_Apic[%d][%d][%d].x[%d] = %d\n',many_times-1,c-1,i-1,j-1, abs(acceptedValues(j)));
+                            fprintf(fid,'BG_Stim_Apic[%d][%d][%d].x[%d] = %d\n',0,c-1,i-1,j-1, abs(acceptedValues(j)));
                         end
                         ln = ln+1;
                         msg = sprintf('%3.1f',(ln/size(obj.fastSpikesMatBackground,1))*100);  
@@ -908,9 +910,9 @@ classdef nrun < handle
                     for i=1:size(obj.SpikesBgPV,3)
 %                         fprintf(fid,'BG_Stim_SomaPV[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(obj.SpikesBgPV{many_times, c,i}));
                         acceptedValues = obj.fastSpikesMatBackground(ln,~isnan(obj.fastSpikesMatBackground(ln,:)));
-                        fprintf(fid,'BG_Stim_SomaPV[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(acceptedValues));
+                        fprintf(fid,'BG_Stim_SomaPV[%d][%d][%d] = new Vector(%d)\n',0,c-1,i-1,length(acceptedValues));
                         for j=1:length(acceptedValues)
-                            fprintf(fid,'BG_Stim_SomaPV[%d][%d][%d].x[%d] = %d\n',many_times-1,c-1,i-1,j-1, abs(acceptedValues(j)));
+                            fprintf(fid,'BG_Stim_SomaPV[%d][%d][%d].x[%d] = %d\n',0,c-1,i-1,j-1, abs(acceptedValues(j)));
                         end
                         ln = ln+1;
                         msg = sprintf('%3.1f',(ln/size(obj.fastSpikesMatBackground,1))*100);  
@@ -922,7 +924,7 @@ classdef nrun < handle
                     for c=1:size(obj.SpikesBgCB,2)
                         for i=1:size(obj.SpikesBgCB,3)
 %                             fprintf(fid,'BG_Stim_SomaCB[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(obj.SpikesBgCB{many_times, c,i}));
-                            fprintf(fid,'BG_Stim_SomaCB[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,1);
+                            fprintf(fid,'BG_Stim_SomaCB[%d][%d][%d] = new Vector(%d)\n',0,c-1,i-1,1);
 %                             for j=1:length(obj.SpikesBgCB{many_times, c,i})
 %                                 fprintf(fid,'BG_Stim_SomaCB[%d][%d][%d].x[%d] = %d\n',many_times-1,c-1,i-1,j-1, abs(obj.SpikesBgCB{many_times, c,i}(j)));
 %                             end
@@ -934,7 +936,7 @@ classdef nrun < handle
                     for c=1:size(obj.SpikesBgCR,2)
                         for i=1:size(obj.SpikesBgCR,3)
 %                             fprintf(fid,'BG_Stim_SomaCR[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,length(obj.SpikesBgCR{many_times, c,i}));
-                            fprintf(fid,'BG_Stim_SomaCR[%d][%d][%d] = new Vector(%d)\n',many_times-1,c-1,i-1,1);
+                            fprintf(fid,'BG_Stim_SomaCR[%d][%d][%d] = new Vector(%d)\n',0,c-1,i-1,1);
 %                             for j=1:length(obj.SpikesBgCR{many_times, c,i})
 %                                 fprintf(fid,'BG_Stim_SomaCR[%d][%d][%d].x[%d] = %d\n',many_times-1,c-1,i-1,j-1, abs(obj.SpikesBgCR{many_times, c,i}(j)));
 %                             end
