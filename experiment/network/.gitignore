@@ -4,6 +4,7 @@
 
 # temp files
 *.*~
+*.asv
 
 # result folders
 single_core/

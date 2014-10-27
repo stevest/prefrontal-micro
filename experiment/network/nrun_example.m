@@ -23,13 +23,13 @@ pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
     
 %%
 % clustbiasRange = 0:0.1:1;
-for sn = 13
+for sn = 14
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,200,5000);
+    run = nrun(ID,75,SN,ST,100,5000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
@@ -287,7 +287,7 @@ end
 %% Calculate the stationary distribution of the network:
 stc = 1;
 
-Q = 2; % Q = 100ms integration time of the cell (?)
+Q = 10; % Q = 100ms integration time of the cell (?)
 if Q >= run.stimend
     error('Q window length is too big!');
 end
@@ -295,16 +295,28 @@ end
 N = 2^run.stimCellsPerCluster;
 sProbs = zeros(N,length(run.stimend + Q : run.tstop));
 
-
-for t = run.stimend + Q : run.tstop
-    % extract the states existing inside window in time t
-    sstates = zeros(run.stimCellsPerCluster,Q,run.nruns);
-    for ru = 1:run.nruns
-        for c = 1:run.stimCellsPerCluster
-            spikePool = round(RUNS_str{1,stc}{run.StimMat_str(c,stc),ru}.spikes');
-            sstates(c, unique(spikePool((spikePool <= t) & (spikePool > (t-Q)))) - (t-Q), ru) = 1 ; % unique in case we have miltiple spikes in a milisecond...
-        end
+% get spike trains from the cells of interest:
+spktrain = zeros(run.stimCellsPerCluster,run.tstop,run.nruns);
+for ru = 1:run.nruns
+    for c = 1:run.stimCellsPerCluster
+        spktrain(c,round(RUNS_str{1,1}{run.StimMat_str(c,stc),ru}.spikes'),ru) = 1;
     end
+end
+
+starting = 2 + Q ;
+% starting = run.stimend + Q;
+% for t = run.stimend + Q :Q: run.tstop
+for t = starting:Q: run.tstop
+    
+    % extract the states existing inside window in time t
+    sstates = spktrain(:,(t-Q)+1:t,:);
+%     sstates = zeros(run.stimCellsPerCluster,Q,run.nruns);
+%     for ru = 1:run.nruns
+%         for c = 1:run.stimCellsPerCluster
+%             spikePool = round(RUNS_str{1,stc}{run.StimMat_str(c,stc),ru}.spikes');
+%             sstates(c, unique(spikePool((spikePool <= t) & (spikePool > (t-Q)))) - (t-Q), ru) = 1 ; % unique in case we have miltiple spikes in a milisecond... kanonika den 8a eprepe na xreiazetai..
+%         end
+%     end
     sstates = reshape(any(sstates,2),size(any(sstates,2),1),[]);
     
 %     % Calculate probability for each state between runs:
@@ -313,13 +325,25 @@ for t = run.stimend + Q : run.tstop
 %     end
     [~,ia,ic] = unique(sstates','rows');
     for l=1:length(ia)
-        sProbs(bi2de(sstates(:,ia(l))')+1 , (t-(run.stimend + Q)) + 1 ) = sum(ic == l) / run.nruns; % na dw mipws exw la8os edw..
+        sProbs(bi2de(sstates(:,ia(l))')+1 , (t-starting) + 1 ) = sum(ic == l) / run.nruns; % na dw mipws exw la8os edw..
     end
     
-    
+    fprintf('@ t=%d to result paei sto %d\n',t,(t-starting) + 1)
 end % for all the NEURON runs
 
-sc(sProbs,jet);
+% figure;sc(sProbs,jet);
+figure;
+bwin = 50;
+for l=70
+%     plot(smoothts(sProbs(l,:),'g',1000),'color',rand(1,3));hold on;
+    csum = cumsum(sProbs(l,:));
+    vara = bwin:bwin:size(sProbs,2);
+    varb = 1:bwin:size(sProbs,2)-bwin;
+    vari = csum(vara) - csum(varb);
+    plot(vari,'color',rand(1,3));hold on;
+end
+
+
 
 % %% Calculate the stationary distribution of the network:
 % stc = 1;
