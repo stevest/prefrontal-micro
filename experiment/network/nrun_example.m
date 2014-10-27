@@ -23,21 +23,23 @@ pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
     
 %%
 % clustbiasRange = 0:0.1:1;
-for sn = 14
+for sn = 15
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,100,5000);
+    run = nrun(ID,75,SN,ST,10,5000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
-    run.init(states);
-    
-    % Insert cynaptic clustering bias: 0 = clustered, 1 = random (no
+        % Insert cynaptic clustering bias: 0 = clustered, 1 = random (no
     % clustering)
     run.CLUSTBIAS = 1; % keep synapses in original locations (no rand jittering)
+    run.init(states);
+    
+
+    
     
 %     sum(sum(run.stateSTR(1:run.nPC,1:run.nPC)))            / (run.nPC*run.nPC)
 %     mkdir(run.path);
@@ -71,6 +73,12 @@ for sn = 14
     
     % Export Parameters to NEURON:
     run.exportParams2Neuron(pathprefix);
+%     run.exportStimulationParameters(pathprefix)
+%     run.exportNetworkParameters(pathprefix)
+%     run.exportNetworkStimulationHeader(pathprefix)
+%     run.exportNetworkStimulation(pathprefix)
+%     run.exportBackgroundStimParamsHeader(pathprefix)
+%     run.exportBackgroundStimParams(pathprefix)
 
     % Push data to cluster:
     run.push();

@@ -648,7 +648,7 @@ classdef nrun < handle
             
         end
         
-        function exportParams2Neuron(obj,varargin)
+        function exportStimulationParameters(obj,varargin)
             if nargin >0
                 exportpath = varargin{1};
             else
@@ -681,8 +681,16 @@ classdef nrun < handle
                 fprintf(fid,'PcellStimListRND.x[%d][%d] = %d\n',i-1,j-1, obj.StimMat_rnd(i,j)-1); % NEURON idx
                 end
             end
+            fprintf(fid,'//EOF\n');
             fclose(fid);
-            
+        end
+        
+        function exportNetworkParameters(obj,varargin)
+            if nargin >0
+                exportpath = varargin{1};
+            else
+                exportpath = obj.path;
+            end
             % Export Network Connectivity:
             % Export STRUCTURED parameter matrices in .hoc file:
             fprintf('Exporting importNetworkParametersSTR.hoc...\n');
@@ -718,6 +726,7 @@ classdef nrun < handle
                     fprintf(fid,'weightsMatrix.x[%d][%d] = %f\n',i-1,j-1, obj.weights_str(i,j));
                 end
             end
+            fprintf(fid,'//EOF\n');
             fclose(fid);
             
             % Export RANDOM parameter matrices in .hoc file:
@@ -753,8 +762,16 @@ classdef nrun < handle
                     fprintf(fid,'weightsMatrix.x[%d][%d] = %f\n',i-1,j-1, obj.weights_rnd(i,j));
                 end
             end
+            fprintf(fid,'//EOF\n');
             fclose(fid);
-
+        end
+        
+        function exportNetworkStimulationHeader(obj,varargin)
+            if nargin >0
+                exportpath = varargin{1};
+            else
+                exportpath = obj.path;
+            end
             % Export stimulation spikes in .hoc file:
             fprintf('Exporting importNetworkStimulationHeader.hoc...\n');
             fid = fopen([exportpath,obj.SLASH,'importNetworkStimulationHeader.hoc'],'W');
@@ -762,8 +779,16 @@ classdef nrun < handle
             fprintf(fid,'// Object decleration:\n');
             fprintf(fid,'objref Stim_Dend[%d][%d][%d], Stim_Apic[%d][%d][%d]\n',...
                 1,obj.nPC,size(obj.SpikesStimDend,3),1,obj.nPC,size(obj.SpikesStimApic,3));
+            fprintf(fid,'//EOF\n');
             fclose(fid);
-            
+        end
+        
+        function exportNetworkStimulation(obj,varargin)
+            if nargin >0
+                exportpath = varargin{1};
+            else
+                exportpath = obj.path;
+            end
             fprintf('Exporting importNetworkStimulation.hoc...\n');
             ln=1;
             reverseStr = '';
@@ -810,11 +835,18 @@ classdef nrun < handle
 %                     fprintf(fid,'print "stimulation cell @ %f\\n"\n',c/obj.nPC);
 %                       fprintf(fid,'print "stimulation cell @ %d\\n"\n',c);
                 end
+                fprintf(fid,'//EOF\n');
                 fclose(fid);
             end
             fprintf('\n');
-            
-            
+        end
+        
+        function exportBackgroundStimParamsHeader(obj,varargin)
+            if nargin >0
+                exportpath = varargin{1};
+            else
+                exportpath = obj.path;
+            end
             % Export Background spikes in .hoc file:
             fprintf('Exporting importBackgroundStimParamsHeader.hoc...\n');
             fid = fopen([exportpath,obj.SLASH,'importBackgroundStimParamsHeader.hoc'],'W');
@@ -832,8 +864,16 @@ classdef nrun < handle
             fprintf(fid,'BG_PVSyn = %d\n',size(obj.SpikesBgPV,3));
             fprintf(fid,'BG_CBSyn = %d\n',size(obj.SpikesBgCB,3));
             fprintf(fid,'BG_CRSyn = %d\n',size(obj.SpikesBgCR,3));
+            fprintf(fid,'//EOF\n');
             fclose(fid);
-            
+        end
+        
+        function exportBackgroundStimParams(obj,varargin)
+            if nargin >0
+                exportpath = varargin{1};
+            else
+                exportpath = obj.path;
+            end
             fprintf('Exporting importBackgroundStimParams.hoc...\n');
             ln=1;
             reverseStr = '';
@@ -943,6 +983,7 @@ classdef nrun < handle
                         end
                     end
 %                 end
+                fprintf(fid,'//EOF\n');
                 fclose(fid);
             end
             fprintf('\n');
@@ -984,8 +1025,35 @@ classdef nrun < handle
 %                     end
 %                 end
 %             end
-            
-            
+        end
+        
+        function exportParams2Neuron(obj,varargin)
+            exportStimulationParameters(obj,varargin{1})
+            exportNetworkParameters(obj,varargin{1})
+            exportNetworkStimulationHeader(obj,varargin{1})
+            exportNetworkStimulation(obj,varargin{1})
+            exportBackgroundStimParamsHeader(obj,varargin{1})
+            exportBackgroundStimParams(obj,varargin{1})
+        end
+        
+        function result = checkStringEOF(obj,varargin)
+            result = 0;
+            fid = fopen(varargin{1},'r');
+            % Check to find the '//EOF\n' string at the end of each
+            % generated file (to ensure no further NEURON errors...).
+            fseek(fid,-6,'eof');
+            tmpc = fscanf(fid,'%c');
+            try
+                if ~strcmp(tmpc,sprintf('//EOF\n'))
+                    warning(sprintf('/!\\ exported file %s is corrupted! /!\\\n',fs));
+                end
+                fclose(fid);
+                return;
+            catch
+                warning('/!\\ Something went wrong when checking!');
+            end
+            fclose(fid);
+            return;
         end
         
         function S = saveobj(obj)
