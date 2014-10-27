@@ -448,7 +448,7 @@ classdef nrun < handle
             slack = round(total*25/100); % 25% compensation for rows containing identical values (discarted)
             obj.SpikesStimDend = cell(obj.nruns,obj.nPC,nIncoming(1));
             obj.SpikesStimApic = cell(obj.nruns,obj.nPC,nIncoming(2));
-            
+            tic;
 %             obj.fastSpikesMatStimulation = sort(round(repmat(linspace(0,obj.stimdur,nStim),...
 %                 total+slack,1) + ((rand(total+slack,nStim)-0.5)*randShift)),2);
             obj.fastSpikesMatStimulation = sort((repmat(linspace(0,obj.stimdur,nStim),...
@@ -459,8 +459,12 @@ classdef nrun < handle
             obj.fastSpikesMatStimulation = obj.fastSpikesMatStimulation(fastMatSpikesStimulationIdx(1:total),:);
             obj.fastSpikesMatStimulation(obj.fastSpikesMatStimulation<=0) = NaN;
 %             fastMat(fastMat>obj.stimdur) = NaN;
-            fprintf('Stimulation generated in a jiffy!\n');
-            
+            tooktime = toc;
+            if tooktime < 5
+                fprintf('Stimulation generated in a jiffy!\n');
+            else 
+                fprintf('Stimulation generated in two jiffies..\n');
+            end
 %             for ru=1:obj.nruns
 %                 for c=1:obj.nPC
 %                     fprintf('Generating Stimulation for cell %d.\n',c)
@@ -513,16 +517,23 @@ classdef nrun < handle
                 stimPoissonCell = cell(obj.nruns,1);
                 for i=1:obj.nruns
                     stimPoissonCell{i} = find(poissrnd(0.006,obj.tstop,1))'  ;
+                    %in case poisson generates >1 events in the same time,
+                    %shift the duplicate events by the smallest unit (ms).
+                    while sum(circshift(~diff(stimPoissonCell{1})',1))
+                        stimPoissonCell{i}(find(circshift(~diff(stimPoissonCell{1})',1)',1,'first')) = stimPoissonCell{i}(find(circshift(~diff(stimPoissonCell{1})',1)',1,'first')) + 1;
+                        stimPoissonCell{i} = sort(stimPoissonCell{i},'ascend');
+                    end
                 end
                 % Put them tidly in a matrix (padded with zeros)
                 maxLength = max(cellfun(@length,stimPoissonCell));
                 stimPoisson=cell2mat(cellfun(@(x)cat(2,x,zeros(1,maxLength-length(x))*NaN),stimPoissonCell,'UniformOutput',false));
                 
-                
+                tic;
                 TID=100;
                 poil = size(stimPoisson,2) ;
                 obj.fastSpikesMatBackground = [];
                 % repeat for each run:
+                reverseStr = '';
                 for i=1:obj.nruns
                     try
                         total = ((obj.nPC*num_exc*3)+(obj.nPV*num_inha)) ;
@@ -540,11 +551,19 @@ classdef nrun < handle
                         size(tmpfastSpikesMatBackground)
                         error('paparia!')
                     end
-                        
+                    msg = sprintf('%3.1f',(i/obj.nruns)*100);  
+                    fprintf([reverseStr, msg]);
+                    reverseStr = repmat(sprintf('\b'), 1, length(msg));
                 end
+                fprintf('\n');
                 obj.fastSpikesMatBackground(obj.fastSpikesMatBackground<=0) = NaN;
                 obj.fastSpikesMatBackground(obj.fastSpikesMatBackground>=obj.tstop) = NaN;
-                fprintf('Background Noise generated in a jiffy!\n');
+                tooktime = toc;
+                if tooktime < 5
+                    fprintf('Background Noise  generated in a jiffy!\n');
+                else
+                    fprintf('Background Noise  generated in two jiffies..\n');
+                end
                 
 %                 for ru = 1:obj.nruns
 %                     for c=1:obj.nPC
