@@ -23,13 +23,13 @@ pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
     
 %%
 % clustbiasRange = 0:0.1:1;
-for sn = 15
+for sn = 16
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,10,5000);
+    run = nrun(ID,75,SN,ST,700,10000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
@@ -45,7 +45,7 @@ for sn = 15
 %     mkdir(run.path);
 %     save(sprintf('%s/EXP_ID%d_SN%d_ST%d.mat',run.path,run.id,run.sn,run.state),'run');
     mkdir(pathprefix,run.path);
-    save(sprintf('%s%s/EXP_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'run');
+    save(sprintf('%s%s/EXP_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'run','-v7.3');
     
     
 %     for i=1:run.NC_str
@@ -103,8 +103,8 @@ end
 %% Load STR
 % close all; clear all; clc;
 % load(sprintf('STR_%d_%d.mat',12,8)) % 8,10
-% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,13,1)) % 8,10
-
+% load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,15,1)) % 8,10
+% mat = matfile(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,15,1)) % 8,10
 
 RUNS_str = {};
 Sid=1;
@@ -125,8 +125,9 @@ for stc=1:run.NC_str(Sid)
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
             [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
             % For MEMORY concerns reduce object's size:
-            mycell.mv = single(mycell.mv(1:mycell.dt:end));
-            mycell.dt=1;
+%             mycell.mv = single(mycell.mv(1:mycell.dt:end));
+%             mycell.dt=1;
+            mycell.mv = [];
             mycell.spikes = single(mycell.spikes);
             
             if ~isempty(S);

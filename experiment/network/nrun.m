@@ -535,22 +535,23 @@ classdef nrun < handle
                 % repeat for each run:
                 reverseStr = '';
                 for i=1:obj.nruns
+                    total = ((obj.nPC*num_exc*3)+(obj.nPV*num_inha)) ;
+                    slack = round(total*100/100); % 45% compensation for rows containing identical values (discarted)
+                    % Fast generated spike matrix:
+                    %                         tmpfastSpikesMatBackground = sort(round( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
+                    tmpfastSpikesMatBackground = sort(( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
+                    tmpfastSpikesMatBackground = sort( round(tmpfastSpikesMatBackground *100)/100 ,2);
+                    fastSpikesMatBackgroundIdx = find(all(diff(tmpfastSpikesMatBackground,1,2),2));
                     try
-                        total = ((obj.nPC*num_exc*3)+(obj.nPV*num_inha)) ;
-                        slack = round(total*100/100); % 45% compensation for rows containing identical values (discarted)
-                        % Fast generated spike matrix:
-%                         tmpfastSpikesMatBackground = sort(round( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
-                        tmpfastSpikesMatBackground = sort(( ((rand(total+slack,poil)-0.5)*TID) + repmat(stimPoisson(i,:),total+slack,1) ) ,2);
-                        tmpfastSpikesMatBackground = sort( round(tmpfastSpikesMatBackground *100)/100 ,2);
-                        fastSpikesMatBackgroundIdx = find(all(diff(tmpfastSpikesMatBackground,1,2),2));
                         tmpfastSpikesMatBackground = tmpfastSpikesMatBackground(fastSpikesMatBackgroundIdx(1:total),:);
-                        obj.fastSpikesMatBackground = [obj.fastSpikesMatBackground; tmpfastSpikesMatBackground];
                     catch err
                         size(fastSpikesMatBackgroundIdx)
                         total
                         size(tmpfastSpikesMatBackground)
+                        size(obj.fastSpikesMatBackground)
                         error('paparia!')
                     end
+                    obj.fastSpikesMatBackground = [obj.fastSpikesMatBackground; tmpfastSpikesMatBackground];
                     msg = sprintf('%3.1f',(i/obj.nruns)*100);  
                     fprintf([reverseStr, msg]);
                     reverseStr = repmat(sprintf('\b'), 1, length(msg));
