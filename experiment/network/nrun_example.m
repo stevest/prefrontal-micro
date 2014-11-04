@@ -23,13 +23,13 @@ pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
     
 %%
 % clustbiasRange = 0:0.1:1;
-for sn = 16
+for sn = 1
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
-    ID = 12;
+    ID = 13;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,700,10000);
+    run = nrun(ID,75,SN,ST,50,5000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
@@ -44,8 +44,7 @@ for sn = 16
 %     sum(sum(run.stateSTR(1:run.nPC,1:run.nPC)))            / (run.nPC*run.nPC)
 %     mkdir(run.path);
 %     save(sprintf('%s/EXP_ID%d_SN%d_ST%d.mat',run.path,run.id,run.sn,run.state),'run');
-    mkdir(pathprefix,run.path);
-    save(sprintf('%s%s/EXP_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'run','-v7.3');
+
     
     
 %     for i=1:run.NC_str
@@ -80,6 +79,11 @@ for sn = 16
 %     run.exportBackgroundStimParamsHeader(pathprefix)
 %     run.exportBackgroundStimParams(pathprefix)
 
+    mkdir(pathprefix,run.path);
+    run.fastSpikesMatStimulation = [];
+    run.fastSpikesMatBackground = [];
+    save(sprintf('%s%s/EXP_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'run','-v7.3');
+
     % Push data to cluster:
     run.push();
     
@@ -110,9 +114,9 @@ RUNS_str = {};
 Sid=1;
 fprintf('Loading runs...');
 PCcells_str = {};
-for stc=1:run.NC_str(Sid)
-    stc
+for stc=1%:run.NC_str(Sid)
     for ru = 1:run.nruns
+        ru
         for c=1:run.nPC
             if (run.ISBINARY)
                 mycell = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
@@ -296,62 +300,79 @@ end
 %% Calculate the stationary distribution of the network:
 stc = 1;
 
-Q = 10; % Q = 100ms integration time of the cell (?)
-if Q >= run.stimend
-    error('Q window length is too big!');
-end
-%unique states are N = 2^n. 
-N = 2^run.stimCellsPerCluster;
-sProbs = zeros(N,length(run.stimend + Q : run.tstop));
-
-% get spike trains from the cells of interest:
-spktrain = zeros(run.stimCellsPerCluster,run.tstop,run.nruns);
-for ru = 1:run.nruns
-    for c = 1:run.stimCellsPerCluster
-        spktrain(c,round(RUNS_str{1,1}{run.StimMat_str(c,stc),ru}.spikes'),ru) = 1;
+Q = 2:10;% Q = 100ms integration time of the cell (?)
+for ql = 1:length(Q)
+    if Q(ql) >= run.stimend
+        error('Q window length is too big!');
     end
-end
-
-starting = 2 + Q ;
-% starting = run.stimend + Q;
-% for t = run.stimend + Q :Q: run.tstop
-for t = starting:Q: run.tstop
+    %unique states are N = 2^n.
+    N = 2^run.stimCellsPerCluster;
+    sProbs{ql} = zeros(N,length(run.stimend + Q(ql) : run.tstop));
     
-    % extract the states existing inside window in time t
-    sstates = spktrain(:,(t-Q)+1:t,:);
-%     sstates = zeros(run.stimCellsPerCluster,Q,run.nruns);
-%     for ru = 1:run.nruns
-%         for c = 1:run.stimCellsPerCluster
-%             spikePool = round(RUNS_str{1,stc}{run.StimMat_str(c,stc),ru}.spikes');
-%             sstates(c, unique(spikePool((spikePool <= t) & (spikePool > (t-Q)))) - (t-Q), ru) = 1 ; % unique in case we have miltiple spikes in a milisecond... kanonika den 8a eprepe na xreiazetai..
-%         end
-%     end
-    sstates = reshape(any(sstates,2),size(any(sstates,2),1),[]);
-    
-%     % Calculate probability for each state between runs:
-%     for l=1:size(sstates,2)
-%         histo(bi2de(sstates(:,l)')+1 , (t-(run.stimend + Q)) + 1 ) = histo(bi2de(sstates(:,l)')+1 , (t-(run.stimend + Q)) + 1 ) + 1;
-%     end
-    [~,ia,ic] = unique(sstates','rows');
-    for l=1:length(ia)
-        sProbs(bi2de(sstates(:,ia(l))')+1 , (t-starting) + 1 ) = sum(ic == l) / run.nruns; % na dw mipws exw la8os edw..
+    % get spike trains from the cells of interest:
+    spktrain = zeros(run.stimCellsPerCluster,run.tstop,run.nruns);
+    for ru = 1:run.nruns
+        for c = 1:run.stimCellsPerCluster
+            spktrain(c,round(RUNS_str{1,1}{run.StimMat_str(c,stc),ru}.spikes'),ru) = 1;
+        end
     end
     
-    fprintf('@ t=%d to result paei sto %d\n',t,(t-starting) + 1)
-end % for all the NEURON runs
+    starting = 2 + Q(ql) ;
+    % starting = run.stimend + Q;
+    % for t = run.stimend + Q :Q: run.tstop
+    for t = starting:Q(ql): run.tstop
+        
+        % extract the states existing inside window in time t
+        sstates = spktrain(:,(t-Q(ql))+1:t,:);
+        %     sstates = zeros(run.stimCellsPerCluster,Q,run.nruns);
+        %     for ru = 1:run.nruns
+        %         for c = 1:run.stimCellsPerCluster
+        %             spikePool = round(RUNS_str{1,stc}{run.StimMat_str(c,stc),ru}.spikes');
+        %             sstates(c, unique(spikePool((spikePool <= t) & (spikePool > (t-Q)))) - (t-Q), ru) = 1 ; % unique in case we have miltiple spikes in a milisecond... kanonika den 8a eprepe na xreiazetai..
+        %         end
+        %     end
+        sstates = reshape(any(sstates,2),size(any(sstates,2),1),[]);
+        
+        %     % Calculate probability for each state between runs:
+        %     for l=1:size(sstates,2)
+        %         histo(bi2de(sstates(:,l)')+1 , (t-(run.stimend + Q)) + 1 ) = histo(bi2de(sstates(:,l)')+1 , (t-(run.stimend + Q)) + 1 ) + 1;
+        %     end
+        [~,ia,ic] = unique(sstates','rows');
+        for l=1:length(ia)
+            sProbs{ql}(bi2de(sstates(:,ia(l))')+1 , (t-starting) + 1 ) = sum(ic == l) / run.nruns; % na dw mipws exw la8os edw..
+        end
+        
+        fprintf('@ t=%d to result paei sto %d\n',t,(t-starting) + 1)
+    end % for all the NEURON runs
+end
 
 % figure;sc(sProbs,jet);
 figure;
 bwin = 50;
-for l=70
+for l=10
 %     plot(smoothts(sProbs(l,:),'g',1000),'color',rand(1,3));hold on;
     csum = cumsum(sProbs(l,:));
     vara = bwin:bwin:size(sProbs,2);
     varb = 1:bwin:size(sProbs,2)-bwin;
     vari = csum(vara) - csum(varb);
-    plot(vari,'color',rand(1,3));hold on;
+    plot(smoothts(vari),'color',rand(1,3));hold on;
 end
 
+
+mcmcgr(sProbs{ql},ng)
+
+figure	;
+bwin = 50	;
+l=10 ;
+cm = jet(length(Q));
+for ql=1:length(Q)
+%     plot(smoothts(sProbs(l,:),'g',1000),'color',rand(1,3));hold on;
+    csum = cumsum(sProbs{ql}(l,:));
+    vara = bwin:bwin:size(sProbs{ql},2);
+    varb = 1:bwin:size(sProbs{ql},2)-bwin;
+    vari = csum(vara) - csum(varb);
+    plot(smoothts(vari),'color',cm(ql,:));hold on;
+end
 
 
 % %% Calculate the stationary distribution of the network:
@@ -394,6 +415,66 @@ end
 % %     end
 %     
 % end % for all the NEURON runs
+
+%% MCMCGR - Gelman-Rubin R statistic for convergence
+save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'RUNS_str','-v7.3');
+
+% get spike trains from the cells of interest:
+stc = 1;
+max_t = floor((run.tstop-run.stimend) / 2) ;
+max_t2 = max_t*2 ;
+
+spktrain = zeros(run.cellsPerCluster_str(stc),run.tstop,run.nruns);
+for ru = 1:run.nruns
+    idx = find(run.labels_str == stc)';
+    for c=idx
+        spktrain(find(idx == c),round(RUNS_str{1,1}{c,ru}.spikes'),ru) = 1;
+    end
+end
+
+pre = run.stimend;
+x_len = run.cellsPerCluster_str(stc);
+
+% Brooks and Gelman, 1998:
+for t=1:max_t
+    t_len = (t*2)-t+1;
+
+    bar_Xi = (reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns)) ./ t_len;
+    dd_X = sum(reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns),2) ./ (t_len * run.nruns) ;
+    
+    cumSum_W = zeros(x_len,x_len,run.nruns) ;
+    for ch = 1:run.nruns
+        ch
+        deviationScore =  num2cell(bsxfun(@minus, spktrain(:,pre+t:pre+(t*2),ch), bar_Xi(ch)),1);
+        beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
+        cumSum_W(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
+    end
+    GR_W = sum(cumSum_W,3) ./ (run.nruns * (t_len-1));
+    
+    cumSum_B = zeros(x_len,x_len,run.nruns) ;
+    for ch = 1:run.nruns
+        ch
+        deviationScore =  num2cell(bsxfun(@minus, bar_Xi, dd_X),1);
+        beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
+        cumSum_B(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
+    end
+    GR_B_N = sum(cumSum_B,3) ./ (run.nruns -1);
+    
+    hat_V = (((t_len-1) / t_len) * GR_W ) + ( (1+(1/run.nruns)) * GR_B_N ) ; 
+    
+end
+
+% for t=1:max_t
+%     t_len = (t*2)-t+1;
+% 
+%     bar_Xi = (reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns)) ./ t_len;
+%     dd_X = sum(reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns),2) ./ (t_len * run.nruns) ;
+%     GR_B_N = zeros(run.cellsPerCluster_str(stc),1) ;
+%     for k = 1:run.nruns
+%         GR_B_N = GR_B_N + (bar_Xi(:,k) - dd_X).^2 / (run.nruns-1) ;
+%     end
+%     
+% end
 
 
 %%
