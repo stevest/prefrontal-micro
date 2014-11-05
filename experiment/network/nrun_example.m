@@ -417,13 +417,12 @@ end
 % end % for all the NEURON runs
 
 %% MCMCGR - Gelman-Rubin R statistic for convergence
-save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'RUNS_str','-v7.3');
+% save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'RUNS_str','-v7.3');
 
 % get spike trains from the cells of interest:
-stc = 1;
-max_t = floor((run.tstop-run.stimend) / 2) ;
-max_t2 = max_t*2 ;
+stc = 2;
 
+% Calculate spike trains ONLY for the above selected cells:
 spktrain = zeros(run.cellsPerCluster_str(stc),run.tstop,run.nruns);
 for ru = 1:run.nruns
     idx = find(run.labels_str == stc)';
@@ -432,63 +431,39 @@ for ru = 1:run.nruns
     end
 end
 
-pre = run.stimend ;
+pre = 1%run.stimend ;
 x_len = run.cellsPerCluster_str(stc) ;
+% hat_R = zeros(1,max_t) ;
 hat_R = zeros(1,max_t) ;
 % Update:
 max_t = floor(run.tstop-run.stimend);
-
+int_t = floor(max_t / 100)-1;
+max_t = max_t - int_t;
 % Brooks and Gelman, 1998:
-for t=1:max_t
+for t=1:int_t:max_t
     t
-    t_len = (t*2)-t+1;
+%     t_len = (t*2)-t+1;
+    tstart = pre+t 
+    tend = pre+t+int_t 
+    t_len = tend-tstart+1;
 
-    bar_Xi = (reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns)) ./ t_len;
-    dd_X = sum(reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns),2) ./ (t_len * run.nruns) ;
+    bar_Xi = (reshape(sum(spktrain(:,tstart:tend,:),2),run.cellsPerCluster_str(stc),run.nruns)) ./ t_len;
+    dd_X = sum(reshape(sum(spktrain(:,tstart:tend,:),2),run.cellsPerCluster_str(stc),run.nruns),2) ./ (t_len * run.nruns) ;
     
     cumSum_W = zeros(x_len,x_len,run.nruns) ;
-    cumSum_B = zeros(x_len,x_len,run.nruns) ;
     for ch = 1:run.nruns
-        deviationScore =  num2cell(bsxfun(@minus, spktrain(:,pre+t:pre+(t*2),ch), bar_Xi(ch)),1);
-        beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
-        cumSum_W(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
-        deviationScore =  num2cell(bsxfun(@minus, bar_Xi, dd_X),1);
-        beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
-        cumSum_B(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
+        cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, spktrain(:,tstart:tend,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
     end
     GR_W = sum(cumSum_W,3) ./ (run.nruns * (t_len-1));
-    GR_B_N = sum(cumSum_B,3) ./ (run.nruns -1);
-    
-%     cumSum_B = zeros(x_len,x_len,run.nruns) ;
-%     for ch = 1:run.nruns
-%         ch
-%         deviationScore =  num2cell(bsxfun(@minus, bar_Xi, dd_X),1);
-%         beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
-%         cumSum_B(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
-%     end
-%     GR_B_N = sum(cumSum_B,3) ./ (run.nruns -1);
-    
-%     hat_V = (((t_len-1) / t_len) * GR_W ) + ( (1+(1/run.nruns)) * GR_B_N ) ; 
-    
+    GR_B_N = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (run.nruns -1);
+
     if rcond(GR_W) < 1e-12
         warning('Damn it. W matrix is near singular @t=%d. Skipping...',t);
         continue;
     end
-    hat_R(1,t) = ((x_len-1)/x_len) + ((run.nruns+1)/run.nruns) * max(eig(GR_W\GR_B_N));
-    
+    hat_R(1,t) = ((t_len-1)/t_len) + ((run.nruns+1)/run.nruns) * max(eig(GR_W\GR_B_N));
 end
-
-% for t=1:max_t
-%     t_len = (t*2)-t+1;
-% 
-%     bar_Xi = (reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns)) ./ t_len;
-%     dd_X = sum(reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns),2) ./ (t_len * run.nruns) ;
-%     GR_B_N = zeros(run.cellsPerCluster_str(stc),1) ;
-%     for k = 1:run.nruns
-%         GR_B_N = GR_B_N + (bar_Xi(:,k) - dd_X).^2 / (run.nruns-1) ;
-%     end
-%     
-% end
+plot(hat_R(find(hat_R)));hold on;
 
 
 %%
