@@ -432,35 +432,49 @@ for ru = 1:run.nruns
     end
 end
 
-pre = run.stimend;
-x_len = run.cellsPerCluster_str(stc);
+pre = run.stimend ;
+x_len = run.cellsPerCluster_str(stc) ;
+hat_R = zeros(1,max_t) ;
+% Update:
+max_t = floor(run.tstop-run.stimend);
 
 % Brooks and Gelman, 1998:
 for t=1:max_t
+    t
     t_len = (t*2)-t+1;
 
     bar_Xi = (reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns)) ./ t_len;
     dd_X = sum(reshape(sum(spktrain(:,pre+t:pre+(t*2),:),2),run.cellsPerCluster_str(stc),run.nruns),2) ./ (t_len * run.nruns) ;
     
     cumSum_W = zeros(x_len,x_len,run.nruns) ;
+    cumSum_B = zeros(x_len,x_len,run.nruns) ;
     for ch = 1:run.nruns
-        ch
         deviationScore =  num2cell(bsxfun(@minus, spktrain(:,pre+t:pre+(t*2),ch), bar_Xi(ch)),1);
         beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
         cumSum_W(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
-    end
-    GR_W = sum(cumSum_W,3) ./ (run.nruns * (t_len-1));
-    
-    cumSum_B = zeros(x_len,x_len,run.nruns) ;
-    for ch = 1:run.nruns
-        ch
         deviationScore =  num2cell(bsxfun(@minus, bar_Xi, dd_X),1);
         beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
         cumSum_B(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
     end
+    GR_W = sum(cumSum_W,3) ./ (run.nruns * (t_len-1));
     GR_B_N = sum(cumSum_B,3) ./ (run.nruns -1);
     
-    hat_V = (((t_len-1) / t_len) * GR_W ) + ( (1+(1/run.nruns)) * GR_B_N ) ; 
+%     cumSum_B = zeros(x_len,x_len,run.nruns) ;
+%     for ch = 1:run.nruns
+%         ch
+%         deviationScore =  num2cell(bsxfun(@minus, bar_Xi, dd_X),1);
+%         beforeSum = cellfun(@(x) bsxfun(@times,x,x'),deviationScore,'uniformoutput', false) ;
+%         cumSum_B(:,:,ch) = sum(reshape(cell2mat(beforeSum),x_len,x_len,[]),3) ;
+%     end
+%     GR_B_N = sum(cumSum_B,3) ./ (run.nruns -1);
+    
+%     hat_V = (((t_len-1) / t_len) * GR_W ) + ( (1+(1/run.nruns)) * GR_B_N ) ; 
+    
+    if rcond(GR_W) < 1e-12
+        warning('Damn it. W matrix is near singular @t=%d. Skipping...',t);
+        continue;
+    end
+    hat_R(1,t) = ((x_len-1)/x_len) + ((run.nruns+1)/run.nruns) * max(eig(GR_W\GR_B_N));
     
 end
 
