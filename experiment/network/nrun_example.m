@@ -420,50 +420,55 @@ end
 % save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'RUNS_str','-v7.3');
 
 % get spike trains from the cells of interest:
-stc = 2;
-
-% Calculate spike trains ONLY for the above selected cells:
-spktrain = zeros(run.cellsPerCluster_str(stc),run.tstop,run.nruns);
-for ru = 1:run.nruns
-    idx = find(run.labels_str == stc)';
-    for c=idx
-        spktrain(find(idx == c),round(RUNS_str{1,1}{c,ru}.spikes'),ru) = 1;
-    end
+for stc = 1:run.NC_str
+    cellpool{1,stc} = find(run.labels_str == stc)';
 end
 
-pre = 1%run.stimend ;
-x_len = run.cellsPerCluster_str(stc) ;
-% hat_R = zeros(1,max_t) ;
-hat_R = zeros(1,max_t) ;
-% Update:
-max_t = floor(run.tstop-run.stimend);
-int_t = floor(max_t / 100)-1;
-max_t = max_t - int_t;
-% Brooks and Gelman, 1998:
-for t=1:int_t:max_t
-    t
-%     t_len = (t*2)-t+1;
-    tstart = pre+t 
-    tend = pre+t+int_t 
-    t_len = tend-tstart+1;
 
-    bar_Xi = (reshape(sum(spktrain(:,tstart:tend,:),2),run.cellsPerCluster_str(stc),run.nruns)) ./ t_len;
-    dd_X = sum(reshape(sum(spktrain(:,tstart:tend,:),2),run.cellsPerCluster_str(stc),run.nruns),2) ./ (t_len * run.nruns) ;
+spktrain = cell(1,size(cellpool,2));
+groupint_t = run.tstop / 100 ;
+ng = run.tstop / groupint_t ;
+hat_R = zeros(size(cellpool,2),ng) ;
+M = run.nruns ;
+N = groupint_t ;
+
+for cp = 1:size(cellpool,2)
+    % Calculate spike trains ONLY for the above selected cells:
+    spktrain{1,cp} = zeros(size(cellpool{1,cp},2),run.tstop,M);
+    for ru = 1:M
+        for c=cellpool{1,cp} % must be row vector!!
+            spktrain{1,cp}(find(cellpool{1,cp} == c),round(RUNS_str{1,1}{c,ru}.spikes'),ru) = 1;
+        end
+    end
     
-    cumSum_W = zeros(x_len,x_len,run.nruns) ;
-    for ch = 1:run.nruns
-        cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, spktrain(:,tstart:tend,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
-    end
-    GR_W = sum(cumSum_W,3) ./ (run.nruns * (t_len-1));
-    GR_B_N = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (run.nruns -1);
+    x_len = size(cellpool{1,cp},2) ;
 
-    if rcond(GR_W) < 1e-12
-        warning('Damn it. W matrix is near singular @t=%d. Skipping...',t);
-        continue;
+    % Multivariate extension as in: Brooks and Gelman, 1998:
+    for ig = 1:ng
+        ts = ((ig-1) * N) + 1 ;
+        te = (ig) * N ;
+        
+        bar_Xi = (reshape(sum(spktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M)) ./ N;
+        dd_X = sum(reshape(sum(spktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M),2) ./ (N * M) ;
+        
+        cumSum_W = zeros(x_len,x_len,M) ;
+        for ch = 1:M
+            cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, spktrain{1,cp}(:,ts:te,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
+        end
+        GR_W = sum(cumSum_W,3) ./ (M * (N-1));
+        GR_B_N = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
+        
+        if rcond(GR_W) < 1e-12
+            warning('Damn it. W matrix is near singular @t=%d. Skipping this t...',ts);
+            hat_R(cp,ig) = NaN ;
+            continue;
+        else
+            hat_R(cp,ig) = ((N-1)/N) + ((M+1)/M) * max(eig(GR_W\GR_B_N));
+        end
     end
-    hat_R(1,t) = ((t_len-1)/t_len) + ((run.nruns+1)/run.nruns) * max(eig(GR_W\GR_B_N));
 end
-plot(hat_R(find(hat_R)));hold on;
+
+plot([1,((1:ng-1) * N) + 1] ,hat_R);hold on;
 
 
 %%
