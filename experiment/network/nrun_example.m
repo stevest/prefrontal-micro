@@ -1,11 +1,12 @@
 clear all;close all;clc;
-cd('C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network')
+cd('C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network')
 % cd('E:\NEURON_RUNS')
 load('states_07_G.mat')
 % pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
 % pathprefix = 'H:/NEURON_RUNS/';
 % pathprefix = 'I:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
-pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
+% pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
+pathprefix = 'E:/NEURON_RUNS/';
 
 % states.PC2PC_rnd = PC2PC_rnd;
 % states.PC2PC_str = PC2PC_str;
@@ -424,21 +425,34 @@ for stc = 1:run.NC_str
     cellpool{1,stc} = find(run.labels_str == stc)';
 end
 
-
+Q = 4; % simple window (ms)
 spktrain = cell(1,size(cellpool,2));
-groupint_t = run.tstop / 100 ;
-ng = run.tstop / groupint_t ;
+wspktrain = cell(1,size(cellpool,2));
+M = run.nruns ; %No of chains (m)
+N =  50 ; % group length (n) after applying the window!
+Qr = (run.tstop / Q) ; % length of wspiketrain
+ng = Qr / N ; % No of groups
 hat_R = zeros(size(cellpool,2),ng) ;
-M = run.nruns ;
-N = groupint_t ;
+GR_W = cell(size(cellpool,2),ng) ;
+GR_B_N = cell(size(cellpool,2),ng) ;
+hat_V = cell(size(cellpool,2),ng) ;
+
+s = (((1:Qr)-1) * Q) + 1 ;
+e = ((1:Qr) * Q) ;
 
 for cp = 1:size(cellpool,2)
+    cp
     % Calculate spike trains ONLY for the above selected cells:
     spktrain{1,cp} = zeros(size(cellpool{1,cp},2),run.tstop,M);
+    wspktrain{1,cp} = zeros(size(cellpool{1,cp},2),Qr,M);
     for ru = 1:M
         for c=cellpool{1,cp} % must be row vector!!
             spktrain{1,cp}(find(cellpool{1,cp} == c),round(RUNS_str{1,1}{c,ru}.spikes'),ru) = 1;
         end
+    end
+
+    for k=1:Qr
+        wspktrain{1,cp}(:,k,:) = any(spktrain{1,cp}(:,s(k):e(k),:),2) ;
     end
     
     x_len = size(cellpool{1,cp},2) ;
@@ -448,27 +462,46 @@ for cp = 1:size(cellpool,2)
         ts = ((ig-1) * N) + 1 ;
         te = (ig) * N ;
         
-        bar_Xi = (reshape(sum(spktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M)) ./ N;
-        dd_X = sum(reshape(sum(spktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M),2) ./ (N * M) ;
+        bar_Xi = (reshape(sum(wspktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M)) ./ N;
+        dd_X = sum(reshape(sum(wspktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M),2) ./ (N * M) ;
         
         cumSum_W = zeros(x_len,x_len,M) ;
         for ch = 1:M
-            cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, spktrain{1,cp}(:,ts:te,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
+            cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, wspktrain{1,cp}(:,ts:te,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
         end
-        GR_W = sum(cumSum_W,3) ./ (M * (N-1));
-        GR_B_N = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
+        GR_W{cp,ig} = sum(cumSum_W,3) ./ (M * (N-1));
+        GR_B_N{cp,ig} = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
+        hat_V{cp,ig} = (((N-1)/N)*GR_W{cp,ig}) + ((1+(1/M))*GR_B_N{cp,ig});
         
-        if rcond(GR_W) < 1e-12
+        if rcond(GR_W{cp,ig}) < 1e-12
             warning('Damn it. W matrix is near singular @t=%d. Skipping this t...',ts);
             hat_R(cp,ig) = NaN ;
             continue;
         else
-            hat_R(cp,ig) = ((N-1)/N) + ((M+1)/M) * max(eig(GR_W\GR_B_N));
+            hat_R(cp,ig) = ((N-1)/N) + ((M+1)/M) * max(eig(GR_W{cp,ig}\GR_B_N{cp,ig}));
         end
     end
 end
 
-plot([1,((1:ng-1) * N) + 1] ,hat_R);hold on;
+plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R);hold on;
+cn = cell(1,size(cellpool,2))
+for k =1:size(cellpool,2)
+    cn{k} = sprintf('Cluster %d',k);
+end
+legend(cn);
+
+for k =1:size(cellpool,2)
+    tmp = cellfun(@(x)det(x),GR_W(k,:),'uniformoutput',true) ; 
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp/max(tmp),'color','k');hold on;
+    tmp = cellfun(@(x)det(x),hat_V(k,:),'uniformoutput',true) ;
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp/max(tmp),'color','r');hold on;
+    tmp = cellfun(@(x)det(x),GR_B_N(k,:),'uniformoutput',true) ;
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp/max(tmp),'color','g');hold on;
+    legend({'W','V','B'});
+    pause();
+    cla;
+end
+
 
 
 %%
