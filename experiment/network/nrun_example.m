@@ -428,7 +428,7 @@ end
 Q = 4; % simple window (ms)
 spktrain = cell(1,size(cellpool,2));
 wspktrain = cell(1,size(cellpool,2));
-M = run.nruns ; %No of chains (m)
+M = 100% run.nruns ; %No of chains (m)
 N =  50 ; % group length (n) after applying the window!
 Qr = (run.tstop / Q) ; % length of wspiketrain
 ng = Qr / N ; % No of groups
@@ -483,12 +483,15 @@ for cp = 1:size(cellpool,2)
     end
 end
 
-plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R);hold on;
+figure();
+fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
+ih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R);hold on;
 cn = cell(1,size(cellpool,2))
 for k =1:size(cellpool,2)
     cn{k} = sprintf('Cluster %d',k);
 end
-legend(cn);
+legend(ih,cn) ;
+
 
 for k =1:size(cellpool,2)
     tmp = cellfun(@(x)det(x),GR_W(k,:),'uniformoutput',true) ; 
