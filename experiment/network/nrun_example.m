@@ -115,12 +115,18 @@ RUNS_str = {};
 Sid=1;
 fprintf('Loading runs...');
 PCcells_str = {};
+ridx = zeros(run.NC_str(Sid),run.nruns);
 for stc=1%:run.NC_str(Sid)
     for ru = 1:run.nruns
         ru
         for c=1:run.nPC
             if (run.ISBINARY)
-                mycell = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
+                try 
+                    mycell = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
+                catch err
+                    warning(err);
+                    continue;
+                end
             else
                 mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,stc-1,c-1,ru-1)),10);
             end
@@ -157,8 +163,17 @@ for stc=1%:run.NC_str(Sid)
         %         end
     end
     RUNS_str{1,stc} = PCcells_str(:,:);
-    %     all(leastSynapses)
+    % rescale the cell to discard empty runs (with no file loaded):
+    for k = 1:run.nruns
+        ridx(stc,k) = ~isempty(RUNS_str{1,stc}{1,k}.spikes);
+    end
+    RUNS_str{1,stc}(:,find(~ridx(stc,:))) = [];
 end
+% Ligo proxeiro! 8a eprepe na einai min kanonika!
+run.nruns = max(sum(ridx,2));
+
+
+
 fprintf('DONE!\n');
 %% Load RND
 % close all; clear all; clc;
@@ -425,7 +440,7 @@ for stc = 1:run.NC_str
     cellpool{1,stc} = find(run.labels_str == stc)';
 end
 
-Q = 4; % simple window (ms)
+Q = 6; % simple window (ms)
 spktrain = cell(1,size(cellpool,2));
 wspktrain = cell(1,size(cellpool,2));
 M = 100% run.nruns ; %No of chains (m)
