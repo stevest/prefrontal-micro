@@ -6,7 +6,8 @@ load('states_07_G.mat')
 % pathprefix = 'H:/NEURON_RUNS/';
 % pathprefix = 'I:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
 % pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
-pathprefix = 'E:/NEURON_RUNS/';
+% pathprefix = 'E:/NEURON_RUNS/';
+pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
 
 % states.PC2PC_rnd = PC2PC_rnd;
 % states.PC2PC_str = PC2PC_str;
@@ -116,7 +117,7 @@ Sid=1;
 fprintf('Loading runs...');
 PCcells_str = {};
 ridx = zeros(run.NC_str(Sid),run.nruns);
-for stc=1%:run.NC_str(Sid)
+for stc=3%:run.NC_str(Sid)
     for ru = 1:run.nruns
         ru
         for c=1:run.nPC
@@ -433,20 +434,28 @@ end
 % end % for all the NEURON runs
 
 %% MCMCGR - Gelman-Rubin R statistic for convergence
-% save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'RUNS_str','-v7.3');
+% save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_str','-v7.3');
+% load(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
 
 % get spike trains from the cells of interest:
+sp = floor(run.nPC / run.NC_str);
+rp = randperm(run.nPC);
+rp = reshape(rp(1:sp*run.NC_str),run.NC_str,[]);
 for stc = 1:run.NC_str
     cellpool{1,stc} = find(run.labels_str == stc)';
+% Get random cells to check if convergence is specific to a cluster :
+%      cellpool{1,stc} = rp(stc);
 end
+% Choose the runs that the cluster #stc was stimulated:
+stc = 1;
 
-Q = 6; % simple window (ms)
+Q = 4; % simple window (ms)
 spktrain = cell(1,size(cellpool,2));
 wspktrain = cell(1,size(cellpool,2));
-M = 100% run.nruns ; %No of chains (m)
-N =  50 ; % group length (n) after applying the window!
-Qr = (run.tstop / Q) ; % length of wspiketrain
-ng = Qr / N ; % No of groups
+M = run.nruns ; %No of chains (m)
+N =  100 ; % group length (n) after applying the window!
+Qr = floor(run.tstop / Q) ; % length of wspiketrain
+ng = floor(Qr / N) ; % No of groups
 hat_R = zeros(size(cellpool,2),ng) ;
 GR_W = cell(size(cellpool,2),ng) ;
 GR_B_N = cell(size(cellpool,2),ng) ;
@@ -462,7 +471,7 @@ for cp = 1:size(cellpool,2)
     wspktrain{1,cp} = zeros(size(cellpool{1,cp},2),Qr,M);
     for ru = 1:M
         for c=cellpool{1,cp} % must be row vector!!
-            spktrain{1,cp}(find(cellpool{1,cp} == c),round(RUNS_str{1,1}{c,ru}.spikes'),ru) = 1;
+            spktrain{1,cp}(find(cellpool{1,cp} == c),round(RUNS_str{1,stc}{c,ru}.spikes'),ru) = 1;
         end
     end
 
@@ -483,10 +492,14 @@ for cp = 1:size(cellpool,2)
         cumSum_W = zeros(x_len,x_len,M) ;
         for ch = 1:M
             cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, wspktrain{1,cp}(:,ts:te,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
+            a{cp,ig} = cellfun(@(x)bi2de(x'),num2cell(wspktrain{1,cp}(:,ts:te,ch),1),'uniformoutput',true );
+%             bar_a{cp,ig} = mean(cellfun(@(x)bi2de(x'),num2cell(wspktrain{1,cp}(:,ts:te,ch),1),'uniformoutput',true ));
+%             bar_var_a{cp,ig} = var(cellfun(@(x)bi2de(x'),num2cell(wspktrain{1,cp}(:,ts:te,ch),1),'uniformoutput',true ))/N;
         end
         GR_W{cp,ig} = sum(cumSum_W,3) ./ (M * (N-1));
         GR_B_N{cp,ig} = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
         hat_V{cp,ig} = (((N-1)/N)*GR_W{cp,ig}) + ((1+(1/M))*GR_B_N{cp,ig});
+        
         
         if rcond(GR_W{cp,ig}) < 1e-12
             warning('Damn it. W matrix is near singular @t=%d. Skipping this t...',ts);
@@ -497,7 +510,8 @@ for cp = 1:size(cellpool,2)
         end
     end
 end
-
+%%
+close all;
 figure();
 fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
 ih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R);hold on;
@@ -507,18 +521,45 @@ for k =1:size(cellpool,2)
 end
 legend(ih,cn) ;
 
+%% Plot Normalized W, V, B/n, mean, variance
+close all;
 
 for k =1:size(cellpool,2)
+    figure();
     tmp = cellfun(@(x)det(x),GR_W(k,:),'uniformoutput',true) ; 
-    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp/max(tmp),'color','k');hold on;
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','k');hold on;
     tmp = cellfun(@(x)det(x),hat_V(k,:),'uniformoutput',true) ;
-    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp/max(tmp),'color','r');hold on;
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','r');hold on;
+    legend({'W','V'},'Interpreter','latex');
+    figure();
     tmp = cellfun(@(x)det(x),GR_B_N(k,:),'uniformoutput',true) ;
-    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp/max(tmp),'color','g');hold on;
-    legend({'W','V','B'});
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','g');hold on;
+    legend({'B/n'},'Interpreter','latex');
+    figure();
+    tmp = cellfun(@(x)mean(x),a(k,:),'uniformoutput',true) ;
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','b');hold on;
+    tmp = cellfun(@(x)var(x)/N,a(k,:),'uniformoutput',true) ;
+    plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','c');hold on;
+    legend({'\={a}', 'Var[\={a}]'},'Interpreter','latex');
     pause();
-    cla;
+    close all;
 end
+%% Marginal probability of each cluster:
+for k =1:size(cellpool,2)
+    for ig = 1:ng
+        ts = ((ig-1) * N) + 1 ;
+        te = (ig) * N ;
+%         plot(reshape(sum(wspktrain{1,k}(:,ts:te,:),2) / N,size(wspktrain{1,k},1),[]) ;
+        mp(:,ig,:) = sum(wspktrain{1,k}(:,ts:te,:),2) / N ;
+    end
+    cm = jet(size(wspktrain{1,k},1)) ;
+    for c = 1:size(wspktrain{1,k},1)
+        for ru = 1:run.nruns
+            plot(((1:ng) * Q*N) + 1-(Q*N/2),mp(13,:,ru)),'color',cm(c,1:3) ; hold on;
+        end
+    end
+end
+
 
 
 
