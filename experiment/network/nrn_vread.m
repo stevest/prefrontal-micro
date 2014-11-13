@@ -9,6 +9,7 @@ data = [];
 
 [fid,errmsg] = fopen(FileName,'r',machineformat);
 if fid==-1
+    error('Cannot locate file!');
    return;
 else
    errmsg = sprintf('File opened successfully');

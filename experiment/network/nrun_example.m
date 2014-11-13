@@ -1,5 +1,5 @@
 clear all;close all;clc;
-cd('C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network')
+cd('C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network')
 % cd('E:\NEURON_RUNS')
 load('states_07_G.mat')
 % pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
@@ -112,12 +112,13 @@ end
 % load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,15,1)) % 8,10
 % mat = matfile(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,15,1)) % 8,10
 
-RUNS_str = {};
+RUNS_str = cell(1,run.NC_str);
 Sid=1;
 fprintf('Loading runs...');
 PCcells_str = {};
-ridx = zeros(run.NC_str(Sid),run.nruns);
-for stc=3%:run.NC_str(Sid)
+ridx = zeros(run.NC_str(Sid),run.nPC,run.nruns);
+for stc=2%:run.NC_str(Sid)
+    RUNS_str{1,stc} = cell(run.nPC,run.nruns);
     for ru = 1:run.nruns
         ru
         for c=1:run.nPC
@@ -125,7 +126,9 @@ for stc=3%:run.NC_str(Sid)
                 try 
                     mycell = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
                 catch err
-                    warning(err);
+                    warning('on','verbose')
+                    warning(err.message)
+                    ridx(stc,c,ru) = 1; % true, if file not found
                     continue;
                 end
             else
@@ -136,6 +139,11 @@ for stc=3%:run.NC_str(Sid)
             %             mycell.position = PCsomata(c,1:3);
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
             [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
+%             if ~isempty(S)
+%                 plot(mycell.mv)
+%                 pause();
+%                 cla;
+%             end
             % For MEMORY concerns reduce object's size:
 %             mycell.mv = single(mycell.mv(1:mycell.dt:end));
 %             mycell.dt=1;
@@ -165,14 +173,15 @@ for stc=3%:run.NC_str(Sid)
     end
     RUNS_str{1,stc} = PCcells_str(:,:);
     % rescale the cell to discard empty runs (with no file loaded):
-    for k = 1:run.nruns
-        ridx(stc,k) = ~isempty(RUNS_str{1,stc}{1,k}.spikes);
-    end
-    RUNS_str{1,stc}(:,find(~ridx(stc,:))) = [];
+%     for k = 1:size(RUNS_str{1,stc},2)
+%         ridx(stc,k) = isempty(RUNS_str{1,stc}{1,k}.spikes);
+%     end
+%     RUNS_str{1,stc}(:,find(ridx(stc,:))) = [];
+    RUNS_str{1,stc}(:,find(any(ridx(stc,:,1:size(PCcells_str(:,:),2)),2))) = [];
 end
-% Ligo proxeiro! 8a eprepe na einai min kanonika!
-run.nruns = max(sum(ridx,2));
 
+% run.nruns = min(sum(~ridx,2));
+% run.nruns = size(RUNS_str{1,stc},2)
 
 
 fprintf('DONE!\n');
@@ -437,6 +446,20 @@ end
 % save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_str','-v7.3');
 % load(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
 
+run.nruns = size(RUNS_str{1,stc},2)
+
+close all;
+fr = [];
+for ru = 1:run.nruns
+    for c = 1:run.nPC
+        fr(c,ru) = RUNS_str{1,stc}{c,ru}.freq;
+    end
+end
+imagesc(fr);
+RUNS_str{1,stc}(:,find(~all(fr>100))) = [];
+run.nruns = size(RUNS_str{1,stc},2)
+run.tstop = 20000 ;
+%%
 % get spike trains from the cells of interest:
 sp = floor(run.nPC / run.NC_str);
 rp = randperm(run.nPC);
@@ -447,13 +470,13 @@ for stc = 1:run.NC_str
 %      cellpool{1,stc} = rp(stc);
 end
 % Choose the runs that the cluster #stc was stimulated:
-stc = 1;
+stc = 3;
 
-Q = 4; % simple window (ms)
+Q = 2; % simple window (ms)
 spktrain = cell(1,size(cellpool,2));
 wspktrain = cell(1,size(cellpool,2));
-M = run.nruns ; %No of chains (m)
-N =  100 ; % group length (n) after applying the window!
+M = run.nruns-1 ; %No of chains (m)
+N = 100 ; % group length (n) after applying the window!
 Qr = floor(run.tstop / Q) ; % length of wspiketrain
 ng = floor(Qr / N) ; % No of groups
 hat_R = zeros(size(cellpool,2),ng) ;
@@ -493,8 +516,6 @@ for cp = 1:size(cellpool,2)
         for ch = 1:M
             cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, wspktrain{1,cp}(:,ts:te,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
             a{cp,ig} = cellfun(@(x)bi2de(x'),num2cell(wspktrain{1,cp}(:,ts:te,ch),1),'uniformoutput',true );
-%             bar_a{cp,ig} = mean(cellfun(@(x)bi2de(x'),num2cell(wspktrain{1,cp}(:,ts:te,ch),1),'uniformoutput',true ));
-%             bar_var_a{cp,ig} = var(cellfun(@(x)bi2de(x'),num2cell(wspktrain{1,cp}(:,ts:te,ch),1),'uniformoutput',true ))/N;
         end
         GR_W{cp,ig} = sum(cumSum_W,3) ./ (M * (N-1));
         GR_B_N{cp,ig} = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
@@ -512,14 +533,23 @@ for cp = 1:size(cellpool,2)
 end
 %%
 close all;
-figure();
+figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));
 fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
-ih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R);hold on;
-cn = cell(1,size(cellpool,2))
-for k =1:size(cellpool,2)
-    cn{k} = sprintf('Cluster %d',k);
+
+sih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R(stc,:),'linewidth',3,'color','k');hold on;
+ih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R([1:stc-1,stc+1:end],:),'linewidth',1);hold on;
+
+cn = cell(1,size(cellpool,2)-1)
+for k =3:size(cellpool,2)+1
+    cn{k} = sprintf('Cluster %d',k-2);
 end
-legend(ih,cn) ;
+cn{1} = 'Convergence limits';
+cn{2} = sprintf('* Cluster %d',stc);
+cn(stc+2) = [];
+
+legend(cn) ;
+% legend(sih, sprintf('* Cluster %d',stc)) ; hold on;
+
 
 %% Plot Normalized W, V, B/n, mean, variance
 close all;
