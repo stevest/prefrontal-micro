@@ -25,13 +25,13 @@ pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
     
 %%
 % clustbiasRange = 0:0.1:1;
-for sn = 1
+for sn = 15
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
-    ID = 13;
+    ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,50,5000);
+    run = nrun(ID,75,SN,ST,100,20000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
@@ -87,7 +87,7 @@ for sn = 1
     save(sprintf('%s%s/EXP_ID%d_SN%d_ST%d.mat',pathprefix,run.path,run.id,run.sn,run.state),'run','-v7.3');
 
     % Push data to cluster:
-    run.push();
+%     run.push();
     
     whatnet = 1; % 0 = random, 1= structured gia to $#$#% NEURON
     if whatnet
@@ -115,30 +115,32 @@ end
 RUNS_str = cell(1,run.NC_str);
 Sid=1;
 fprintf('Loading runs...');
-PCcells_str = {};
+PCcells_str = cell(run.nPC,run.nruns);
 ridx = zeros(run.NC_str(Sid),run.nPC,run.nruns);
-for stc=2%:run.NC_str(Sid)
+for stc=1%:run.NC_str(Sid)
     RUNS_str{1,stc} = cell(run.nPC,run.nruns);
     for ru = 1:run.nruns
         ru
-        for c=1:run.nPC
+        tic;
+        parfor pc=1:run.nPC
             if (run.ISBINARY)
                 try 
-                    mycell = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
+                    PCcells_str{pc,ru} = ncell(nrn_vread(sprintf('%s%s/STR_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,pc-1,ru-1),'n'),10);
                 catch err
                     warning('on','verbose')
                     warning(err.message)
-                    ridx(stc,c,ru) = 1; % true, if file not found
+                    ridx(stc,pc,ru) = 1; % true, if file not found
                     continue;
                 end
             else
-                mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,stc-1,c-1,ru-1)),10);
+                % Following line not working with parfor:
+%                 mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,stc-1,pc-1,ru-1)),10);
             end
             %             mycell = ncell(load(sprintf('%sexperiment_10_10Hz_Stim/%s/%d_%d_%d.txt',mypath,'STR',t,c-1,ru-1)),10);
-            mycell.clusterID = run.labels_str(c,Sid);
+            PCcells_str{pc,ru}.clusterID = run.labels_str(pc,Sid);
             %             mycell.position = PCsomata(c,1:3);
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
-            [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
+            [S,~,~] = findUPstates(PCcells_str{pc,ru}.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
 %             if ~isempty(S)
 %                 plot(mycell.mv)
 %                 pause();
@@ -147,17 +149,18 @@ for stc=2%:run.NC_str(Sid)
             % For MEMORY concerns reduce object's size:
 %             mycell.mv = single(mycell.mv(1:mycell.dt:end));
 %             mycell.dt=1;
-            mycell.mv = [];
-            mycell.spikes = single(mycell.spikes);
+            PCcells_str{pc,ru}.mv = [];
+            PCcells_str{pc,ru}.spikes = single(PCcells_str{pc,ru}.spikes);
             
             if ~isempty(S);
-                mycell.persistentActivity = 1;
+                PCcells_str{pc,ru}.persistentActivity = 1;
             else
-                mycell.persistentActivity = 0;
+                PCcells_str{pc,ru}.persistentActivity = 0;
             end
-            PCcells_str{c,ru} = mycell ;
+            PCcells_str{pc,ru} = PCcells_str{pc,ru} ;
             %             leastSynapses(c) = PCcells_str{c,ru}.nspikes;
         end
+        runtime = toc - tic
 %                 for c=run.nPC+1:run.nPC+run.nPV
 %                     mycell = ncell(nrn_vread(sprintf('%s%s/STR_%d/%d_%d_%d.bin',pathprefix,run.path,run.state,clu-1,c-1,ru-1),'n'),10);
 %                     PVcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
@@ -190,27 +193,34 @@ fprintf('DONE!\n');
 % load(sprintf('STR_%d_%d.mat',12,2))
 % load(sprintf('%sexperiment_%d/EXP_ID%d_SN%d_ST%d.mat',pathprefix,12,12,2,1)) % 8,10
 
-RUNS_rnd = {};
+RUNS_rnd = cell(1,run.NC_rnd);
 Sid=1;
 fprintf('Loading runs...');
 PCcells_rnd = {};
-for stc=1:run.NC_rnd(Sid)
-    stc
+ridx = zeros(run.NC_rnd(Sid),run.nPC,run.nruns);
+for stc=1%:run.NC_str(Sid)
+    RUNS_rnd{1,stc} = cell(run.nPC,run.nruns);
     for ru = 1:run.nruns
+        ru
         for c=1:run.nPC
             if (run.ISBINARY)
-                mycell = ncell(nrn_vread(sprintf('%s%s/RND_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
+                try 
+                    mycell = ncell(nrn_vread(sprintf('%s%s/RND_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
+                catch err
+                    warning('on','verbose')
+                    warning(err.message)
+                    ridx(stc,c,ru) = 1; % true, if file not found
+                    continue;
+                end
             else
                 mycell = ncell(load(sprintf('%s/RND_%d/%d_%d_%d.txt',run.path,run.state,stc-1,c-1,ru-1)),10);
             end
-            %             mycell = ncell(load(sprintf('%sexperiment_10_10Hz_Stim/%s/%d_%d_%d.txt',mypath,'STR',t,c-1,ru-1)),10);
+
             mycell.clusterID = run.labels_rnd(c,Sid);
-            %             mycell.position = PCsomata(c,1:3);
-            %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
+
             [S,~,~] = findUPstates(mycell.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
-            % For MEMORY concerns reduce object's size:
-            mycell.mv = single(mycell.mv(1:mycell.dt:end));
-            mycell.dt=1;
+
+            mycell.mv = [];
             mycell.spikes = single(mycell.spikes);
             
             if ~isempty(S);
@@ -221,22 +231,12 @@ for stc=1:run.NC_rnd(Sid)
             PCcells_rnd{c,ru} = mycell ;
             %             leastSynapses(c) = PCcells_str{c,ru}.nspikes;
         end
-%         for c=run.nPC+1:run.nPC+run.nPV
-%             mycell = ncell(nrn_vread(sprintf('%s%s/RND_SN%d_ST%d/%d_%d_%d.bin',pathprefix,run.path,run.sn,run.state,stc-1,c-1,ru-1),'n'),10);
-%             PVcells_rnd{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
-%         end
-        %         for c=run.nPV+1:run.nPV+run.nCB
-        %             mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,t-1,c-1,ru-1)),10);
-        %             CBcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
-        %         end
-        %         for c=run.nCB+1:run.nCB+run.nCR
-        %             mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,t-1,c-1,ru-1)),10);
-        %             CRcells_str{c,ru}=mycell;%.hasPersistent(1000,8,mycell.tstop-1001); % paper?
-        %         end
     end
     RUNS_rnd{1,stc} = PCcells_rnd(:,:);
-%     PV_rnd{1,stc} = PVcells_rnd(:,:);
+    RUNS_rnd{1,stc}(:,find(any(ridx(stc,:,1:size(PCcells_rnd(:,:),2)),2))) = [];
 end
+
+
 fprintf('DONE!\n');
 
 %%
@@ -444,33 +444,41 @@ end
 
 %% MCMCGR - Gelman-Rubin R statistic for convergence
 % save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_str','-v7.3');
+% save(sprintf('%s%s/RUNS_rnd_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_rnd','-v7.3');
 % load(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
+RUNS = RUNS_str;
+NC = run.NC_str;
+labels = run.labels_str;
 
-run.nruns = size(RUNS_str{1,stc},2)
+
+run.nruns = size(RUNS{1,stc},2)
 
 close all;
 fr = [];
+pa = [];
 for ru = 1:run.nruns
     for c = 1:run.nPC
-        fr(c,ru) = RUNS_str{1,stc}{c,ru}.freq;
+        fr(c,ru) = RUNS{1,stc}{c,ru}.freq;
+        pa(c,ru) = RUNS{1,stc}{c,ru}.persistentActivity;
     end
 end
-imagesc(fr);
-RUNS_str{1,stc}(:,find(~all(fr>100))) = [];
-run.nruns = size(RUNS_str{1,stc},2)
+figure();imagesc(fr);
+figure();imagesc(pa);
+RUNS{1,stc}(:,find(~all(pa))) = [];
+run.nruns = size(RUNS{1,stc},2)
 run.tstop = 20000 ;
 %%
 % get spike trains from the cells of interest:
-sp = floor(run.nPC / run.NC_str);
+sp = floor(run.nPC / NC);
 rp = randperm(run.nPC);
-rp = reshape(rp(1:sp*run.NC_str),run.NC_str,[]);
-for stc = 1:run.NC_str
-    cellpool{1,stc} = find(run.labels_str == stc)';
+rp = reshape(rp(1:sp*NC),NC,[]);
+for stc = 1:NC
+    cellpool{1,stc} = find(labels == stc)';
 % Get random cells to check if convergence is specific to a cluster :
 %      cellpool{1,stc} = rp(stc);
 end
 % Choose the runs that the cluster #stc was stimulated:
-stc = 3;
+stc = 1;
 
 Q = 2; % simple window (ms)
 spktrain = cell(1,size(cellpool,2));
@@ -494,7 +502,7 @@ for cp = 1:size(cellpool,2)
     wspktrain{1,cp} = zeros(size(cellpool{1,cp},2),Qr,M);
     for ru = 1:M
         for c=cellpool{1,cp} % must be row vector!!
-            spktrain{1,cp}(find(cellpool{1,cp} == c),round(RUNS_str{1,stc}{c,ru}.spikes'),ru) = 1;
+            spktrain{1,cp}(find(cellpool{1,cp} == c),round(RUNS{1,stc}{c,ru}.spikes'),ru) = 1;
         end
     end
 
