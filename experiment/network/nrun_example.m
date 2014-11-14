@@ -470,11 +470,11 @@ figure();imagesc(pa);
 RUNS{1,stc}(:,find(~all(pa))) = [];
 run.nruns = size(RUNS{1,stc},2)
 run.tstop = 20000 ;
-%%
+
 % get spike trains from the cells of interest:
-sp = floor(run.nPC / NC);
-rp = randperm(run.nPC);
-rp = reshape(rp(1:sp*NC),NC,[]);
+% sp = floor(run.nPC / NC);
+% rp = randperm(run.nPC);
+% rp = reshape(rp(1:sp*NC),NC,[]);
 for stc = 1:NC
     cellpool{1,stc} = find(labels == stc)';
 % Get random cells to check if convergence is specific to a cluster :
@@ -482,77 +482,87 @@ for stc = 1:NC
 end
 % Choose the runs that the cluster #stc was stimulated:
 stc = 1;
-
-Q = 6; % simple window (ms)
-wspktrain = [];
+%%
 M = run.nruns ; %No of chains (m)
-N = 100 ; % group length (n) after applying the window!
-Qr = floor(run.tstop / Q) ; % length of wspiketrain
-ng = floor(Qr / N) ; % No of groups
-hat_R = zeros(size(cellpool,2),ng) ;
-GR_W = cell(size(cellpool,2),ng) ;
-GR_B_N = cell(size(cellpool,2),ng) ;
-hat_V = cell(size(cellpool,2),ng) ;
-bar_Xi = zeros(run.nPC,ng,M) ;
-dd_X = zeros(run.nPC,ng) ;
-a = cell(size(cellpool,2),ng);
-s = (((1:Qr)-1) * Q) + 1 ;
-e = ((1:Qr) * Q) ;
-
-% Calculate spike trains ONLY for the above selected cells:
-wspktrain = zeros(run.nPC,Qr,M);
-for ru = 1:M
-    spktrain = zeros(run.nPC,run.tstop);
-    for c=1:run.nPC % must be row vector!!
-        spktrain(c,round(RUNS{1,stc}{c,ru}.spikes')) = 1;
-    end
-    for k=1:Qr
-        wspktrain(:,k,ru) = any(spktrain(:,s(k):e(k)),2) ;
-    end
-end
+Nseq = 10:50:1000 ; 
+Qseq = 1:15;
+ALL_hat_R = cell(length(Nseq),length(Qseq)) ;
+ALL_GR_B_N = cell(length(Nseq),length(Qseq)) ;
+ALL_GR_W = cell(length(Nseq),length(Qseq)) ;
+ALL_hat_V = cell(length(Nseq),length(Qseq)) ;
+ALL_bar_a = cell(length(Nseq),length(Qseq)) ;
 
 
-for ig = 1:ng
-    ts(ig) = ((ig-1) * N) + 1 ;
-    te(ig) = (ig) * N ;
-    bar_Xi(:,ig,:) = sum(wspktrain(:,ts(ig):te(ig),:),2) ./ N ;
-    dd_X(:,ig) = sum(sum(wspktrain(:,ts(ig):te(ig),:),2),3) ./ (N * M) ;
-end
-
-for cp = 1:size(cellpool,2)
-    cp
-    
-    x_len = size(cellpool{1,cp},2) ;
-
-    % Multivariate extension as in: Brooks and Gelman, 1998:
-    tic;
-    for ig = 1:ng
-        ts(ig) = ((ig-1) * N) + 1 ;
-        te(ig) = (ig) * N ;
+for Qs = 1:length(Qseq) 
+    for Ns = 1:length(Nseq) 
+        Q = Qseq(Qs) ; % simple window (ms)
+        N = Nseq(Ns) ; % group length (n) after applying the window!
+        Qr = floor(run.tstop / Q) ; % length of wspiketrain
+        ng = floor(Qr / N) ; % No of groups
+        hat_R = zeros(size(cellpool,2),ng) ;
+        GR_W = cell(size(cellpool,2),ng) ;
+        GR_B_N = cell(size(cellpool,2),ng) ;
+        hat_V = cell(size(cellpool,2),ng) ;
+        bar_Xi = zeros(run.nPC,ng,M) ;
+        dd_X = zeros(run.nPC,ng) ;
+        bar_a = cell(size(cellpool,2),ng);
+        s = (((1:Qr)-1) * Q) + 1 ;
+        e = ((1:Qr) * Q) ;
+        ts = [];
+        te = [];
+        x_len = [];
         
-%         bar_Xi{ig} = (reshape(sum(wspktrain(:,ts(ig):te(ig),:),2),size(cellpool{1,cp},2),M)) ./ N;
-%         dd_X{ig} = sum(reshape(sum(wspktrain(:,ts(ig):te(ig),:),2),size(cellpool{1,cp},2),M),2) ./ (N * M) ;
-        
-        cumSum_W{ig} = zeros(x_len,x_len,M) ;
-        for ch = 1:M
-            cumSum_W{ig}(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, wspktrain(cellpool{1,cp},ts(ig):te(ig),ch), bar_Xi(cellpool{1,cp},ig,ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
-            a{cp,ig}(ch,:) = cellfun(@(x)bi2de(x'),num2cell(wspktrain(cellpool{1,cp},ts(ig):te(ig),ch),1),'uniformoutput',true );
+        % Calculate spike trains ONLY for the above selected cells:
+        wspktrain = zeros(run.nPC,Qr,M);
+        for ru = 1:M
+            spktrain = zeros(run.nPC,run.tstop);
+            for c=1:run.nPC % must be row vector!!
+                spktrain(c,round(RUNS{1,stc}{c,ru}.spikes')) = 1;
+            end
+            for k=1:Qr
+                wspktrain(:,k,ru) = any(spktrain(:,s(k):e(k)),2) ;
+            end
         end
-        GR_W{cp,ig} = sum(cumSum_W{ig},3) ./ (M * (N-1));
-        % reshape might not be necessary..
-        GR_B_N{cp,ig} = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, reshape(bar_Xi(cellpool{1,cp},ig,:),x_len,[]), dd_X(cellpool{1,cp},ig)),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
-        hat_V{cp,ig} = (((N-1)/N)*GR_W{cp,ig}) + ((1+(1/M))*GR_B_N{cp,ig});
         
         
-        if rcond(GR_W{cp,ig}) < 1e-12
-            warning('Damn it. W matrix is near singular @t=%d. Skipping this t...',ts(ig));
-            hat_R(cp,ig) = NaN ;
-            continue;
-        else
-            hat_R(cp,ig) = ((N-1)/N) + ((M+1)/M) * max(eig(GR_W{cp,ig}\GR_B_N{cp,ig}));
+        for ig = 1:ng
+            ts(ig) = ((ig-1) * N) + 1 ;
+            te(ig) = (ig) * N ;
+            bar_Xi(:,ig,:) = sum(wspktrain(:,ts(ig):te(ig),:),2) ./ N ;
+            dd_X(:,ig) = sum(sum(wspktrain(:,ts(ig):te(ig),:),2),3) ./ (N * M) ;
         end
+        
+        for cp = 1:1%size(cellpool,2)
+            x_len = size(cellpool{1,cp},2) ;
+            % Multivariate extension as in: Brooks and Gelman, 1998:
+            for ig = 1:ng
+                ts(ig) = ((ig-1) * N) + 1 ;
+                te(ig) = (ig) * N ;
+                cumSum_W = zeros(x_len,x_len,M) ;
+                for ch = 1:M
+                    cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, wspktrain(cellpool{1,cp},ts(ig):te(ig),ch), bar_Xi(cellpool{1,cp},ig,ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
+                    bar_a{cp,ig}(ch,:) = cellfun(@(x)bi2de(x'),num2cell(wspktrain(cellpool{1,cp},ts(ig):te(ig),ch),1),'uniformoutput',true );
+                end
+                GR_W{cp,ig} = sum(cumSum_W,3) ./ (M * (N-1));
+                % reshape below might not be necessary..
+                GR_B_N{cp,ig} = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, reshape(bar_Xi(cellpool{1,cp},ig,:),x_len,[]), dd_X(cellpool{1,cp},ig)),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
+                hat_V{cp,ig} = (((N-1)/N)*GR_W{cp,ig}) + ((1+(1/M))*GR_B_N{cp,ig});
+                
+                if rcond(GR_W{cp,ig}) < 1e-12
+                    warning('Damn it. W matrix is near singular @t=%d. Skipping this t...',ts(ig));
+                    hat_R(cp,ig) = NaN ;
+                    continue;
+                else
+                    hat_R(cp,ig) = ((N-1)/N) + ((M+1)/M) * max(eig(GR_W{cp,ig}\GR_B_N{cp,ig}));
+                end
+            end
+        end
+        ALL_hat_R{Ns,Q} = hat_R(cp,:) ;
+        ALL_GR_B_N{Ns,Q} = GR_B_N(cp,:) ;
+        ALL_GR_W{Ns,Q} = GR_W(cp,:) ;
+        ALL_hat_V{Ns,Q} = hat_V(cp,:) ;
+        ALL_bar_a{Ns,Q} = bar_a(cp,:) ;
     end
-    runtime = toc
 end
 %%
 close all;
@@ -575,6 +585,14 @@ legend(cn) ;
 saveas(fh,sprintf('%s/%s/STR_stc_%d_Q_%d_N_%d',pathprefix,run.path,stc,Q,N),'fig')
 % legend(sih, sprintf('* Cluster %d',stc)) ; hold on;
 
+%%
+close all;
+fh = figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));
+fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
+
+ft = fit([((1:ng) * Q*N) + 1-(Q*N/2)]' ,hat_R(stc,:)','exp2') ;
+plot(ft,[((1:ng) * Q*N) + 1-(Q*N/2)]' ,hat_R(stc,:)') ;
+axis([0,run.tstop,min(hat_R(stc,:)),max(hat_R(:))]) ;
 
 %% Plot Normalized W, V, B/n, mean, variance
 close all;
