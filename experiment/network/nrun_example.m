@@ -122,6 +122,7 @@ for stc=1%:run.NC_str(Sid)
     for ru = 1:run.nruns
         ru
         tic;
+        S = cell(1,run.nPC);
         parfor pc=1:run.nPC
             if (run.ISBINARY)
                 try 
@@ -133,14 +134,14 @@ for stc=1%:run.NC_str(Sid)
                     continue;
                 end
             else
-                % Following line not working with parfor:
+                % Following line (load) not working with parfor:
 %                 mycell = ncell(load(sprintf('%s/STR_%d/%d_%d_%d.txt',run.path,run.state,stc-1,pc-1,ru-1)),10);
             end
             %             mycell = ncell(load(sprintf('%sexperiment_10_10Hz_Stim/%s/%d_%d_%d.txt',mypath,'STR',t,c-1,ru-1)),10);
             PCcells_str{pc,ru}.clusterID = run.labels_str(pc,Sid);
             %             mycell.position = PCsomata(c,1:3);
             %             PCcells_str{c,ru}=mycell.hasPersistent(run.stimend-1,25,run.tstop-(run.stimend-1)); % paper?
-            [S,~,~] = findUPstates(PCcells_str{pc,ru}.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
+            [S{pc},~,~] = findUPstates(PCcells_str{pc,ru}.mv(run.stimend*run.dt:run.dt:end),4, 10, -66, 3000 );
 %             if ~isempty(S)
 %                 plot(mycell.mv)
 %                 pause();
@@ -152,7 +153,7 @@ for stc=1%:run.NC_str(Sid)
             PCcells_str{pc,ru}.mv = [];
             PCcells_str{pc,ru}.spikes = single(PCcells_str{pc,ru}.spikes);
             
-            if ~isempty(S);
+            if ~isempty(S{pc});
                 PCcells_str{pc,ru}.persistentActivity = 1;
             else
                 PCcells_str{pc,ru}.persistentActivity = 0;
@@ -186,6 +187,8 @@ end
 % run.nruns = min(sum(~ridx,2));
 % run.nruns = size(RUNS_str{1,stc},2)
 
+% Save memory!
+clear PCcells_str;
 
 fprintf('DONE!\n');
 %% Load RND
@@ -480,10 +483,9 @@ end
 % Choose the runs that the cluster #stc was stimulated:
 stc = 1;
 
-Q = 2; % simple window (ms)
-spktrain = cell(1,size(cellpool,2));
-wspktrain = cell(1,size(cellpool,2));
-M = run.nruns-1 ; %No of chains (m)
+Q = 6; % simple window (ms)
+wspktrain = [];
+M = run.nruns ; %No of chains (m)
 N = 100 ; % group length (n) after applying the window!
 Qr = floor(run.tstop / Q) ; % length of wspiketrain
 ng = floor(Qr / N) ; % No of groups
@@ -491,61 +493,75 @@ hat_R = zeros(size(cellpool,2),ng) ;
 GR_W = cell(size(cellpool,2),ng) ;
 GR_B_N = cell(size(cellpool,2),ng) ;
 hat_V = cell(size(cellpool,2),ng) ;
-
+bar_Xi = zeros(run.nPC,ng,M) ;
+dd_X = zeros(run.nPC,ng) ;
+a = cell(size(cellpool,2),ng);
 s = (((1:Qr)-1) * Q) + 1 ;
 e = ((1:Qr) * Q) ;
 
+% Calculate spike trains ONLY for the above selected cells:
+wspktrain = zeros(run.nPC,Qr,M);
+for ru = 1:M
+    spktrain = zeros(run.nPC,run.tstop);
+    for c=1:run.nPC % must be row vector!!
+        spktrain(c,round(RUNS{1,stc}{c,ru}.spikes')) = 1;
+    end
+    for k=1:Qr
+        wspktrain(:,k,ru) = any(spktrain(:,s(k):e(k)),2) ;
+    end
+end
+
+
+for ig = 1:ng
+    ts(ig) = ((ig-1) * N) + 1 ;
+    te(ig) = (ig) * N ;
+    bar_Xi(:,ig,:) = sum(wspktrain(:,ts(ig):te(ig),:),2) ./ N ;
+    dd_X(:,ig) = sum(sum(wspktrain(:,ts(ig):te(ig),:),2),3) ./ (N * M) ;
+end
+
 for cp = 1:size(cellpool,2)
     cp
-    % Calculate spike trains ONLY for the above selected cells:
-    spktrain{1,cp} = zeros(size(cellpool{1,cp},2),run.tstop,M);
-    wspktrain{1,cp} = zeros(size(cellpool{1,cp},2),Qr,M);
-    for ru = 1:M
-        for c=cellpool{1,cp} % must be row vector!!
-            spktrain{1,cp}(find(cellpool{1,cp} == c),round(RUNS{1,stc}{c,ru}.spikes'),ru) = 1;
-        end
-    end
-
-    for k=1:Qr
-        wspktrain{1,cp}(:,k,:) = any(spktrain{1,cp}(:,s(k):e(k),:),2) ;
-    end
     
     x_len = size(cellpool{1,cp},2) ;
 
     % Multivariate extension as in: Brooks and Gelman, 1998:
+    tic;
     for ig = 1:ng
-        ts = ((ig-1) * N) + 1 ;
-        te = (ig) * N ;
+        ts(ig) = ((ig-1) * N) + 1 ;
+        te(ig) = (ig) * N ;
         
-        bar_Xi = (reshape(sum(wspktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M)) ./ N;
-        dd_X = sum(reshape(sum(wspktrain{1,cp}(:,ts:te,:),2),size(cellpool{1,cp},2),M),2) ./ (N * M) ;
+%         bar_Xi{ig} = (reshape(sum(wspktrain(:,ts(ig):te(ig),:),2),size(cellpool{1,cp},2),M)) ./ N;
+%         dd_X{ig} = sum(reshape(sum(wspktrain(:,ts(ig):te(ig),:),2),size(cellpool{1,cp},2),M),2) ./ (N * M) ;
         
-        cumSum_W = zeros(x_len,x_len,M) ;
+        cumSum_W{ig} = zeros(x_len,x_len,M) ;
         for ch = 1:M
-            cumSum_W(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, wspktrain{1,cp}(:,ts:te,ch), bar_Xi(ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
-            a{cp,ig} = cellfun(@(x)bi2de(x'),num2cell(wspktrain{1,cp}(:,ts:te,ch),1),'uniformoutput',true );
+            cumSum_W{ig}(:,:,ch) = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, wspktrain(cellpool{1,cp},ts(ig):te(ig),ch), bar_Xi(cellpool{1,cp},ig,ch)),1),'uniformoutput', false)),x_len,x_len,[]),3) ;
+            a{cp,ig}(ch,:) = cellfun(@(x)bi2de(x'),num2cell(wspktrain(cellpool{1,cp},ts(ig):te(ig),ch),1),'uniformoutput',true );
         end
-        GR_W{cp,ig} = sum(cumSum_W,3) ./ (M * (N-1));
-        GR_B_N{cp,ig} = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, bar_Xi, dd_X),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
+        GR_W{cp,ig} = sum(cumSum_W{ig},3) ./ (M * (N-1));
+        % reshape might not be necessary..
+        GR_B_N{cp,ig} = sum(reshape(cell2mat(cellfun(@(x) bsxfun(@times,x,x'),num2cell(bsxfun(@minus, reshape(bar_Xi(cellpool{1,cp},ig,:),x_len,[]), dd_X(cellpool{1,cp},ig)),1),'uniformoutput', false)),x_len,x_len,[]),3) ./ (M -1);
         hat_V{cp,ig} = (((N-1)/N)*GR_W{cp,ig}) + ((1+(1/M))*GR_B_N{cp,ig});
         
         
         if rcond(GR_W{cp,ig}) < 1e-12
-            warning('Damn it. W matrix is near singular @t=%d. Skipping this t...',ts);
+            warning('Damn it. W matrix is near singular @t=%d. Skipping this t...',ts(ig));
             hat_R(cp,ig) = NaN ;
             continue;
         else
             hat_R(cp,ig) = ((N-1)/N) + ((M+1)/M) * max(eig(GR_W{cp,ig}\GR_B_N{cp,ig}));
         end
     end
+    runtime = toc
 end
 %%
 close all;
-figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));
+fh = figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));
 fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
 
 sih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R(stc,:),'linewidth',3,'color','k');hold on;
 ih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R([1:stc-1,stc+1:end],:),'linewidth',1);hold on;
+axis([0,run.tstop,min(hat_R(:)),max(hat_R(:))])
 
 cn = cell(1,size(cellpool,2)-1)
 for k =3:size(cellpool,2)+1
@@ -556,6 +572,7 @@ cn{2} = sprintf('* Cluster %d',stc);
 cn(stc+2) = [];
 
 legend(cn) ;
+saveas(fh,sprintf('%s/%s/STR_stc_%d_Q_%d_N_%d',pathprefix,run.path,stc,Q,N),'fig')
 % legend(sih, sprintf('* Cluster %d',stc)) ; hold on;
 
 
@@ -574,9 +591,9 @@ for k =1:size(cellpool,2)
     plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','g');hold on;
     legend({'B/n'},'Interpreter','latex');
     figure();
-    tmp = cellfun(@(x)mean(x),a(k,:),'uniformoutput',true) ;
+    tmp = cellfun(@(x)mean(x(:)),a(k,:),'uniformoutput',true) ;
     plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','b');hold on;
-    tmp = cellfun(@(x)var(x)/N,a(k,:),'uniformoutput',true) ;
+    tmp = cellfun(@(x)var(x(:))/N,a(k,:),'uniformoutput',true) ;
     plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','c');hold on;
     legend({'\={a}', 'Var[\={a}]'},'Interpreter','latex');
     pause();
