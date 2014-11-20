@@ -5,9 +5,9 @@ load('states_07_G.mat')
 % pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
 % pathprefix = 'H:/NEURON_RUNS/';
 % pathprefix = 'I:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
-% pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
+pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
 % pathprefix = 'E:/NEURON_RUNS/';
-pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
+% pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
 
 % states.PC2PC_rnd = PC2PC_rnd;
 % states.PC2PC_str = PC2PC_str;
@@ -31,7 +31,7 @@ for sn = 15
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,100,20000);
+    run = nrun(ID,75,SN,ST,300,20000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
@@ -239,7 +239,8 @@ for stc=1%:run.NC_str(Sid)
     RUNS_rnd{1,stc}(:,find(any(ridx(stc,:,1:size(PCcells_rnd(:,:),2)),2))) = [];
 end
 
-
+% Save memory!
+clear PCcells_rnd;
 fprintf('DONE!\n');
 
 %%
@@ -449,6 +450,7 @@ end
 % save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_str','-v7.3');
 % save(sprintf('%s%s/RUNS_rnd_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_rnd','-v7.3');
 % load(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
+% load(sprintf('%s%s/RUNS_rnd_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
 RUNS = RUNS_str;
 NC = run.NC_str;
 labels = run.labels_str;
@@ -461,11 +463,19 @@ fr = [];
 pa = [];
 for ru = 1:run.nruns
     for c = 1:run.nPC
+        if isempty(RUNS{1,stc}{c,ru}.freq)
+            fr(c,ru) = 0;
+            pa(c,ru) = 0;
+            continue;
+        end
         fr(c,ru) = RUNS{1,stc}{c,ru}.freq;
         pa(c,ru) = RUNS{1,stc}{c,ru}.persistentActivity;
     end
 end
+cm = jet(max(fr(:)));
+cm(1,:) = [0,0,0];
 figure();imagesc(fr);
+colormap(cm)
 figure();imagesc(pa);
 RUNS{1,stc}(:,find(~all(pa))) = [];
 run.nruns = size(RUNS{1,stc},2)
@@ -484,8 +494,8 @@ end
 stc = 1;
 %%
 M = run.nruns ; %No of chains (m)
-Nseq = 10:50:1000 ; 
-Qseq = 1:15;
+Nseq = 10:50:500 ; 
+Qseq = 2:2:12;
 ALL_hat_R = cell(length(Nseq),length(Qseq)) ;
 ALL_GR_B_N = cell(length(Nseq),length(Qseq)) ;
 ALL_GR_W = cell(length(Nseq),length(Qseq)) ;
@@ -522,8 +532,7 @@ for Qs = 1:length(Qseq)
             for k=1:Qr
                 wspktrain(:,k,ru) = any(spktrain(:,s(k):e(k)),2) ;
             end
-        end
-        
+        end        
         
         for ig = 1:ng
             ts(ig) = ((ig-1) * N) + 1 ;
@@ -557,11 +566,11 @@ for Qs = 1:length(Qseq)
                 end
             end
         end
-        ALL_hat_R{Ns,Q} = hat_R(cp,:) ;
-        ALL_GR_B_N{Ns,Q} = GR_B_N(cp,:) ;
-        ALL_GR_W{Ns,Q} = GR_W(cp,:) ;
-        ALL_hat_V{Ns,Q} = hat_V(cp,:) ;
-        ALL_bar_a{Ns,Q} = bar_a(cp,:) ;
+        ALL_hat_R{Ns,Qs} = hat_R(cp,:) ;
+        ALL_GR_B_N{Ns,Qs} = GR_B_N(cp,:) ;
+        ALL_GR_W{Ns,Qs} = GR_W(cp,:) ;
+        ALL_hat_V{Ns,Qs} = hat_V(cp,:) ;
+        ALL_bar_a{Ns,Qs} = bar_a(cp,:) ;
     end
 end
 %%
@@ -571,7 +580,7 @@ fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0
 
 sih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R(stc,:),'linewidth',3,'color','k');hold on;
 ih = plot(((1:ng) * Q*N) + 1-(Q*N/2) ,hat_R([1:stc-1,stc+1:end],:),'linewidth',1);hold on;
-axis([0,run.tstop,min(hat_R(:)),max(hat_R(:))])
+axis([0,run.tstop,min(hat_R(:)),max(hat_R(:))]);
 
 cn = cell(1,size(cellpool,2)-1)
 for k =3:size(cellpool,2)+1
@@ -582,18 +591,64 @@ cn{2} = sprintf('* Cluster %d',stc);
 cn(stc+2) = [];
 
 legend(cn) ;
-saveas(fh,sprintf('%s/%s/STR_stc_%d_Q_%d_N_%d',pathprefix,run.path,stc,Q,N),'fig')
+% saveas(fh,sprintf('%s/%s/STR_stc_%d_Q_%d_N_%d',pathprefix,run.path,stc,Q,N),'fig')
 % legend(sih, sprintf('* Cluster %d',stc)) ; hold on;
 
 %%
 close all;
-fh = figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));
-fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
+andplot = 0 ; 
+for Qs = 1:length(Qseq)
+    for Ns = 1:length(Nseq)
+        Q = Qseq(Qs) ; % simple window (ms)
+        N = Nseq(Ns) ; % group length (n) after applying the window!
+        Qr = floor(run.tstop / Q) ; % length of wspiketrain
+        ng = floor(Qr / N) ; % No of groups
+        if andplot
+            fh = figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));hold on;
+            fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
+        end
+        
+        X = [((1:ng) * Q*N) + 1-(Q*N/2)]' ;
+        
+        Rhat = ALL_hat_R{Ns,Qs}(stc,:)' ;
+        
+        if find(Rhat<1.3,1) == min( find(Rhat<1.3,1), find(X > run.stimend,1) )
+            start = (Rhat<1.3) ;
+        else
+            start = (X > run.stimend) ;
+        end
+        IDX = ( (~isnan(Rhat)) & start ) ;        
+        
+        if sum(IDX) < 4
+            its(Ns,Qs) = NaN ;
+            continue;
+        end
+        
+        ft = fit(X(IDX) ,Rhat(IDX),'exp2') ;
+        fs = min(X(IDX)) ;
+        fe = max(X(IDX)) ;
+        tmpits = fs + round(find( (ft(fs:0.01:fe) - 1.1 ) < eps,1) / 100) ;
+        if ~isempty(tmpits)
+            its(Ns,Qs) = tmpits ;
+        else
+            its(Ns,Qs) = NaN ;
+        end
+        if andplot
+            scatter(X(IDX) ,Rhat(IDX),'g') ;
+            scatter(X(~IDX) ,Rhat(~IDX),'b') ;
+            scatter(its(Ns,Qs),1.1,'*k') ;
+            fplot(ft,[fs,fe]) ; 
+            axis([0,run.tstop,min(Rhat),max(Rhat)]) ;
+            pause() ;
+            close;
+        end
+    end
+end
 
-ft = fit([((1:ng) * Q*N) + 1-(Q*N/2)]' ,hat_R(stc,:)','exp2') ;
-plot(ft,[((1:ng) * Q*N) + 1-(Q*N/2)]' ,hat_R(stc,:)') ;
-axis([0,run.tstop,min(hat_R(stc,:)),max(hat_R(:))]) ;
 
+imagesc(Qseq,Nseq,its) ;
+set(gca,'Ydir','normal') ;
+colormap(gray)
 %% Plot Normalized W, V, B/n, mean, variance
 close all;
 
@@ -609,9 +664,9 @@ for k =1:size(cellpool,2)
     plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','g');hold on;
     legend({'B/n'},'Interpreter','latex');
     figure();
-    tmp = cellfun(@(x)mean(x(:)),a(k,:),'uniformoutput',true) ;
+    tmp = cellfun(@(x)mean(x(:)),bar_a(k,:),'uniformoutput',true) ;
     plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','b');hold on;
-    tmp = cellfun(@(x)var(x(:))/N,a(k,:),'uniformoutput',true) ;
+    tmp = cellfun(@(x)var(x(:))/N,bar_a(k,:),'uniformoutput',true) ;
     plot(((1:ng) * Q*N) + 1-(Q*N/2),tmp,'color','c');hold on;
     legend({'\={a}', 'Var[\={a}]'},'Interpreter','latex');
     pause();
