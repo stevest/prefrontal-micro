@@ -14,7 +14,7 @@ if (EXPERIMENT) { //if Structured...
 execute(EXEC_CMD)
 
 EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulation.hoc\")",ID)
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulationHeader.hoc\")",ID)
 execute(EXEC_CMD)
 /*EXEC_CMD = ""
 sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
@@ -22,7 +22,7 @@ execute(EXEC_CMD)*/
 //if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
 
 EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParams.hoc\")",ID)
+sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParamsHeader.hoc\")",ID)
 execute(EXEC_CMD)
 //if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
 
@@ -376,13 +376,30 @@ for runs = 0, TOTALRUNS-1 {
 
 	
 
+	//Import respective stimulation/background spikes:
+	EXEC_CMD = ""
+	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")",ID,runs+1)
+	print EXEC_CMD
+	execute(EXEC_CMD)
+	EXEC_CMD = ""
+	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")",ID,runs+1)
+	print EXEC_CMD
+	execute(EXEC_CMD)
+	
+	//override complex background spiketrains:
+	BG_dendSyn = synapses_backb
+	BG_apicSyn = synapses_backa
+	BG_apicprSyn = synapses_backpr
+	BG_PVSyn = synapses_backinh
+	
+	
 	//ECA_30()
 	//thinner_basal()
 	//thinner_apical()
-	stimulation(0,runs)   //synaptic location Random seed, axon conductanse delay Random seed
+	stimulation(0,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
-	//backgroundActivity(0,runs) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
-	//backgroundActivityPV(0,runs) //~11Hz Petersen Carl
+	//backgroundActivity(0,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
+	//backgroundActivityPV(0,0) //~11Hz Petersen Carl
 	/*backgroundActivityCB(runs) //~2Hz Petersen Carl
 	backgroundActivityCR(runs) //~2Hz Petersen Carl
 	*/
@@ -397,7 +414,7 @@ for runs = 0, TOTALRUNS-1 {
 	connectCB2PC(runs)
 	connectCR2PC(runs)
 	connectCR2CB(runs)*/
-	//noise(0)
+	noise(0)
 	//train()
 	//TTX_proc(GPYID) 
 	//iclamp_proc(0,-0.1)
