@@ -29,10 +29,13 @@ UNITS {
 
 PARAMETER {
         v                       (mV)
-        celsius = 23            (degC)
+        :celsius = 23            (degC) :WILL BE IGNORED AND SET BY NEURON
+		celsius(degC)
         dt                      (ms)
-        cai = 5.e-05             (mM)
-        cao = 2                 (mM)
+        :cai = 5.e-05             (mM) : WILL BE IGNORED AND SET BY NEURON
+		cai	(mM)
+        :cao = 2                 (mM) : WILL BE IGNORED AND SET BY NEURON
+		cao	(mM)
         pcabar= 0.000276        (cm/s)          
 }
 

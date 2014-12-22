@@ -182,5 +182,5 @@ for i=0,CBcells.count()-1{
 	CBcells.o(i).dend CBcell_list.append()
 }
 
-{xopen("../../lib/current-balanceCB.hoc")}
-{current_balanceCB(-64) } 
+assert(xopen("../../lib/current-balanceCB.hoc"))
+current_balanceCB(-64) 

@@ -87,7 +87,9 @@ PROCEDURE rates(v (mV)) {                  :callable from hoc
         a = alpn(v)
         PROTECT ninf = 1/(1 + a)                   : activation variable steady state value
         PROTECT taun = betn(v)/(qt*a0n*(1+a))      : activation variable time constant
-	if (taun<nmin) {taun=nmin}         : time constant not allowed to be less than nmin
+	if (taun<nmin) {
+		PROTECT taun = nmin
+	}         : time constant not allowed to be less than nmin
         
 	a = alpl(v)
         PROTECT linf = 1/(1+ a)                    : inactivation variable steady state value

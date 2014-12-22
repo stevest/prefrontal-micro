@@ -8,7 +8,7 @@ func num2ind(){ // a mapping from numbers to morphology file indices
 }
 
 begintemplate PCcell
-external PARALLEL,PLOT,DEBUG
+external PARALLEL,PLOT,DEBUG, pprintStr, pprint
 //external nPCcells
 //external basal_fAHP
 //external basal_sAHP
@@ -40,7 +40,10 @@ proc init() {
 
 	maximum_segment_length=75
 	//zindex=$1*100
-	if(DEBUG){printf("loading morphology from file %s\n",$s2)}
+	if(DEBUG){
+		sprint(pprintStr,"loading morphology from file %s\n",$s2)
+		print pprintStr
+	}
 	if(!xopen($s2)){print "ERROR	Failed to import morphology from file!"}
 
 	//OBJECT: properties of the cell
@@ -709,5 +712,5 @@ for i=0, PCcells.count()-1 {
 }
 
 //printf("Applying PC current balance\n")
-{xopen ("../../lib/current-balance.hoc")}
+assert(xopen ("../../lib/current-balance.hoc"))
 {current_balance(v_init)}

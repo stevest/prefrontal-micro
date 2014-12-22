@@ -24,7 +24,8 @@ PARAMETER {
 	dt (ms)
 	gnabar= 0.0022 (mho/cm2) <0,1e9>
 	:gnapbar= 0.0022 (mho/cm2) <0,1e9>
-	ena = 55 (mV)
+	:ena = 55 (mV) : WILL BE IGNORED AND SET BY NEURON
+	ena (mV)
 	DA_alphamshift=0 : 2 for 100% DA, 0 otherwise
 	DA_betamshift=0  : 5 for 100% DA,0 otherwise
 	DA_alphahfactor=0: -.8e-5 for DA, 0 otherwise

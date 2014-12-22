@@ -50,8 +50,10 @@ UNITS {
 
 PARAMETER {
      v               (mV)
-     celsius = 36    (degC)
-     en      = -20   (mV)            	: reversal potential
+     : celsius = 36    (degC) : WILL BE IGNORED AND SET BY NEURON
+	 celsius(degC)
+     : en      = -20   (mV)            	: reversal potential : WILL BE IGNORED AND SET BY NEURON
+	 en (mV)
      cai     	     (mM)           	: initial [Ca]i
      gbar    = 0.0001 (mho/cm2)
      beta    = 0.0001 (1/ms) 	 	: backward rate constant,0.00025/ 0.0001, for syn exp
@@ -80,7 +82,7 @@ ASSIGNED {
 }
 
 BREAKPOINT { 
-     SOLVE states METHOD euler
+     SOLVE states METHOD cnexp : euler is NOT threadsafe...
      
 if (t>mystart)  {     
 in = gbar * m*m * (v - en)

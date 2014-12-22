@@ -194,5 +194,5 @@ for i=0,(CRcells.count()-1) {
 	CRcells.o(i).dend CRcell_list.append()
 }
 
-{xopen("../../lib/current-balanceCR.hoc")}
-{current_balanceCR(-70) } 
+assert(xopen("../../lib/current-balanceCR.hoc"))
+current_balanceCR(-70)
