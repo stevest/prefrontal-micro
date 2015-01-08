@@ -22,6 +22,7 @@ NEURON {
 
 UNITS {
 	(nA) 	= (nanoamp)
+	(mA)	= (milliamp)
 	(mV)	= (millivolt)
 	(nS) 	= (nanomho)
 	(mM)    = (milli/liter)
@@ -98,8 +99,10 @@ NET_RECEIVE (weight) {
 		:printf("@%d GOT AN EVENT!\n",(int)(t*10));
 	:ENDVERBATIM
 	gmax=weight
-	state_discontinuity( A, A+ gmax)
-	state_discontinuity( B, B+ gmax)
+	:state_discontinuity( A, A+ gmax)
+	A = A+ gmax : state_discontinuity is depricated and not threadsafe!
+	:state_discontinuity( B, B+ gmax)
+	B = B+ gmax 
 }
 
 

@@ -2,6 +2,7 @@
 //Based on Durstewitz and Gabriel 2006
 //"Irregular spiking in NMDA-driven prefrontal cortex neurons"
 
+//Template for the interneurons:
 begintemplate PVcell
 external PARALLEL
 
@@ -179,5 +180,5 @@ for i=0,PVcells.count()-1 {
 }
 
 
-{xopen("../../lib/current-balancePV.hoc")}
-{current_balancePV(-73) }
+assert(xopen("../../lib/current-balancePV.hoc"))
+current_balancePV(-73)

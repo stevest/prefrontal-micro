@@ -3,15 +3,13 @@
 
 begintemplate PCcell
 
-public all, somatic, axonal, basal, apical, soma, axon, dend, apic
-
 objref all, somatic, axonal, basal, apical
 
-create 	soma,dend[1], axon, apic[2]  //dend[0]=basal, dend[1]=proximal, dend[2]=distal
-
-
+public all, somatic, axonal, basal, apical, soma, axon, dend, apic
 public gid
 public ApicNo, DendNo //OBJECT: properties of the cell
+
+create 	soma,dend[1], axon, apic[2]  //dend[0]=basal, dend[1]=proximal, dend[2]=distal
 
 proc init() {
 
@@ -355,7 +353,7 @@ for i=0, PCcells.count()-1 {
 //if(SIMPLIFIED){
 	//xopen("../simplified/current-balance.hoc")
 //} else {
-	xopen ("../../lib/current-balance.hoc")
+	assert(xopen ("../../lib/current-balance.hoc"))
 //}
 {current_balance(v_init)}
 

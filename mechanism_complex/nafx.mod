@@ -22,8 +22,8 @@ PARAMETER {
 	v (mV)
 	dt (ms)
 	gnafbar	= 0 (mho/cm2)
-	ena = 55 (mV)
-	
+	:ena = 55 (mV) : WILL BE INGORED AND SET BY NEURON
+	ena (mV)
 	:PARAMETERS FOR S ATTENUATION SYSTEM
 	NAFX_taumin = 30 (ms)  :min activation time for "s" attenuation system
         NAFX_vhalfr =-60 (mV)       :half potential for "s" attenuation system, -60
@@ -56,7 +56,7 @@ ASSIGNED {
 
 
 INITIAL {
-	rate(v)
+	rate(v,ar2)
 	m = NAFX_minf
 	h = NAFX_hinf
 	s = NAFX_sinf

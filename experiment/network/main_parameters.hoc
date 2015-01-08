@@ -89,25 +89,29 @@ if(PARALLEL){
 }else{
 	 printf("Microcircuit running in 'SINGLE CORE' !\n\n") 
 }
+//process to print only on node zero (if parallel):
+strdef pprintStr
+proc pprint(){
+	if (name_declared("PC")==2){
+		if(PC.id==0){print $s1}
+	} else {
+		print $s1
+	} 
+}
 
 if (name_declared("ID")!=5){
 	exit(1)
 } else {
-	if(PARALLEL){
-		if(PC.id==0){ print "Experiment ID is: ", ID }
-	} else {
-		print "Experiment ID is: ", ID
-	}
+	sprint(pprintStr,"Experiment ID is: %d",ID)
+	pprint(pprintStr)
 }
 
 if (name_declared("SN")!=5){
 	exit(1)
 } else {
-	if(PARALLEL){
-		if(PC.id==0){ print "Experiment Serial Number is: ", SN }
-	} else {
-		print "Experiment Serial Number is: ", SN
-	}
+	sprint(pprintStr,"Experiment Serial Number is: %d",SN)
+	pprint(pprintStr)
+	
 	strdef EXP
 	if( EXPERIMENT ){
 		sprint(EXP,"STR_SN%d_ST%d",SN,ST)
@@ -121,30 +125,19 @@ if (name_declared("SIMPLIFIED")!=5) { // PARALLEL has not been assigned a numeri
 }
 if(SIMPLIFIED){
 	NMDA_MECH = "nmda_segev"
-	
-	if(PARALLEL){
-		if(PC.id==0){ printf("Microcircuit running with simplified morphologies !\n\n") }
-	} else {
-		printf("Microcircuit running with simplified morphologies !\n\n")
-	}
+	sprint(pprintStr,"Microcircuit running with simplified morphologies !\n\n")
+	pprint(pprintStr)
 }else{
 	NMDA_MECH = "nmda_segev"	
-	if(PARALLEL){
-		if(PC.id==0){ printf("Microcircuit running with complex morphologies !\n\n") }
-	} else {
-		printf("Microcircuit running with complex morphologies !\n\n")
-	}
+	sprint(pprintStr,"Microcircuit running with complex morphologies !\n\n")
+	pprint(pprintStr)
 }
 
 if (name_declared("VCLAMP")!=5) { // Do Vclamp to check UP/DOWN states conductance
 	VCLAMP = 0 //If ==0 No vclamp
 }else{ 
-	
-	if(PARALLEL){
-		if(PC.id==0){ print "VCLAMP value is ", VCLAMP }
-	} else {
-		print "VCLAMP value is ", VCLAMP
-	}
+	sprint(pprintStr,"VCLAMP value is %f", VCLAMP )
+	pprint(pprintStr)
 }
 
 if (name_declared("ISBINARY")!=5){
@@ -158,11 +151,8 @@ if (name_declared("CLUSTBIAS")!=5){
 if (name_declared("GPYID")!=5) { // Do Vclamp to check UP/DOWN states conductance
 	GPYID = 0 //If ==0 No vclamp
 }else{ 	
-	if(PARALLEL){
-		if(PC.id==0){ print "GPYID value is ", GPYID }
-	} else {
-		print "GPYID value is ", GPYID 
-	}
+	sprint(pprintStr,"GPYID value is %d", GPYID )
+	pprint(pprintStr)
 }
 
 /*//Global mechanism definitions:

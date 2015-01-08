@@ -1,35 +1,47 @@
 //--------------Set parameters and run this for the net (generated from MATLAB scripts)
 //--------------Written 1/8/13 Stefanos
 if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
-
+//define a basic assert function (dah):
+proc assert(){ 
+//print "Asserting: ", $1
+	if(!$1){	
+		print "Assertion error. Exiting..."
+		quit()
+	}
+}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
 strdef NMDA_MECH, EXEC_CMD
 EXEC_CMD = ""
+
 if (EXPERIMENT) { //if Structured...
-	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkParametersSTR.hoc\")",ID)
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkParametersSTR.hoc\")}",ID)
 } else {
-	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkParametersRND.hoc\")",ID)
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkParametersRND.hoc\")}",ID)
 }
-execute(EXEC_CMD)
+//Use execute1() instead of execute() feed the bool into assert
+//execute1() does not like the ~ (even if documented otherwise...)
+//Also the ~ encloses command in {}, but that is not happening. Go figure..
+assert(execute1(EXEC_CMD))
 
 EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulationHeader.hoc\")",ID)
-execute(EXEC_CMD)
+{sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulationHeader.hoc\")}",ID)}
+assert(execute1(EXEC_CMD))
+
 /*EXEC_CMD = ""
 sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
 execute(EXEC_CMD)*/
 //if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
 
 EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParamsHeader.hoc\")",ID)
-execute(EXEC_CMD)
+{sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParamsHeader.hoc\")}",ID)}
+assert(execute1(EXEC_CMD))
 //if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
 
 
 EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importStimulationParameters.hoc\")",ID)
-execute(EXEC_CMD)
+{sprint(EXEC_CMD,"{xopen(\"experiment_%d/importStimulationParameters.hoc\")}",ID)}
+assert(execute1(EXEC_CMD))
 
 
 
@@ -66,15 +78,16 @@ chooseMorphologies(60,0)
 
 if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
 if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
+
 if(SIMPLIFIED){
 	if(!xopen("pfc_pc_temp.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
 }else{
 	if(!xopen("../RS1cell.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
 }
-if(!xopen("pv.hoc")){print "ERROR	Failed to load interneuron hoc!"}
-{xopen("cb.hoc")} // Xenia's interneurons: load template for CB/LTS interneuron
-{xopen("cr.hoc")} // Xenia's interneurons
 
+assert(xopen("pv.hoc"))
+assert(xopen("cb.hoc")) // Xenia's interneurons: load template for CB/LTS interneuron
+assert(xopen("cr.hoc")) // Xenia's interneurons
 
 //fADP for morphology #3:
 fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
@@ -138,13 +151,17 @@ if(SIMPLIFIED){
 		ampaArr.x[i] = AMPAfactor * ampaweight	
 	}
 
+} else {
+// Complex morphologies case:
+
+	Stim_MaxSyn_apic = 40//27//90			//initial stimulation
+	Stim_MaxSyn_basal=0
 }
 
 if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
 
 
-{xopen ("record_par.hoc")}
-
+assert(xopen ("record_par.hoc"))
 
 proc report_gidvecs() { local i, rank
 	// reports distribution of cells across hosts
@@ -273,12 +290,19 @@ sadp_dend()
 sadp_apical()  //mplokara kai stous apical
 
 //strdef vfilePC_filename
-sprint(exp_dir,"experiment_%d",ID)
-sprint(syscmd,"mkdir -p %s",exp_dir)
-system(syscmd)
-sprint(data_dir,"%s",EXP)
-sprint(syscmd,"mkdir -p %s/%s",exp_dir,data_dir)
-system(syscmd)
+assert(sprint(exp_dir,"experiment_%d",ID))
+assert(sprint(syscmd,"mkdir -p %s",exp_dir))
+
+if(!system(syscmd)){
+	sprint(pprintStr,"Directory %s already exists",exp_dir)
+	pprint(pprintStr)
+}
+assert(sprint(data_dir,"%s",EXP))
+assert(sprint(syscmd,"mkdir -p %s/%s",exp_dir,data_dir))
+if(!system(syscmd)){
+	sprint(pprintStr,"Directory %s already exists",data_dir)
+	pprint(pprintStr)
+ }
 
 
 proc vclamp_proc() {
@@ -369,22 +393,22 @@ for runs = 0, TOTALRUNS-1 {
 	}else{
 		foutput = "single_core"
 		sprint(syscmd,"mkdir -p %s/",foutput) 	
-		system(syscmd)
-		{xopen("recordandsave/record.hoc")}
-		{xopen("recordandsave/save_data.hoc")}
+		if(!system(syscmd)) print "Directory ",foutput," already exists"
+		assert(xopen("recordandsave/record.hoc"))
+		assert(xopen("recordandsave/save_data.hoc"))
 	}
 
 	
 
 	//Import respective stimulation/background spikes:
 	EXEC_CMD = ""
-	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")",ID,runs+1)
-	print EXEC_CMD
-	execute(EXEC_CMD)
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")}",ID,runs+1)
+	pprint(EXEC_CMD)
+	assert(execute1(EXEC_CMD))
 	EXEC_CMD = ""
-	sprint(EXEC_CMD,"~xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")",ID,runs+1)
-	print EXEC_CMD
-	execute(EXEC_CMD)
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
+	pprint(EXEC_CMD)
+	assert(execute1(EXEC_CMD))
 	
 	//override complex background spiketrains:
 	BG_dendSyn = synapses_backb

@@ -23,7 +23,8 @@ PARAMETER {
 	dt (ms)
 	gnafbar	= 0 (mho/cm2)
 	:gnafbar= 0.086 (mho/cm2) <0,1e9>
-	ena = 55 (mV)
+	:ena = 55 (mV) : WILL BE IGNORED AND SET BY NEURON
+	ena (mV)
 	
 	:PARAMETERS FOR S ATTENUATION SYSTEM
 	taumin = 3 (ms)  :min activation time for "s" attenuation system
@@ -59,7 +60,7 @@ ASSIGNED {
 
 
 INITIAL {
-	rate(v)
+	rate(v,ar2)
 	m = minf
 	h = hinf
 	s = sinf
