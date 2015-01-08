@@ -1,13 +1,14 @@
 clear all;close all;clc;
-cd('C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network')
+cd('C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network')
 % cd('E:\NEURON_RUNS')
 load('states_07_G.mat')
 % pathprefix = 'N:/NEURON_PROJECTS/NEW_RUNS/';
 % pathprefix = 'H:/NEURON_RUNS/';
 % pathprefix = 'I:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
-pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
+% pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
 % pathprefix = 'E:/NEURON_RUNS/';
 % pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
+pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/TEMP/'
 
 % states.PC2PC_rnd = PC2PC_rnd;
 % states.PC2PC_str = PC2PC_str;
@@ -449,11 +450,11 @@ end
 %% MCMCGR - Gelman-Rubin R statistic for convergence
 % save(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_str','-v7.3');
 % save(sprintf('%s%s/RUNS_rnd_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc),'RUNS_rnd','-v7.3');
-% load(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
+% load(sprintf('%s%s/RUNS_str_ID%d_SN%d_ST%d_STC_%d_withBG.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
 % load(sprintf('%s%s/RUNS_rnd_ID%d_SN%d_ST%d_STC_%d.mat',pathprefix,run.path,run.id,run.sn,run.state,stc));
-RUNS = RUNS_str;
-NC = run.NC_str;
-labels = run.labels_str;
+RUNS = RUNS_rnd;
+NC = run.NC_rnd;
+labels = run.labels_rnd;
 
 
 run.nruns = size(RUNS{1,stc},2)
@@ -492,15 +493,114 @@ for stc = 1:NC
 end
 % Choose the runs that the cluster #stc was stimulated:
 stc = 1;
+
+%% DEBUG wspktrain
+wspktrain(run,Qseq,Nseq,Bin,stc,RUNS)
+%% Compute ACT (autocorrelation time) as in :
+% A Comparison of Methods for Computing Autocorrelation Time
+% Also check Fishman, 1987.
+% Effective Sample Size (ESS) and mixing measure are inverse proportional
+% to the ACT.
+
+M = run.nruns ; %No of chains (m)
+Nseq = 10:50:700 ;
+Qseq = 2:2:10;
+Bin = 0.05:0.05:0.5 ; % Percentage of burn in samples.
+ACT = zeros(length(Bin),length(Nseq),length(Qseq),size(cellpool,2),M) ;
+Alpha = cell(length(Bin),length(Nseq),length(Qseq),size(cellpool,2),M) ;
+
+for Bs = 1:length(Bin)
+    for Qs = 1:length(Qseq)
+        for Ns = 1:length(Nseq)
+            Q = Qseq(Qs) ; % simple window (ms)
+            N = Nseq(Ns) ; % group length (n) after applying the window!
+            Bi = Bin(Bs) ;
+            bnstart = round(run.tstop * Bi) ;
+            brnrlen = run.tstop - bnstart ; % Burned run length
+            Qr = floor(brnrlen / Q) ; % length of wspiketrain
+            ng = floor(Qr / N) ; % No of groups
+            bar_a = cell(size(cellpool,2),ng);
+            s = (((1:Qr)-1) * Q) + 1 ;
+            e = ((1:Qr) * Q) ;
+            ts = [];
+            te = [];
+            
+            tic;
+            % Calculate spike trains ONLY for the above selected cells:
+            wspktrain = zeros(run.nPC,Qr,M);
+            for ru = 1:M
+                spktrain = zeros(run.nPC,brnrlen);
+                for c=1:run.nPC 
+                    spks = round(RUNS{1,stc}{c,ru}.spikes') ;
+                    spks = spks(spks > bnstart) - bnstart ;
+                    spktrain(c,spks) = 1;
+                end
+                for k=1:Qr
+                    wspktrain(:,k,ru) = any(spktrain(:,s(k):e(k)),2) ;
+                end
+            end
+            runtime = toc
+            
+            for ig = 1:ng
+                ts(ig) = ((ig-1) * N) + 1 ;
+                te(ig) = (ig) * N ;
+            end
+            
+            
+            for cp = 1:1%size(cellpool,2)
+                % Multivariate extension as in: Brooks and Gelman, 1998:
+                for ig = 1:ng
+                    ts(ig) = ((ig-1) * N) + 1 ;
+                    te(ig) = (ig) * N ;
+                    for ch = 1:M
+                        %                     alpha_i{cp,ig,ch} = wspktrain(cellpool{1,cp},ts(ig):te(ig),ch) ;
+                        %                     bar_alpha_i{cp,ig,ch} = mean(wspktrain(cellpool{1,cp},ts(ig):te(ig),ch),2) ;
+                        bar_a{ig,ch} = cellfun(@(x)bi2de(x'),num2cell(wspktrain(cellpool{1,cp},ts(ig):te(ig),ch),1),'uniformoutput',true );
+                    end
+                end
+                for ch = 1:M
+                    Alpha{Bs,Ns,Qs,cp,ch} = reshape(cell2mat(bar_a(:,ch))',1,[]) ;
+                end
+                for ch = 1:M
+                    s_squr_m = var(cellfun(@mean,bar_a(:,ch) )) ; % variance of batch means
+                    s_squr = var(cell2mat( bar_a(:,ch)' )) ;
+                    ACT(Bs,Ns,Qs,cp,ch) = ng * (s_squr_m / s_squr) ;
+                end
+            end
+            fprintf('@ Brn: %d, Q: %d, N: %d, CP: %d Runtime: %f\n',Bi * 100, Q, N, cp, toc) ;
+        end
+    end
+end
+
+%% Plot ACT
+% tmp=[];
+% for k=1:length(Bin)
+% tmp(:,:,k) = mean(reshape(ACT(k,:,:,1,:),length(Nseq),length(Qseq),[]),3) ;
+% imagesc( tmp(2:end,:,k) );
+% set(gca,'YDir','normal');
+% pause(0.5);
+% cla;
+% end
+
+mintmp=[];
+figure();hold on;
+for k=1:length(Nseq)
+    for l=1:length(Qseq)
+%         plot( (shiftdim(tmp(k,l,: ))) );
+        [~,mintmp(k,l)] = min(shiftdim(tmp(k,l,: ))) ;
+    end
+end
+imagesc(mintmp);
+set(gca,'YDir','normal');
 %%
 M = run.nruns ; %No of chains (m)
-Nseq = 10:50:500 ; 
-Qseq = 2:2:12;
-ALL_hat_R = cell(length(Nseq),length(Qseq)) ;
-ALL_GR_B_N = cell(length(Nseq),length(Qseq)) ;
-ALL_GR_W = cell(length(Nseq),length(Qseq)) ;
-ALL_hat_V = cell(length(Nseq),length(Qseq)) ;
-ALL_bar_a = cell(length(Nseq),length(Qseq)) ;
+Nseq = 100%10:50:500 ; 
+Qseq = 2%2:2:10;
+ALL_hat_R = cell(length(Nseq),length(Qseq),size(cellpool,2)) ;
+ALL_GR_B_N = cell(length(Nseq),length(Qseq),size(cellpool,2)) ;
+ALL_GR_W = cell(length(Nseq),length(Qseq),size(cellpool,2)) ;
+ALL_hat_V = cell(length(Nseq),length(Qseq),size(cellpool,2)) ;
+ALL_bar_a = cell(length(Nseq),length(Qseq),size(cellpool,2)) ;
 
 
 for Qs = 1:length(Qseq) 
@@ -534,6 +634,12 @@ for Qs = 1:length(Qseq)
             end
         end        
         
+%         A = num2cell(wspktrain(,1:1000,1),1) ;
+%         B = cell2mat(cellfun(@(x) bi2de(x'),A,'UniformOutput',false) ) ;
+%         
+%         [acor,lag] = xcorr(B);
+%         plot(lag,acor) ;
+        
         for ig = 1:ng
             ts(ig) = ((ig-1) * N) + 1 ;
             te(ig) = (ig) * N ;
@@ -541,8 +647,13 @@ for Qs = 1:length(Qseq)
             dd_X(:,ig) = sum(sum(wspktrain(:,ts(ig):te(ig),:),2),3) ./ (N * M) ;
         end
         
-        for cp = 1:1%size(cellpool,2)
+        for cp = 1:size(cellpool,2)
+            fprintf('@ Q: %d, N: %d, CP: %d\n',Q, N, cp) ;
             x_len = size(cellpool{1,cp},2) ;
+%             % Calculate autocorrelation:
+%             A = num2cell(wspktrain(cellpool{1,cp},:,1),1) ;
+%             B = cell2mat(cellfun(@(x) bi2de(x'),A,'UniformOutput',false) ) ;
+%             [acor,lag] = xcorr(B);
             % Multivariate extension as in: Brooks and Gelman, 1998:
             for ig = 1:ng
                 ts(ig) = ((ig-1) * N) + 1 ;
@@ -565,14 +676,16 @@ for Qs = 1:length(Qseq)
                     hat_R(cp,ig) = ((N-1)/N) + ((M+1)/M) * max(eig(GR_W{cp,ig}\GR_B_N{cp,ig}));
                 end
             end
+            ALL_hat_R{Ns,Qs,cp} = hat_R(cp,:) ;
+            ALL_GR_B_N{Ns,Qs,cp} = GR_B_N(cp,:) ;
+            ALL_GR_W{Ns,Qs,cp} = GR_W(cp,:) ;
+            ALL_hat_V{Ns,Qs,cp} = hat_V(cp,:) ;
+            ALL_bar_a{Ns,Qs,cp} = bar_a(cp,:) ;
         end
-        ALL_hat_R{Ns,Qs} = hat_R(cp,:) ;
-        ALL_GR_B_N{Ns,Qs} = GR_B_N(cp,:) ;
-        ALL_GR_W{Ns,Qs} = GR_W(cp,:) ;
-        ALL_hat_V{Ns,Qs} = hat_V(cp,:) ;
-        ALL_bar_a{Ns,Qs} = bar_a(cp,:) ;
     end
 end
+%% Autocorrelation:
+r = xcorr(wspktrain(:,:,1))
 %%
 close all;
 fh = figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));
@@ -596,59 +709,67 @@ legend(cn) ;
 
 %%
 close all;
-andplot = 0 ; 
+andplot = 1 ;
+burnin = 5;
 for Qs = 1:length(Qseq)
     for Ns = 1:length(Nseq)
-        Q = Qseq(Qs) ; % simple window (ms)
-        N = Nseq(Ns) ; % group length (n) after applying the window!
-        Qr = floor(run.tstop / Q) ; % length of wspiketrain
-        ng = floor(Qr / N) ; % No of groups
-        if andplot
-            fh = figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));hold on;
-            fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
-        end
-        
-        X = [((1:ng) * Q*N) + 1-(Q*N/2)]' ;
-        
-        Rhat = ALL_hat_R{Ns,Qs}(stc,:)' ;
-        
-        if find(Rhat<1.3,1) == min( find(Rhat<1.3,1), find(X > run.stimend,1) )
-            start = (Rhat<1.3) ;
-        else
-            start = (X > run.stimend) ;
-        end
-        IDX = ( (~isnan(Rhat)) & start ) ;        
-        
-        if sum(IDX) < 4
-            its(Ns,Qs) = NaN ;
-            continue;
-        end
-        
-        ft = fit(X(IDX) ,Rhat(IDX),'exp2') ;
-        fs = min(X(IDX)) ;
-        fe = max(X(IDX)) ;
-        tmpits = fs + round(find( (ft(fs:0.01:fe) - 1.1 ) < eps,1) / 100) ;
-        if ~isempty(tmpits)
-            its(Ns,Qs) = tmpits ;
-        else
-            its(Ns,Qs) = NaN ;
-        end
-        if andplot
-            scatter(X(IDX) ,Rhat(IDX),'g') ;
-            scatter(X(~IDX) ,Rhat(~IDX),'b') ;
-            scatter(its(Ns,Qs),1.1,'*k') ;
-            fplot(ft,[fs,fe]) ; 
-            axis([0,run.tstop,min(Rhat),max(Rhat)]) ;
-            pause() ;
-            close;
+        for cp = 1:size(cellpool,2)
+            Q = Qseq(Qs) ; % simple window (ms)
+            N = Nseq(Ns) ; % group length (n) after applying the window!
+            Qr = floor(run.tstop / Q) ; % length of wspiketrain
+            ng = floor(Qr / N) ; % No of groups
+            if andplot
+                fh = figure('NumberTitle','off','Name',sprintf('Stimulated Cluster: %d, Q = %d, N = %d, Batches = %d',stc,Q,N, ng));hold on;
+                fill([0,0,ng*Q*N,ng*Q*N],[1,1.1,1.1,1],[0.95,0.95,0.95],'edgecolor',[0.95,0.95,0.95]) ;hold on;
+            end
+            
+            X = [((1:ng) * Q*N) + 1-(Q*N/2)]' ;
+            
+            Rhat = ALL_hat_R{Ns,Qs,cp}(stc,:)' ;
+            
+%             if find(Rhat<1.3,1) == min( find(Rhat(burnin:end)<1.3,1), find(X(burnin:end) > run.stimend,1) )
+            if (find(Rhat(burnin:end)<1.3,1) * N )  > run.stimend 
+                start = (Rhat<1.3) ;
+            else
+                start = (X > run.stimend) ;
+            end
+            start(1:burnin-1) = 0;
+            IDX = ( (~isnan(Rhat)) & start ) ;
+            
+            if sum(IDX) < 4
+                its(Ns,Qs,cp) = NaN ;
+                continue;
+            end
+            
+            ft = fit(X(IDX) ,Rhat(IDX),'exp2') ;
+            fs = min(X(IDX)) ;
+            fe = max(X(IDX)) ;
+            tmpits = fs + round(find( (ft(fs:0.01:fe) - 1.1 ) < eps,1) / 100) ;
+            if ~isempty(tmpits)
+                its(Ns,Qs,cp) = tmpits ;
+            else
+                its(Ns,Qs,cp) = NaN ;
+            end
+            if andplot
+                scatter(X(IDX) ,Rhat(IDX),'r') ;
+                scatter(X(~IDX) ,Rhat(~IDX),'b') ;
+                scatter(its(Ns,Qs,cp),1.1,'*k') ;
+                fplot(ft,[fs,fe],'k') ;
+                axis([0,run.tstop,min(Rhat),max(Rhat)]) ;
+                pause() ;
+                close;
+            end
         end
     end
 end
 
-
-imagesc(Qseq,Nseq,its) ;
-set(gca,'Ydir','normal') ;
-colormap(gray)
+for cp = 1:size(cellpool,2)
+    imagesc(Qseq,Nseq,its(:,:,cp)) ;
+    set(gca,'Ydir','normal') ;
+%     colormap(gray);
+    pause();
+    cla;
+end
 %% Plot Normalized W, V, B/n, mean, variance
 close all;
 
