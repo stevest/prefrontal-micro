@@ -12,47 +12,50 @@ ENDCOMMENT
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
 NEURON {
-        SUFFIX calc
-	:SUFFIX cal
-        USEION ca READ cai,cao WRITE ica
-        RANGE pcabar, m_inf, tau_m, ica
 	THREADSAFE
+	SUFFIX calc
+	:SUFFIX cal
+	USEION ca READ cai,cao WRITE ica
+	RANGE pcabar, m_inf, tau_m, ica
 }
 
 UNITS {
-        (mA)    = (milliamp)
-        (mV)    = (millivolt)
-        (mM)    = (milli/liter)
-        FARADAY = 96480 (coul)
-        R       = 8.314 (volt-coul/degK)
+	(mA)    = (milliamp)
+	(mV)    = (millivolt)
+	(mM)    = (milli/liter)
+	:FARADAY = 96480 (coul) : why the value is defined instead of default?
+	:R       = 8.314 (volt-coul/degK) : why the value is defined instead of default?
+	FARADAY = (faraday) (coulomb)
+	R	= (k-mole) (joule/degC)
 }
 
 PARAMETER {
-        v                       (mV)
-        :celsius = 23            (degC) :WILL BE IGNORED AND SET BY NEURON
-		celsius(degC)
-        dt                      (ms)
-        :cai = 5.e-05             (mM) : WILL BE IGNORED AND SET BY NEURON
-		cai	(mM)
-        :cao = 2                 (mM) : WILL BE IGNORED AND SET BY NEURON
-		cao	(mM)
-        pcabar= 0.000276        (cm/s)          
+	v                       (mV)
+	:celsius = 23            (degC) :WILL BE IGNORED AND SET BY NEURON
+	celsius(degC)
+	dt                      (ms)
+	:cai = 5.e-05             (mM) : WILL BE IGNORED AND SET BY NEURON
+	cai	(mM)
+	:cao = 2                 (mM) : WILL BE IGNORED AND SET BY NEURON
+	cao	(mM)
+	pcabar= 0.000276        (cm/s)          
 }
 
 STATE {
-        m
+    m
 }
 
 ASSIGNED {
-        ica             (mA/cm2)
-        tau_m           (ms)
-        m_inf 
-        tadj
+	ica             (mA/cm2)
+	tau_m           (ms)
+	m_inf 
+	tadj
+	: cai, cao in PARAMETER block or in ASSIGNED ??
 }
 
 BREAKPOINT { 
-        SOLVE states :METHOD euler
-        ica = pcabar * m*m * ghk(v,cai,cao,2)
+	SOLVE states :METHOD euler
+	ica = pcabar * m*m * ghk(v,cai,cao,2)
 }
 
 :DERIVATIVE states {
@@ -62,8 +65,8 @@ BREAKPOINT {
 :}
   
 PROCEDURE states() {
-        rates(v)
-        m= m + (1-exp(-dt/tau_m))*(m_inf-m)
+	rates(v)
+	m= m + (1-exp(-dt/tau_m))*(m_inf-m)
 }
 
 UNITSOFF

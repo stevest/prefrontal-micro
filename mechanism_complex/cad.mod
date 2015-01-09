@@ -41,7 +41,7 @@ NEURON {
 	THREADSAFE
 	SUFFIX cad
 	USEION ca READ ica, cai WRITE cai	
-        RANGE ca, ica
+    RANGE ca, ica
 	GLOBAL depth,cainf,taur
 }
 
@@ -57,8 +57,8 @@ UNITS {
 
 PARAMETER {
 	depth	= .1	(um)		: depth of shell
-	:taur	= 200	(ms)		: rate of calcium removal
-	taur =  20 (ms)		: rate of calcium removal for stress conditions
+	taur	= 40	(ms)		: rate of calcium removal
+	:taur	=  20 (ms)		: rate of calcium removal for stress conditions
 	cainf	= 100e-6(mM)
 	cai		(mM)
 }

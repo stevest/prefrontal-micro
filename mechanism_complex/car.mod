@@ -8,11 +8,11 @@ TITLE Ca R-type channel with medium threshold for activation
 :  Updated by Maria Markaki  03/12/03
 
 NEURON {
+	THREADSAFE
 	SUFFIX car
 	USEION ca READ cai, cao WRITE ica
-        RANGE gcabar, m, h,ica
+    RANGE gcabar, m, h,ica
 	RANGE inf, fac, tau
-	THREADSAFE
 }
 
 UNITS {
@@ -27,19 +27,19 @@ UNITS {
 
 ASSIGNED {               : parameters needed to solve DE
 	ica (mA/cm2)
-:	iCa (mA/cm2)
-        inf[2]
+	:	iCa (mA/cm2)
+	inf[2]
 	tau[2]		(ms)
-        v               (mV)
-        celsius 	(degC)
+	v           (mV)
+	celsius 	(degC)
 	ecar    	(mV)      
-	cai             (mM)      : initial internal Ca++ concentration
-	cao             (mM)      : initial external Ca++ concentration
+	cai         (mM)      : initial internal Ca++ concentration
+	cao         (mM)      : initial external Ca++ concentration
 }
 
 
 PARAMETER {              : parameters that can be entered when function is called in cell-setup
-        gcabar = 0      (mho/cm2) : initialized conductance
+    gcabar = 0      (mho/cm2) : initialized conductance
 }  
 
 STATE {	
@@ -50,7 +50,7 @@ STATE {
 
 INITIAL {
 	rates(v)
-        m = 0    : initial activation parameter value
+    m = 0    : initial activation parameter value
 	h = 1    : initial inactivation parameter value
 }
 
@@ -81,12 +81,12 @@ PROCEDURE rates(v(mV)) {LOCAL a, b :rest = -70
 
 FUNCTION varss(v(mV), i) {
 	if (i==0) {
-	   : varss = 1 / (1 + exp((v+48.5)/(-3(mV)))) : Ca activation original
-	   varss = 1 / (1 + exp((v+43.5)/(-3(mV)))) : Ca activation original
+		: varss = 1 / (1 + exp((v+48.5)/(-3(mV)))) : Ca activation original
+		varss = 1 / (1 + exp((v+43.5)/(-3(mV)))) : Ca activation original
 	}
 	else if (i==1) {
-            :varss = 1/ (1 + exp((v+53)/(1(mV))))    : Ca inactivation original
-	     varss = 1/ (1 + exp((v+50)/(1(mV))))    : Ca inactivation original
+        :varss = 1/ (1 + exp((v+53)/(1(mV))))    : Ca inactivation original
+	    varss = 1/ (1 + exp((v+50)/(1(mV))))    : Ca inactivation original
 	}
 }
 
@@ -94,14 +94,16 @@ FUNCTION vartau(v(mV), i) (ms){
 	if (i==0) {
 :       vartau = 50(ms)  : activation variable time constant
 :       vartau = 70(ms)  : activation variable time constant, last used
-	vartau = 8(ms)  : activation variable time constant, oct 18 for better vclamp
+:	vartau = 8(ms)  : activation variable time constant, oct 18 for better vclamp
+	vartau = 70(ms)  :NASSIs
 
         }
 	
 	else if (i==1) {
 :      	vartau = 5(ms)   : inactivation variable time constant
 :      	vartau = 20(ms)   : inactivation variable time constant, last used
-	vartau = 1(ms)   : inactivation variable time constat, oct18 for better vclamp
+:	vartau = 1(ms)   : inactivation variable time constat, oct18 for better vclamp
+	vartau = 20(ms)  :NASSIs
        }
 	
 }	

@@ -48,12 +48,12 @@ ENDCOMMENT
 
 
 NEURON {
+	THREADSAFE
 	POINT_PROCESS GLU         
-	RANGE R, gmax, g, ina , iglu    
-	USEION na WRITE ina   
+	RANGE R, gmax, g :, ina , iglu    
 	NONSPECIFIC_CURRENT  iglu             : i
 	GLOBAL Cdur, Alpha, Beta, Erev, Rinf, Rtau
-	THREADSAFE
+	:USEION na WRITE ina   
 }
 UNITS {
 	(nA) = (nanoamp)
@@ -63,13 +63,14 @@ UNITS {
 }
 
 PARAMETER {
-        Cmax	= 1	(mM)		: max transmitter concentration
-:	Cdur	= 0.3	(ms)		: transmitter duration (rising phase)
-	Cdur	= 1.1	(ms)		: transmitter duration (rising phase)
+    Cmax	= 1	(mM)		: max transmitter concentration
+	Cdur	= 0.3	(ms)		: transmitter duration (rising phase) NASSI
+:	Cdur	= 1.1	(ms)		: transmitter duration (rising phase) KIKI
 :	Alpha	= 0.94	(/ms)	: forward (binding) rate
 	Alpha	= 10	(/ms)	: forward (binding) rate
-:	Beta	= 0.18	(/ms)		: backward (unbinding) rate
-	Beta	= 0.5	(/ms)		: backward (unbinding) rate
+	Beta	= 0.15	(/ms)		: backward (unbinding) rate NASSI
+:	Beta	= 0.18	(/ms)		: backward (unbinding) rate DEFAULT
+:	Beta	= 0.5	(/ms)		: backward (unbinding) rate KIKI
 	Erev	= 0	(mV)		:0 reversal potential
 }
 
@@ -82,15 +83,15 @@ ASSIGNED {
 	Rtau		(ms)		: time constant of channel binding
 	synon
 	gmax
-	ina
-	ica
+	:ina : KIKI
+	:ica : KIKI
 }
 
 STATE {Ron Roff}
 
 INITIAL {
-        PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
-       	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
+	PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
+	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
 	synon = 0
 }
 
@@ -98,9 +99,8 @@ BREAKPOINT {
 	SOLVE release METHOD cnexp
 	g = (Ron + Roff)*1(umho)
 	iglu = g*(v - Erev)  :i
-	ina = 0.9*iglu
-	iglu = 0.1*iglu
-
+	:ina = 0.9*iglu :KIKI
+	:iglu = 0.1*iglu :KIKI
 }
 
 DERIVATIVE release {

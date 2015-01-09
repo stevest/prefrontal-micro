@@ -2,18 +2,17 @@
 
 
 NEURON	{ 
-  ARTIFICIAL_CELL NetStim1
-  RANGE y
-  RANGE interval, number, start
-  RANGE noise, burstP
 	THREADSAFE
-
+	ARTIFICIAL_CELL NetStim1
+	RANGE y
+	RANGE interval, number, start
+	RANGE noise, burstP
 }
 
 PARAMETER {
 	interval	= 10 (ms) <1e-9,1e9>: time between spikes (msec)
 	number 		= 10
-        start		= 100 (ms)	: start of first spike
+	start		= 100 (ms)	: start of first spike
 	noise		= 0 <0,1>	: amount of randomeaness (0.0 - 1.0)
 	burstP		= 100 (ms)      : period of bursts or recursive events
 
@@ -33,7 +32,6 @@ PROCEDURE seed(x) {
 INITIAL {
 	on = 0
 	y = 0
-:	i = 0
 	if (noise < 0) {
 		noise = 0
 	}
@@ -73,7 +71,6 @@ FUNCTION invl(mean (ms)) (ms) {
 	}else{
 		invl = (1. - noise)*mean + noise*mean*exprand(1)
 	}
-
 }
 
 PROCEDURE event_time() {
@@ -87,8 +84,6 @@ PROCEDURE event_time() {
 
 NET_RECEIVE (w) {
 	if (flag == 0) { : external event
-
-
 		if (w > 0 && on == 0) { : turn on spike sequence
 			init_sequence(t)
 			net_send(0, 1)
@@ -97,14 +92,12 @@ NET_RECEIVE (w) {
 		}
 	}
 	if (flag == 3) { : from INITIAL
-
 		if (on == 0) {
 			init_sequence(t)
 			net_send(0, 1)
 		}
 	}
 	if (flag == 1 && on == 1) {
-
 		y = 2
 		net_event(t)
 		event_time()
@@ -114,7 +107,6 @@ NET_RECEIVE (w) {
 		net_send(.1, 2)
 	}
 	if (flag == 2) {
-
 		y = 0
 	}
 }

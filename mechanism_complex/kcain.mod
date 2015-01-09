@@ -77,14 +77,10 @@ INITIAL {
 
 PROCEDURE rates(cai(mM)) { 
 	LOCAL a
-:	a=100
-:	m_inf=(a*cai*cai)/(a*cai*cai+b)
-:	tau_m=(1/(a*cai*cai+b))
-	
+
 :old equations	
 	a = cai/b
 	PROTECT m_inf = a/(a+1)
-:	tau_m=600
 	PROTECT tau_m = taumin+ 1(ms)*1(mM)*b/(cai+b)
 
 :inactivation

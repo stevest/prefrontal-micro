@@ -1,10 +1,10 @@
 : Delayed rectifier K+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX kdrcr
 	USEION k READ ki, ko WRITE ik
 	RANGE gkdrbar, ik, gk
-	THREADSAFE
 }
 
 UNITS {

@@ -3,12 +3,12 @@ TITLE Slow Ca-dependent potassium current
 :   Ca++ dependent K+ current responsible for slow AHP
 
 NEURON {
+	THREADSAFE
 	SUFFIX kca
-	USEION k READ ek WRITE ik
+	USEION k READ ko, ki WRITE ik
 	USEION ca READ cai
 	RANGE  gbar, po, ik
 	GLOBAL m_inf, tau_m
-	THREADSAFE
 }
 
 
@@ -22,10 +22,12 @@ UNITS {
 ASSIGNED {       : parameters needed to solve DE
 	v               (mV)
 	celsius         (degC)
-:	ek              (mV)
+	ek              (mV)
 	cai             (mM)           : initial [Ca]i
 	ik              (mA/cm2)
 	po
+	ki 		(mM)
+	ko		(mM)
 	m_inf
 	tau_m           (ms)
 :	h_inf				:inactivation 
@@ -35,8 +37,7 @@ ASSIGNED {       : parameters needed to solve DE
 
 PARAMETER {
 	gbar    = 10   (mho/cm2)
-        ek	 	(mV)
-	taumin  = 150	(ms)  :(150)
+	taumin  = 0	(ms)  :(150) :KIKI had this 150
 	b 	= 0.008 (/ms)  : changed oct 17, 2006 for pfc (0.3)
 	:b 	= 0.8		: value for CA1 neuron(2006)
 :	tau_h	= 300	(ms)
@@ -49,6 +50,7 @@ STATE {
 
 BREAKPOINT { 
 	SOLVE states METHOD cnexp
+	ek = 25 * log(ko/ki)
 	po = m*m
 	ik = gbar*po*(v - ek)    : potassium current induced by this channel
 }

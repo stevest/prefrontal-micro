@@ -1,10 +1,10 @@
 : Fast Na+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX Nafcr
 	USEION na READ ena WRITE ina
 	RANGE gnafbar, ina, NAFCR_gna
-	THREADSAFE
 }
 
 UNITS {

@@ -6,36 +6,38 @@ directly to the inside of the cell.
 ENDCOMMENT
 
 NEURON {
-        POINT_PROCESS SinClamp
-        RANGE del, dur, pkamp, freq, phase, bias
-        ELECTRODE_CURRENT i
 	THREADSAFE
+	POINT_PROCESS SinClamp
+	RANGE del, dur, pkamp, freq, phase, bias
+	ELECTRODE_CURRENT i
 }
 
 UNITS {
-        (nA) = (nanoamp)
-             }
+    (nA) = (nanoamp)
+}
 
 PARAMETER {
-        del=0   (ms)
-        dur=200   (ms)
-        pkamp=0.5 (nA) :1
-        freq=1  (Hz)
-        phase=0 (rad)
-        bias=0  (nA)
-        PI=3.14159265358979323846
+	del=0   (ms)
+	dur=200   (ms)
+	pkamp=0.5 (nA) :1
+	freq=1  (Hz)
+	phase=0 (rad)
+	bias=0  (nA)
+	PI=3.14159265358979323846
 }
 
 ASSIGNED {
-        i (nA)
+	i (nA)
 }
 
 BREAKPOINT {
-       if (t < del) {
-      i=0   
-   }else{ 
-            if (t < del+dur) {
-           i = pkamp*sin(2*PI*freq*(t-del)/1000+phase)+bias
-      }else{ 
-           i = 0
-}}} 
+	if (t < del) {
+		i=0   
+	}else{ 
+		if (t < del+dur) {
+			i = pkamp*sin(2*PI*freq*(t-del)/1000+phase)+bias
+		}else{ 
+			i = 0
+		}
+	}
+} 

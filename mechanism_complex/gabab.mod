@@ -61,12 +61,12 @@ ENDCOMMENT
 
 
 NEURON {
+	THREADSAFE
 	POINT_PROCESS GABAb
 	RANGE g, gmax, R
 	NONSPECIFIC_CURRENT i
 	GLOBAL Cmax, Cdur, Alpha, Beta, Erev, Rinf, Rtau
 	RANGE i
-	THREADSAFE
 }
 UNITS {
 	(nA) = (nanoamp)
@@ -93,16 +93,15 @@ ASSIGNED {
 	v		(mV)		: postsynaptic voltage
 	i 		(nA)		: current = g*(v - Erev)
 	g 		(umho)		: conductance
-        Rinf				: steady state channels open
+    Rinf				: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
-        synon
+    synon
 	gmax
 }
 
 STATE {Ron Roff}
 
 INITIAL {
-	
 	PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
 	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
 	synon = 0

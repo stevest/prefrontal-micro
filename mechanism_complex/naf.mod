@@ -4,16 +4,15 @@
 : September 27, 2007
 
 NEURON {
+	THREADSAFE
 	SUFFIX Naf
 	USEION na READ ena WRITE ina
 	RANGE gnafbar, ina, gna, ar2
-	THREADSAFE
 }
 
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
-	
 }
 
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}

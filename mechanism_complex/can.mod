@@ -4,11 +4,11 @@ TITLE N-type calcium channel
 :  Updated by Maria Markaki  03/12/03
 
 NEURON {
+	THREADSAFE
 	SUFFIX can
 	USEION ca READ cai, eca WRITE ica 
-        RANGE gcalbar, ica, po
+    RANGE gcalbar, ica, po
 	GLOBAL hinf, minf, s_inf
-	THREADSAFE
 }
 
 UNITS {
@@ -42,9 +42,9 @@ ASSIGNED {     : parameters needed to solve DE
 	ica          (mA/cm2)
 	po
 	cai          (mM)       :5e-5 initial internal Ca++ concentration
-	eca             (mV)
-        minf
-        hinf
+	eca          (mV)
+	minf
+	hinf
 	s_inf
 }
 
@@ -63,8 +63,8 @@ STATE {
 
 INITIAL {
 	rates(v,cai)
-        m = minf
-        h = hinf
+	m = minf
+	h = hinf
 	s = s_inf
 }
 
@@ -104,12 +104,12 @@ DERIVATIVE states {
 
 
 PROCEDURE rates(v (mV), cai(mM)) { 
-        LOCAL a, b, alpha2
-        
+	LOCAL a, b, alpha2
+
 	a = alpm(v)
 	PROTECT minf = 1/(1+a)
-        
-        b = alph(v)
+
+	b = alph(v)
 	PROTECT hinf = 1/(1+b)
 	alpha2 = (ki/cai)^2
 	PROTECT s_inf = alpha2 / (alpha2 + 1)
@@ -120,13 +120,13 @@ PROCEDURE rates(v (mV), cai(mM)) {
 
 FUNCTION alpm(v(mV)) {
 UNITSOFF
-  alpm = exp(1.e-3*zetam*(v-vhalfm)*9.648e4/(8.315*(273.16+celsius))) 
+	alpm = exp(1.e-3*zetam*(v-vhalfm)*9.648e4/(8.315*(273.16+celsius))) 
 UNITSON
 }
 
 FUNCTION alph(v(mV)) {
 UNITSOFF
-  alph = exp(1.e-3*zetah*(v-vhalfh)*9.648e4/(8.315*(273.16+celsius))) 
+	alph = exp(1.e-3*zetah*(v-vhalfh)*9.648e4/(8.315*(273.16+celsius))) 
 UNITSON
 }
 

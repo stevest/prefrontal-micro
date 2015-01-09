@@ -5,11 +5,11 @@ TITLE L-type calcium channel with high threshold for activation
 :  Updated by Maria Markaki  12/02/03
 
 NEURON {
+	THREADSAFE
 	SUFFIX cal
 	USEION ca READ cai, eca WRITE ica
-        RANGE gcalbar, ica, po
+    RANGE gcalbar, ica, po
 	GLOBAL inf, s_inf, tau_m
-	THREADSAFE
 }
 
 UNITS {
@@ -23,28 +23,27 @@ UNITS {
 
 
 PARAMETER {     
-  	ki     = 0.025  (mM)            : middle point of inactivation fct
+	ki     = 0.025  (mM)            : middle point of inactivation fct
 	gcalbar = 0   (mho/cm2)  : initialized conductance
-: 	taumin  = 100    (ms)            : minimal value of the time cst
- 	taumin  = 180    (ms)            : minimal value of the time cst
-        vhalf = -1 (mV)       :half potential for activation 
+	taumin  = 180    (ms)            : minimal value of the time cst
+	vhalf = -1 (mV)       :half potential for activation 
 	zeta=-4.6
 	t0=1.5(ms)
-	b = 0.03 	(mM) :young cell 0.01 delayed activation
-        ba = 0.01	(mM)
+	b = 0.01 	(mM) :young cell 0.01 delayed activation :was 0.03
+	ba = 0.01	(mM)
 	bo = 8
 }
 
 
 ASSIGNED {      : parameters needed to solve DE
-        v               (mV)
- 	celsius         (degC)
+	v               (mV)
+	celsius         (degC)
 	cai             (mM)      : initial internal Ca++ concentration
 	ica             (mA/cm2)
 	eca             (mV)
-:	ical             (mA/cm2)
+	:	ical             (mA/cm2)
 	po
-        inf
+	inf
 	s_inf
 	tau_m           (ms)
 }

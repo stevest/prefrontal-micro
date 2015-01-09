@@ -1,15 +1,15 @@
 :  iC   fast Ca2+/V-dependent K+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX iCcb
 	USEION k READ ki, ko WRITE ik
 	USEION ca READ cai
-        RANGE ik, gk, gkcbar
-	THREADSAFE
+    RANGE ik, gk, gkcbar
 }
 
 UNITS {
-        (mM) = (milli/liter)
+	(mM) = (milli/liter)
 	(mA) = (milliamp)
 	(mV) = (millivolt)
 	
@@ -18,10 +18,9 @@ UNITS {
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 PARAMETER {
 	v		(mV)
-        dt              (ms)
+	dt              (ms)
 	cai		(mM)
 	gkcbar= 0.0022	(mho/cm2)
-  
 }
 
 
@@ -46,15 +45,12 @@ INITIAL {
 	c = cinf
 }
 
-
 BREAKPOINT {
 	SOLVE states METHOD cnexp
 	gk = gkcbar*c*c
 	ek = 25 * log(ko/ki)        
 	ik = gk*(v-ek)
 }
-
-
 
 DERIVATIVE states {
         rate()
@@ -65,25 +61,18 @@ UNITSOFF
 
 
 FUNCTION calf(v (mV), cai (mM)) (/ms) { LOCAL vs, va
-
-           vs=v+40*log10(1000*cai)  :1000*cai
-	   va=vs+18
-	   if (fabs(va)<1e-04){  va=va+0.0001 }
-	   calf = (-0.00642*vs-0.1152)/(-1+exp(-va/12))
+	vs=v+40*log10(1000*cai)  :1000*cai
+	va=vs+18
+	if (fabs(va)<1e-04){  va=va+0.0001 }
+	calf = (-0.00642*vs-0.1152)/(-1+exp(-va/12))
 }
 
-
-
 FUNCTION cbet(v (mV), cai (mM))(/ms) { LOCAL vs, vb 
-
 	  vs=v+40*log10(cai*1000)
 	  vb=vs+152
 	  if (fabs(vb)<1e-04){ vb=vb+0.0001 }
 	  cbet = 1.7*exp(-vb/30)
-
 }	
-
-
 
 UNITSON
 

@@ -1,10 +1,10 @@
 : Delayed rectifier K+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX kdrin
 	USEION k READ ki, ko WRITE ik
 	RANGE gkdrbar, ik, gk
-	THREADSAFE
 }
 
 UNITS {
@@ -18,8 +18,6 @@ PARAMETER {
 	v (mV)
 	dt (ms)
 	gkdrbar= 0.0338 (mho/cm2) <0,1e9>
-	
-	
 }
 
 STATE {
@@ -34,7 +32,6 @@ ASSIGNED {
 	ek (mV)
 	ki (mM)
 	ko (mM)
-
 }
 
 

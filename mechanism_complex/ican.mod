@@ -30,13 +30,13 @@ TITLE Slow Ca-dependent cation current
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
 NEURON {
-     SUFFIX ican
-     USEION n READ en WRITE in VALENCE 1
-     USEION ca READ cai
-     USEION na WRITE ina
-     RANGE gbar, m_inf, tau_m, in, mystart, blah :STEFANOS
-     GLOBAL beta, cac, taumin
 	THREADSAFE
+	SUFFIX ican
+	USEION n READ en WRITE in VALENCE 1
+	USEION ca READ cai
+	USEION na WRITE ina
+	RANGE gbar, m_inf, tau_m, in, mystart
+	GLOBAL beta, cac, taumin
 }
 
 
@@ -49,74 +49,68 @@ UNITS {
 
 
 PARAMETER {
-     v               (mV)
-     : celsius = 36    (degC) : WILL BE IGNORED AND SET BY NEURON
-	 celsius(degC)
-     : en      = -20   (mV)            	: reversal potential : WILL BE IGNORED AND SET BY NEURON
-	 en (mV)
-     cai     	     (mM)           	: initial [Ca]i
-     gbar    = 0.0001 (mho/cm2)
-     beta    = 0.0001 (1/ms) 	 	: backward rate constant,0.00025/ 0.0001, for syn exp
-     :cac     = 0.0004 (mM)	     	:as of October 4, 2006, 0.0004, used in 2008, for syn exp
-     cac     = 0.0004 (mM)
-     :beta = 	0.0008 (1/ms)		: for current injection
-     :cac     = 0.0015  (mM)            : middle point of activation fct, for ip3 as somacar, for current injection
-     taumin  = 0.1   (ms)            	: minimal value of time constant
-     mystart=50 (ms)             
-
+	v		(mV)
+	: celsius = 36    (degC) : WILL BE IGNORED AND SET BY NEURON
+	celsius(degC)
+	: en      = -20   (mV)            	: reversal potential : WILL BE IGNORED AND SET BY NEURON
+	en 		(mV)
+	cai     (mM)           	: initial [Ca]i
+	:gbar    = 0.0001 (mho/cm2) : KIKIS
+	:beta    = 0.0001 (1/ms) 	 	: backward rate constant,0.00025/ 0.0001, for syn exp : KIKIS
+	gbar    = 0.00025(mho/cm2) : NASSIS
+	beta 	= 0.00015(1/ms)    	: 0.0003  0.00015 : NASSIS
+	:cac     = 0.0004 (mM)	     	:as of October 4, 2006, 0.0004, used in 2008, for syn exp : KIKIS
+	cac     = 0.0001 (mM) :NASSIS
+	:beta = 	0.0008 (1/ms)		: for current injection
+	:cac     = 0.0015  (mM)            : middle point of activation fct, for ip3 as somacar, for current injection
+	taumin  = 0.1   (ms)            	: minimal value of time constant
+	:mystart=50 (ms) :KIKIS
+	mystart	= 0 (ms) :NASSIS
 }
 
 
 STATE {
-     m
+	m
 }
 
 ASSIGNED {
-     in      (mA/cm2)
-     ina     (mA/cm2)
-     m_inf
-     tau_m   (ms)
-     tadj
-     :mystart
-	blah 
+	in      (mA/cm2)
+	ina     (mA/cm2)
+	m_inf
+	tau_m   (ms)
+	tadj
 }
 
 BREAKPOINT { 
-     SOLVE states METHOD cnexp : euler is NOT threadsafe...
-     
-if (t>mystart)  {     
-in = gbar * m*m * (v - en)
-ina = 0.7* in}
-blah = ina
+	SOLVE states METHOD cnexp : euler is NOT threadsafe...
+	:if (t>mystart)  {     
+	in = gbar * m*m * (v - en)
+	ina = 0.7*in :}
 }
 
 DERIVATIVE states { 
-     evaluate_fct(v,cai)
-
-     m' = (m_inf - m) / tau_m
+	evaluate_fct(v,cai)
+	m' = (m_inf - m) / tau_m
 }
 
 UNITSOFF
 INITIAL {
-:
-:  activation kinetics are assumed to be at 22 deg. C
-:  Q10 is assumed to be 3
-:
-     tadj = 3.0 ^ ((celsius-22.0)/10)
-
-     evaluate_fct(v,cai)
-     m = m_inf
-     mystart=0
+	:  activation kinetics are assumed to be at 22 deg. C
+	:  Q10 is assumed to be 3
+	:
+	tadj = 3.0 ^ ((celsius-22.0)/10)
+	evaluate_fct(v,cai)
+	m = m_inf
 }
 
 
 PROCEDURE evaluate_fct(v(mV),cai(mM)) {  LOCAL alpha2
 
-     alpha2 = beta * (cai/cac)^2
+	alpha2 = beta * (cai/cac)^2
 
-     tau_m = 1 / (alpha2 + beta) / tadj
-     m_inf = alpha2 / (alpha2 + beta)
+	tau_m = 1 / (alpha2 + beta) / tadj
+	m_inf = alpha2 / (alpha2 + beta)
 
-     if(tau_m < taumin) { tau_m = taumin }   : min value of time cst
+	if(tau_m < taumin) { tau_m = taumin }   : min value of time cst
 }
 UNITSON

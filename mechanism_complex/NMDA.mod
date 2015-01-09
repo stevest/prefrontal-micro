@@ -57,12 +57,12 @@ ENDCOMMENT
 
 
 NEURON {
+	THREADSAFE
 	POINT_PROCESS NMDA
 	RANGE g, Alpha, Beta, e, gmax, ica
 	USEION ca WRITE ica
 	NONSPECIFIC_CURRENT  iNMDA            
 	GLOBAL Cdur, mg, Cmax
-	THREADSAFE
 }
 UNITS {
 	(nA) = (nanoamp)
@@ -82,11 +82,12 @@ PARAMETER {
 :decrease 19/2/08 kiki
 :	Beta	= 0.0067 (/ms)		: backward (unbinding) rate
 :	Beta	=0.02	(/ms)		: kiki, july2008, nmda was too slow
-	Beta 	=0.01   (/ms)           : change to 0.3 for decay(maria) 
+:	Beta 	=0.01   (/ms)           : change to 0.3 for decay(maria) 
+	Beta	= 0.015 (/ms)		: backward (unbinding) rate THIS IS VALIDATED
 :	Beta	=0.0001	(/ms)		: to increase the decay rate, was 0.1
 :	e	= 45	 (mV)		: reversal potential
 	e	= 0	 (mV)		: reversal potential
-        mg      = 1      (mM)           : external magnesium concentration
+	mg      = 1      (mM)           : external magnesium concentration
 
 }
 
@@ -98,7 +99,7 @@ ASSIGNED {
 	Rinf				: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
 	synon
-        B 
+	B 
 	gmax                              : magnesium block
 	ica
 }
@@ -113,12 +114,12 @@ INITIAL {
 
 BREAKPOINT {
 	SOLVE release METHOD cnexp
-        B = mgblock(v)
+	B = mgblock(v)
 	g = (Ron + Roff)*1(umho) * B
 	iNMDA = g*(v - e)
-        :ica = 7*iNMDA/10   :(5-10 times more permeable to Ca++ than Na+ or K+, Ascher and Nowak, 1988)
-       ica = 0:STEFANOS
-:        iNMDA = 3*iNMDA/10
+	ica = 7*iNMDA/10   :(5-10 times more permeable to Ca++ than Na+ or K+, Ascher and Nowak, 1988)
+	:ica = 0:STEFANOS
+	iNMDA = 3*iNMDA/10
 
 }
 

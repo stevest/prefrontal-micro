@@ -15,7 +15,7 @@ ENDCOMMENT
 NEURON {
 	THREADSAFE
 	SUFFIX  mykca
-	USEION k READ ek WRITE ik
+	USEION k READ ko, ki WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
 	USEION ca READ cai   
 	RANGE  gkbar,ik
 }
@@ -29,13 +29,13 @@ UNITS {
 }
 
 PARAMETER {
-        gkbar	= 0	 (S/cm2)
+	gkbar	= 0	 (S/cm2)
 	:gkbar	= 1.0e-3 (S/cm2)
 }
 
 ASSIGNED {
-        v       (mV)
-        cai	(mM)     :26/10/04   htan se sxolio
+	v       (mV)
+	cai	(mM)     :26/10/04   htan se sxolio
 	celsius		 (degC)
 	ek		(mV)
 	ik	(mA/cm2)
@@ -44,13 +44,15 @@ ASSIGNED {
 	k3	(/ms)
 	k4	(/ms)
 	q10	(1)
+	ko	(mM)
+	ki	(mM)
 }
 
 STATE { cst ost ist }
 
 BREAKPOINT { 
 	SOLVE kin METHOD sparse
-:printf("==%f\n",ost+ist+cst) : EQUALS 1
+	ek=25*log(ko/ki)		:Changed, added, 23/04/2010, Nassi
 	ik = gkbar * ost *( v - ek ) 
 }
 
@@ -71,12 +73,12 @@ KINETIC kin {
 :PROCEDURE rates( v(mV), cani(mM)) {
 PROCEDURE rates( v(mV), cai(mM)) {
 :	 k1=alp( 0.1, v,  -10.0,   1.0 ) : original
-	 k1=alp( 0.1, v,  -10.0,   1.0 ) :increases the current
+	 k1=alp( 0.01, v,  -10.0,   1.0 ) :increases the current
 	 k2=alp( 0.1, v, -120.0, -10.0 ) :original (0.1, -120, -10)
 :	 k3=alpha( 0.001, 1.0, v, -20.0, 7.0 ) *1.0e8* ( cai*1.0(/mM) )^3  :original
 	 k3=alpha( 0.001, 1.0, v, -20.0, 7.0 ) *1.0e8* (cai*1.0(/mM) )^2
 	 :k3 changes the attenuation
-	 k4=alp( 0.01, v, -44.0,  -5.0 ) :original
+	 k4=alp( 0.2, v, -44.0,  -5.0 ) :original
 :	 k4=alp( 0.2, v, -44.0,  -5.0 )
 }
 

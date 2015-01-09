@@ -266,7 +266,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					if(SIMPLIFIED){
 						ncAMPA[i][j].weight = ampaweightpr
 					} else {
-						ncAMPA[i][j].weight = ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]      //*1.5
+						ncAMPA[i][j].weight = StimFactor * ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]      //*1.5
 					}
 					ncAMPA[i][j].threshold=-20 
 
@@ -275,7 +275,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					if(SIMPLIFIED){
 						ncNMDA[i][j].weight = nmdaweightpr
 					} else {
-						ncNMDA[i][j].weight = nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]]   * 0.5 //*1.5
+						ncNMDA[i][j].weight = StimFactor* nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]]   * 0.5 //*1.5
 					}
 					ncNMDA[i][j].threshold=-20
 					//if(PLOT){splot.point_mark(nmdapr[i][j],1)} //colorize
@@ -300,12 +300,12 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 
 						ncAMPA[i][j]=new NetCon(vstim_stim[i][j], ampapr[i][j])
 						ncAMPA[i][j].delay=500
-						ncAMPA[i][j].weight = ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5
+						ncAMPA[i][j].weight = StimFactor * ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5
 						ncAMPA[i][j].threshold=-20 
 
 						ncNMDA[i][j]=new NetCon(vstim_stim[i][j], nmdapr[i][j])
 						ncNMDA[i][j].delay=500
-						ncNMDA[i][j].weight = nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5 // * 0.5           
+						ncNMDA[i][j].weight = StimFactor * nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5 // * 0.5           
 						ncNMDA[i][j].threshold= -20 
 						//if(PLOT){splot.point_mark(nmdapr[i][j],2)} //colorize
 					}
@@ -972,8 +972,8 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 					for syn=0, (PV2PC_MaxSyn-1) { //for total number of IN-PC synapses
 						delstimpvpc=abs(fpvpc.repick())
 						if(delstimpvpc<steps_per_ms){delstimpvpc=steps_per_ms}
-						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_a)
-						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_b)
+						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, GABAaFactor*gabaweight_pv2pc_a)
+						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, GABAbFactor*gabaweight_pv2pc_b)
 					}
 				}
 			}

@@ -154,8 +154,8 @@ if(SIMPLIFIED){
 } else {
 // Complex morphologies case:
 
-	Stim_MaxSyn_apic = 40//27//90			//initial stimulation
-	Stim_MaxSyn_basal=0
+	Stim_MaxSyn_apic = 100//85 working with gaba 1.0 //27//90			//initial stimulation
+	Stim_MaxSyn_basal = 100//82 working with gaba 1.0
 }
 
 if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
@@ -411,10 +411,10 @@ for runs = 0, TOTALRUNS-1 {
 	assert(execute1(EXEC_CMD))
 	
 	//override complex background spiketrains:
-	BG_dendSyn = synapses_backb
-	BG_apicSyn = synapses_backa
-	BG_apicprSyn = synapses_backpr
-	BG_PVSyn = synapses_backinh
+	//BG_dendSyn = synapses_backb
+	//BG_apicSyn = synapses_backa
+	//BG_apicprSyn = synapses_backpr
+	//BG_PVSyn = synapses_backinh
 	
 	
 	//ECA_30()

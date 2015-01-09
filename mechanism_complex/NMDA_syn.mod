@@ -9,15 +9,13 @@ ENDCOMMENT
 TITLE NMDA synapse 
 
 NEURON {
+	THREADSAFE
 	POINT_PROCESS nmda_segev
 	USEION ca READ cai WRITE ica VALENCE 2
 	NONSPECIFIC_CURRENT inmda 
-
-	RANGE e ,gmax,inmda, ica
+	RANGE e ,gmax,inmda
 	RANGE gnmda
-
 	GLOBAL n, gama,tau1,tau2
-	THREADSAFE
 }
 
 UNITS {
@@ -26,9 +24,10 @@ UNITS {
 	(mV)	= (millivolt)
 	(nS) 	= (nanomho)
 	(mM)    = (milli/liter)
-        F	= 96480 (coul)
-        R       = 8.314 (volt-coul/degC)
-
+	:F	= 96480 (coul)
+	:R       = 8.314 (volt-coul/degC)
+	FARADAY = (faraday) (coulomb)
+	R	= (k-mole) (joule/degC)
 }
 
 PARAMETER {
@@ -36,9 +35,6 @@ PARAMETER {
 	e= 0.0	(mV)
 	tau1=90	(ms): Was 90	
 	tau2=5	(ms)	
-	:tau1=100 (ms)
-	:tau2=0.1 (ms)
-
 	gama=0.08 :0.08 	(/mV) :Was 0.08
 	dt (ms)
 	v		(mV)
@@ -51,36 +47,29 @@ ASSIGNED {
 	ica 		(mA/cm2)
 	cai		(mM)	
 }
+
 STATE {
 	A (nS)
 	B (nS)
 }
 
 INITIAL {
-      gnmda=0 
+	gnmda=0 
 	A=0
 	B=0
 }
 
-
-
 BREAKPOINT {
-	
 	SOLVE state METHOD cnexp
-	
 	gnmda=(A-B)/(1+n*exp(-gama*v))
-
-: Stefanos capping maximum gnmda:
-	:if(gnmda > 2.41) {gnmda = 2.41}
-	
 	inmda = (1e-3) * gnmda * (v-e) 
-
+	ica = inmda/10
+	
 	:ica = 7*inmda/10
 	:inmda = 3*inmda/10
-	ica = 0:STEFANOS
+	:ica = 0:STEFANOS
 
 	:if(((int)t%10)==0){printf("gnmda@t%f=%.20f\n",t,gnmda)}
-
 	:VERBATIM
 		:printf("%d %.20f\n",(int)t,gnmda);
 	:ENDVERBATIM
@@ -88,10 +77,8 @@ BREAKPOINT {
 }
 
 DERIVATIVE state {
-	
 	A'=-A/tau1
 	B'=-B/tau2
-	
 }
 
 NET_RECEIVE (weight) {

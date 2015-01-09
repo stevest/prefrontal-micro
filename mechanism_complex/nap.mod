@@ -1,20 +1,17 @@
 : Persistent Na+ channel
 
 NEURON {
+	THREADSAFE
 	SUFFIX nap
-	:SUFFIX Nap
 	USEION na READ ena WRITE ina
 	RANGE gnabar, ina, gna
-	:RANGE gnapbar, ina, gna
 	RANGE DA_alphamshift,DA_betamshift
 	RANGE DA_alphahfactor, DA_betahfactor
-	THREADSAFE
 }
 
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
-	
 }
 
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
@@ -23,7 +20,6 @@ PARAMETER {
 	v (mV)
 	dt (ms)
 	gnabar= 0.0022 (mho/cm2) <0,1e9>
-	:gnapbar= 0.0022 (mho/cm2) <0,1e9>
 	:ena = 55 (mV) : WILL BE IGNORED AND SET BY NEURON
 	ena (mV)
 	DA_alphamshift=0 : 2 for 100% DA, 0 otherwise
@@ -42,7 +38,6 @@ ASSIGNED {
 	mtau (ms)
 	htau (ms)
 	gna (mho/cm2)
-	
 }
 
 INITIAL {
@@ -54,9 +49,7 @@ INITIAL {
 BREAKPOINT {
 	SOLVE states METHOD cnexp
 	gna = gnabar*m*h
-	:gna = gnapbar*m*h
 	ina = gna*(v-55)
-	
 }
 
 DERIVATIVE states {

@@ -1,10 +1,10 @@
 : Delayed rectifier K+ channel
 
 NEURON {
-	SUFFIX kdr
-	USEION k READ ek  WRITE ik
-	RANGE gkdrbar, ik, gk
 	THREADSAFE
+	SUFFIX kdr
+	USEION k READ ki, ko WRITE ik
+	RANGE gkdrbar, ik, gk
 }
 
 UNITS {
@@ -17,10 +17,7 @@ INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 PARAMETER {
 	v (mV)
 	dt (ms)
-	gkdrbar = 0
-	:gbar= 0.0338 (mho/cm2) <0,1e9>
-	
-	
+	gkdrbar= 0.0338 (mho/cm2) <0,1e9>
 }
 
 STATE {
@@ -33,8 +30,8 @@ ASSIGNED {
 	tau (ms)
 	gk (mho/cm2)
 	ek (mV)
-	:ki (mM)
-	:ko (mM)
+	ki (mM)
+	ko (mM)
 
 }
 
@@ -47,9 +44,8 @@ INITIAL {
 BREAKPOINT {
 	SOLVE states METHOD cnexp
 	gk= gkdrbar*n*n*n*n
-	:ek = 25 * log(ko/ki)
+	ek = 25 * log(ko/ki)
 	ik = gk*(v-ek)
-	
 }
 
 DERIVATIVE states {
@@ -94,8 +90,6 @@ PROCEDURE rate(v (mV)) {LOCAL q10, sum, aa, ab
 	sum = (aa+ab)
 	inf = aa/sum
 	tau = 1/(sum)
-	
-	
 }
 
 UNITSON	

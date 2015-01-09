@@ -60,12 +60,12 @@ COMMENT
 ENDCOMMENT
 
 NEURON {
+	THREADSAFE
 	POINT_PROCESS GABAa
 	RANGE R, g, gmax 
 	NONSPECIFIC_CURRENT i
 	GLOBAL Cmax, Cdur, Alpha, Beta, Erev, Rinf, Rtau
 	RANGE i
-	THREADSAFE
 }
 
 UNITS {
@@ -91,8 +91,8 @@ ASSIGNED {
 	g 		(umho)		: conductance
 	Rinf				: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
-        synon
-       	gmax
+	synon
+	gmax
 }
 
 STATE {Ron Roff}

@@ -78,7 +78,7 @@ ASSIGNED {
 	v		(mV)		: postsynaptic voltage
 	iglu 		(nA)		: current = g*(v - Erev)     :i
 	g 		(umho)		: conductance
-	Rinf				: steady state channels open
+	Rinf		(/ms)		: steady state channels open
 	Rtau		(ms)		: time constant of channel binding
 	synon
 	gmax
@@ -87,8 +87,8 @@ ASSIGNED {
 STATE {Ron Roff}
 
 INITIAL {
-        PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
-       	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
+	PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
+	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
 	synon = 0
 }
 

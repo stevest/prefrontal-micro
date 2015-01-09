@@ -8,7 +8,7 @@ NEURON {
 	THREADSAFE
 	SUFFIX calcb
 	USEION ca READ cai, eca WRITE ica
-        RANGE gcalbar, ica, po
+    RANGE gcalbar, ica, po
 	GLOBAL inf, s_inf, tau_m
 }
 
@@ -37,14 +37,14 @@ PARAMETER {
 
 
 ASSIGNED {      : parameters needed to solve DE
-        v               (mV)
- 	celsius         (degC)
+	v               (mV)
+	celsius         (degC)
 	cai             (mM)      : initial internal Ca++ concentration
 	ica             (mA/cm2)
 	eca             (mV)
-:	ical             (mA/cm2)
+	:	ical             (mA/cm2)
 	po
-        inf
+	inf
 	s_inf
 	tau_m           (ms)
 }

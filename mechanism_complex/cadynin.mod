@@ -2,29 +2,29 @@
 
 NEURON {
 	THREADSAFE
-        SUFFIX cadynin
-        USEION ca READ cai,ica WRITE cai 
-        RANGE ca :Nassi
+	SUFFIX cadynin
+	USEION ca READ cai,ica WRITE cai 
+	RANGE ca :Nassi
 	GLOBAL depth,cainf,taur :Nassi
-         :RANGE CAF, tca, cai (Nassi)
+	:RANGE CAF, tca, cai (Nassi)
 }
 
 UNITS {
-        (molar) = (1/liter)		:Nassi  moles do not appear in units
-        (mM) = (milli/liter)
+	(molar) = (1/liter)		:Nassi  moles do not appear in units
+	(mM) = (milli/liter)
 	(um)	= (micron) :Nassi
-        (mA) = (milliamp)
+	(mA) = (milliamp)
 	(msM)	= (ms mM)  :Nassi
-        FARADAY    = (faraday) (coul)
+	FARADAY    = (faraday) (coulomb)
 }
 
 PARAMETER {
-       depth	= .1	(um)		: depth of shell Nassi
-        :tca= 70 (ms)           : decay time constant
-	:tca= 300 (ms)           : decay time constant (new) Sept 6, 2007 Nassi
-       : cainf= 100e-6   (mM)      : (50e-6)equilibrium ca2+ concentration Nassi
-        :dep= 2e-4 (micron)     : depth of shell for ca2+ diffusion Nassi
-        taur =  200 (ms)	: rate of calcium removal for stress conditions
+	depth	= .1	(um)		: depth of shell Nassi
+	:tca	= 70 (ms)           : decay time constant
+	:tca	= 300 (ms)           : decay time constant (new) Sept 6, 2007 Nassi
+	:cainf	= 100e-6   (mM)      : (50e-6)equilibrium ca2+ concentration Nassi
+	:dep	= 2e-4 (micron)     : depth of shell for ca2+ diffusion Nassi
+	taur	=  200 (ms)	: rate of calcium removal for stress conditions
 	cainf	= 50e-6(mM)	:changed oct2
 	cai		(mM)
 }
@@ -44,7 +44,9 @@ STATE {
 	ca		(mM) 
 }
 : STATE { cai (mM) } Nassi
-
+INITIAL {
+	ca = cainf
+}
 
 : BREAKPOINT { 
  :       SOLVE states METHOD cnexp
@@ -70,11 +72,9 @@ DERIVATIVE state {
 	if (drive_channel <= 0.) { drive_channel = 0.  }   : cannot pump inward 
          
 	:ca' = drive_channel + (cainf-ca)/taur
-        ca' = drive_channel/18 + (cainf -ca)/taur*11:*11    :(7)
+        ca' = (drive_channel/18) + (cainf -ca)/taur*11:*11    :(7)
 	cai = ca
 }
 
 
-INITIAL {
-	ca = cainf
-}
+

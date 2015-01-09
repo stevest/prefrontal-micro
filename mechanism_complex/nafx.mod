@@ -4,16 +4,15 @@
 : September 27, 2007
 
 NEURON {
+	THREADSAFE
 	SUFFIX Nafx
 	USEION na READ ena WRITE ina
 	RANGE gnafbar, ina, gna, ar2
-	THREADSAFE
 }
 
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
-	
 }
 
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
@@ -49,14 +48,13 @@ ASSIGNED {
 	NAFX_mtau (ms)
 	NAFX_htau (ms)
 	NAFX_stau (ms)
-	gna (mho/cm2)
-	
+	gna (mho/cm2)	
 }
 
 
 
 INITIAL {
-	rate(v,ar2)
+	rate(v, ar2)
 	m = NAFX_minf
 	h = NAFX_hinf
 	s = NAFX_sinf
@@ -65,8 +63,7 @@ INITIAL {
 BREAKPOINT {
 	SOLVE states METHOD cnexp
 	gna = gnafbar*m*m*m*h*s
-	ina = gna*(v-55)
-	
+	ina = gna*(v-55)	
 }
 
 DERIVATIVE states {
@@ -80,7 +77,6 @@ UNITSOFF
 
 FUNCTION NAFX_malf( v){ LOCAL va 
 	va=v+28
-	:va=v+28
 	if (fabs(va)<1e-04){
 	   NAFX_malf= -0.2816*(-9.3 + va*0.5)
 	   :malf= -0.2816*(-9.3 + va*0.5)
