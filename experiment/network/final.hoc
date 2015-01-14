@@ -156,6 +156,9 @@ if(SIMPLIFIED){
 
 	Stim_MaxSyn_apic = 100//85 working with gaba 1.0 //27//90			//initial stimulation
 	Stim_MaxSyn_basal = 100//82 working with gaba 1.0
+	taur_cad = 50//36
+	taumin_kca = 0
+	//gbar_kca = gbar_kca/100
 }
 
 if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
@@ -458,6 +461,7 @@ for runs = 0, TOTALRUNS-1 {
 		for lala=0,offsets.x(5)-1{ // record all cells!
 		  par_rec_membrane_voltage(lala)
 		}
+		par_rec_cai(0)
 		//record_source_spikes()
 
 		//if(VCLAMP){par_rec_vclamp_current(GPYID)}
@@ -473,6 +477,7 @@ for runs = 0, TOTALRUNS-1 {
 
 		{ PC.barrier()	} 
 		par_save_membrane_voltage(data_dir,CLUSTER_ID,ID, ISBINARY)
+		par_save_cai(0,CLUSTER_ID,ID)
 		//save_source_spikes(data_dir,CLUSTER_ID,ID)
 		//save_source_DIST(data_dir,CLUSTER_ID,ID)
 		//if(VCLAMP){par_save_vclamp_current(data_dir,CLUSTER_ID,ID)}

@@ -7,7 +7,7 @@ NEURON {
 	SUFFIX kca
 	USEION k READ ko, ki WRITE ik
 	USEION ca READ cai
-	RANGE  gbar, po, ik
+	RANGE  gbar, po, ik, taumin
 	GLOBAL m_inf, tau_m
 }
 

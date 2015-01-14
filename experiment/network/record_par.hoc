@@ -30,6 +30,7 @@ proc spikeout() { local i
 // see this here on the topic of storing membrane voltage in a parallel context: http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=1987
 objref r_volts[offsets.x[offsets.size()-1]],r_msec[offsets.x[offsets.size()-1]]
 objref r_curr[offsets.x[offsets.size()-1]]
+objref r_cai[offsets.x[offsets.size()-1]]
 // each recorded range variable must have a separate tvec which will be different for different cells
 objref recordedCells
 recordedCells = new Vector()
@@ -56,6 +57,18 @@ proc par_rec_vclamp_current(){local i,s,q  // use gid as parameter
 		r_msec[s]=new Vector(n)
 		for q=0,n-1 {r_msec[s].x[q]=q*dt }
 		r_curr[s].record(&vc.i,r_msec[s],0)
+		//recordedCells.append($1)
+	}
+}
+
+proc par_rec_cai(){local i,s,q  // use gid as parameter
+	if (PC.gid_exists($1)) { 
+		//if(DEBUG){printf("Recording cell %d current on node %d\n", $1,PC.id)}
+		s=$1//recordedCells.size()
+		r_cai[s]=new Vector(n)
+		r_msec[s]=new Vector(n)
+		for q=0,n-1 {r_msec[s].x[q]=q*dt }
+		PC.gid2cell($1).soma {r_cai[s].record(&cai(0.5),r_msec[s],0)}
 		//recordedCells.append($1)
 	}
 }
@@ -135,6 +148,21 @@ proc par_save_vclamp_current() {local i,s localobj vfilePC
 
 { PC.barrier() } 
 
+}
+
+proc par_save_cai() {local i,s localobj vfilePC
+{ PC.barrier() } 
+	if (PC.gid_exists($1)) { 
+		//for s=0,recordedCells.size()-1{
+			s=$1			
+			vfilePC = new File()	
+			sprint(ifilePC_filename,"experiment_%d/%s/%d_%d_%d_cai.txt", $3,EXP,$2,s, runs) 
+			vfilePC.wopen(ifilePC_filename)
+			r_cai[s].printf(vfilePC,"%8.4f\n")
+			vfilePC.close()
+		//}
+	}
+{ PC.barrier() } 
 }
 
 
