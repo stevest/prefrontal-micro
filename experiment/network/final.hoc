@@ -379,7 +379,7 @@ proc iclamp_proc() {
 }
 
 
-for runs = 0, TOTALRUNS-1 {
+for runs = 12, TOTALRUNS-1 {
 	if(PARALLEL){
 		if(DEBUG){report_gidvecs()}
 		if (PC.id == 0) {
@@ -412,6 +412,12 @@ for runs = 0, TOTALRUNS-1 {
 	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
 	pprint(EXEC_CMD)
 	assert(execute1(EXEC_CMD))
+	
+	//override complex background spiketrains:
+	BG_dendSyn = 16
+	BG_apicSyn = 16
+	BG_apicprSyn = 16
+	BG_PVSyn = 40
 	
 	//override complex background spiketrains:
 	//BG_dendSyn = synapses_backb

@@ -37,7 +37,7 @@ AMPAfactor = 1
 NMDAfactor_bg = 1 //0.5 gia diaforetika kyttara...
 GABAaFactor = 1//2.3 //test if results in stable PA (nonepileptic)
 GABAbFactor = 1 //test if results in stable PA (nonepileptic)
-StimFactor = 5 // NMDA and AMPA seight bias (instead of increasing synapse number).
+StimFactor = 1 // NMDA and AMPA seight bias (instead of increasing synapse number).
 
 //-----Objects for record data
 objref cv, vc, ic[10]
