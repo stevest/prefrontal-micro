@@ -6,9 +6,9 @@ load('states_07_G.mat')
 % pathprefix = 'H:/NEURON_RUNS/';
 % pathprefix = 'I:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
 % pathprefix = 'C:/Users/user/Desktop/TEMP/TEMP/';
-% pathprefix = 'E:/NEURON_RUNS/';
+pathprefix = 'E:/NEURON_RUNS/';
 % pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/';
-pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/TEMP/'
+% pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/TEMP/'
 
 % states.PC2PC_rnd = PC2PC_rnd;
 % states.PC2PC_str = PC2PC_str;
@@ -21,28 +21,48 @@ pathprefix = 'Z:/data/demory_backup/NEURON_PROJECTS/NEW_RUNS/TEMP/'
 %     states.Labels_rnd(:,currentstate) = run.labels_rnd;
 % end
 
-
-    
     
 %%
 % clustbiasRange = 0:0.1:1;
-for sn = 15
+for sn = 16
     clearvars -except states sn tmpSPK pathprefix clustbiasRange
     % obj = nrun(experimentid,npyrs,serial,state,exprun,tstop)
     ID = 12;
     SN = sn;
     ST = 1;
-    run = nrun(ID,75,SN,ST,300,20000);
+    % Manipulate the STR case to get similar GCC and No of reciprocals as in the rnd case:
+    p=0.5;
+    ch = states.state_str(1:75,1:75,ST);
+    for k=1:75
+        for l=1:75
+            if (ch(k,l) && (rand<p) )
+                tmpk=1;tmpl=1;
+                while (tmpk == tmpl) || (ch(tmpk,tmpl)) % gia to deftero conditional den eimai sigouros.
+                    [tmpk,tmpl] = ind2sub(size(ch),floor(1+rand*75*75));
+                end
+                ch(tmpk,tmpl) = 1;
+                ch(k,l) = 0;
+            end
+        end
+    end
+    tmpstate = states.state_str(1:75,1:75,ST);
+    [GCC_str,LCC_str,~] = clust_coeff( tmpstate );
+    fprintf('CC:%f Total:%f Recurent:%2.3f%%\n', GCC_str, sum(tmpstate(:)), 100*sum(sum(tmpstate & tmpstate'))/sum(tmpstate(:)))
+    [mcccs_ch,lcc_ch,~] = clust_coeff( ch );
+    fprintf('CC:%f Total:%f Recurent:%2.3f%%\n', mcccs_ch, sum(ch(:)), 100*sum(sum(ch & ch'))/sum(ch(:)))
+    % Overwrite changes in states variable!
+    states.state_str(1:75,1:75,ST) = ch;
+
+    run = nrun(ID,75,SN,ST,100,20000);
 %     run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
-    run.pathToHere = 'C:\Users\user\Documents\GitHub\prefrontal-micro\experiment\network';
+    run.pathToHere = 'C:\Users\steve\Documents\GitHub\prefrontal-micro\experiment\network';
     run.SIMPLIFIED = 1;
         % Insert cynaptic clustering bias: 0 = clustered, 1 = random (no
     % clustering)
     run.CLUSTBIAS = 1; % keep synapses in original locations (no rand jittering)
+    run.FORCECLUSTERING = 1; % Recompute the clusters (overriding the precomputed states)
     run.init(states);
-    
-
-    
+        
     
 %     sum(sum(run.stateSTR(1:run.nPC,1:run.nPC)))            / (run.nPC*run.nPC)
 %     mkdir(run.path);

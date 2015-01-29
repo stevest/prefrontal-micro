@@ -78,6 +78,7 @@ classdef nrun < handle
         ISBINARY
         CLUSTBIAS
         SIMPLIFIED
+        FORCECLUSTERING
     end
     
     methods %(Access = public)
@@ -126,17 +127,42 @@ classdef nrun < handle
                 % load states:
                 obj.state_str = states.state_str(:,:,obj.state);
                 obj.state_rnd = states.state_rnd(:,:,obj.state);
-                
-                obj.labels_str = obj.gparams.labels_str;
-                obj.labels_rnd = obj.gparams.labels_rnd;
-                
-                obj.cellsPerCluster_str = obj.gparams.cellsPerCluster_str ;
-                obj.cellsPerCluster_rnd = obj.gparams.cellsPerCluster_rnd ;
-                obj.stimCellsPerCluster = obj.gparams.stimCellsPerCluster ;
-                
-                obj.NC_str = obj.gparams.NC_str;
-                obj.NC_rnd = obj.gparams.NC_rnd;
-                
+
+                if obj.FORCECLUSTERING
+                    
+                    % Find nearest neighbors of Pyramidals only
+                    [CNi_str,CNo_str] = m_commonNeighbors(obj.state_str(1:obj.nPC,1:obj.nPC));
+                    [CNi_rnd,CNo_rnd] = m_commonNeighbors(obj.state_rnd(1:obj.nPC,1:obj.nPC));
+                    obj.mergedCN_str = [CNi_str + CNo_str] .* obj.state_str(1:obj.nPC,1:obj.nPC);
+                    obj.mergedCN_rnd = [CNi_rnd + CNo_rnd] .* obj.state_rnd(1:obj.nPC,1:obj.nPC);
+                    mergedCN_strT = obj.mergedCN_str';
+                    obj.mergedCN_str(logical(tril(ones(size(obj.mergedCN_str)),-1))) = mergedCN_strT(logical(tril(ones(size(obj.mergedCN_str)),-1)));
+                    mergedCN_rndT = obj.mergedCN_rnd';
+                    obj.mergedCN_rnd(logical(tril(ones(size(obj.mergedCN_rnd)),-1))) = mergedCN_strT(logical(tril(ones(size(obj.mergedCN_rnd)),-1)));
+                    
+                    % Affinity Propagation:
+                    obj.cellsPerCluster_str = [];
+                    obj.cellsPerCluster_rnd = [];
+                    % Performing affinity propagation inside class depricated
+                    performAffinityPropagation(obj);
+                    Sid=1;
+                    %how many cells in each structured cluster?
+                    obj.cellsPerCluster_str = histc(obj.labels_str(:,Sid),1:obj.NC_str(Sid))';
+                    %how many cells in each random cluster?
+                    obj.cellsPerCluster_rnd = histc(obj.labels_rnd(:,Sid),1:obj.NC_rnd(Sid))';
+                    obj.stimCellsPerCluster = min(min(obj.cellsPerCluster_str),min(obj.cellsPerCluster_rnd));
+                    
+                else
+                    obj.labels_str = obj.gparams.labels_str;
+                    obj.labels_rnd = obj.gparams.labels_rnd;
+                    
+                    obj.cellsPerCluster_str = obj.gparams.cellsPerCluster_str ;
+                    obj.cellsPerCluster_rnd = obj.gparams.cellsPerCluster_rnd ;
+                    obj.stimCellsPerCluster = obj.gparams.stimCellsPerCluster ;
+                    
+                    obj.NC_str = obj.gparams.NC_str;
+                    obj.NC_rnd = obj.gparams.NC_rnd;
+                end
                 
             else
 %             obj.gparams.connBinsPC2PC = 0:30:500;
