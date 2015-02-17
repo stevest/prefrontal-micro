@@ -1,11 +1,11 @@
 classdef ncell
     %NCELL, class to hold neural cell info
-    % eg voltage responce, position, 3D tree structure etc..
+    % eg voltage response, position, 3D tree structure etc..
     % for bugs and comments: stamatiad.st at gmail.com
     
     properties
-        mv; % Voltage responce in milivolts
-        tstop; %Voltae responce duration in miliseconds
+        mv; % Voltage response in milivolts
+        tstop; %Voltae response duration in miliseconds
         dt; % Simulation's descrete steps per milisecond
         freq; % Overall frequency in Hz
         nspikes; % Overall number of spikes
@@ -26,21 +26,21 @@ classdef ncell
     methods %(Access = public)
         function obj = ncell(varargin)
             % Constructon of the class:
-            % Call ncell(vresponce) to initialize .mv=[];
-            % Call ncell(vresponce,dt) to initialize
-            %             mv=[]; % Voltage responce in milivolts
-            %             tstop=[]; %Voltae responce duration in miliseconds
+            % Call ncell(vresponse) to initialize .mv=[];
+            % Call ncell(vresponse,dt) to initialize
+            %             mv=[]; % Voltage response in milivolts
+            %             tstop=[]; %Voltae response duration in miliseconds
             %             dt=[]; % Simulation's descrete steps per milisecond
             %             freq=[]; % Overall frequency in Hz
             %             nspikes=[]; % Overall number of spikes
             %             spikes=[]; % Timings of spikes in miliseconds
-            % Call ncell(vresponce,dt,'swcFileName') to associate a
+            % Call ncell(vresponse,dt,'swcFileName') to associate a
             % morphology also.
             
             
             % initialize:
-            mv=[]; % Voltage responce in milivolts
-            tstop=[]; %Voltae responce duration in miliseconds
+            mv=[]; % Voltage response in milivolts
+            tstop=[]; %Voltae response duration in miliseconds
             dt=[]; % Simulation's descrete steps per milisecond
             freq=[]; % Overall frequency in Hz
             nspikes=[]; % Overall number of spikes
@@ -101,12 +101,24 @@ classdef ncell
             if off ~= 1
                 off = off * obj.dt;
             end
-            responce = obj.mv(on:off);
-            if size(responce,2) > size(responce,1)
-                responce = responce';
+            response = obj.mv(on:off);
+            if size(response,2) > size(response,1)
+                response = response';
             end
-            spike_timing = find( ([0;diff(sign(diff(responce)))<0;0] & [sign(responce)==1]) );
-            number_of_spikes = length(spike_timing);
+            %depricated:
+%             spike_timing = find( ([0;diff(sign(diff(response)))<0;0] & [sign(response)==1]) );
+%             number_of_spikes = length(spike_timing);
+            % Due to noise fluctuations might occurre so change the algo:
+            Ls = [];
+            Lm = [];
+            Im = [];
+            [Lm,Ls] = regexp(sprintf('%i',[sign(response)==1]),'1+','match');
+            for k = 1:length(Lm)
+                [~,Im(k)] = max(response(Ls(k):Ls(k)+length(Lm{k})-1));
+                Im(k) = Im(k) + Ls(k)-1;
+            end
+            spike_timing = Im;
+            number_of_spikes = length(Im);
         end
         % Function to return branch IDXs and points
 %         function branches = detectRegions(obj,dendType)
@@ -369,7 +381,7 @@ classdef ncell
             maxfurc = max(sum(full(obj.tree.dA),1)) ;
         end
         function obj = hasPersistent(obj,stim,freq,dur)
-            %returns true if responce similars persistent activity
+            %returns true if response similars persistent activity
             %duration in ms
             %IGNORES the stimulus duration!
             %Pontiako implementation.. Logika, prwta briskeis ta spikes mia fora kai
