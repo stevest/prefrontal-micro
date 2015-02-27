@@ -108,9 +108,9 @@ if(SIMPLIFIED){
 	nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 	autogabaweight=	5.1e-4			//According to Bacci (2003) 
 	//------------------Set # of synapses
-	synapses_backb=16//18//60//100
-	synapses_backpr=16//18//60//100
-	synapses_backa=16//18//60//100
+	synapses_backb=15//16//18//60//100
+	synapses_backpr=15//16//18//60//100
+	synapses_backa=15//16//18//60//100
 	synapses_backinh=40
 	synapses_inh=1
 
@@ -142,10 +142,10 @@ if(SIMPLIFIED){
 	nmdaweights.x[2]=0.47		//1.9
 	nmdaweights.x[3]=0.585		//2.3*/
 	for i=0,55{
-		nmdaArr.x[i] = NMDAfactor * 0.585
+		nmdaArr.x[i] = NMDAfactor * 0.52
 		nmdaArr_bg.x[i] = NMDAfactor_bg * 0.22
 	}
-	nmdaweight = NMDAfactor * 0.585
+	nmdaweight = NMDAfactor * 0.52
 	//ampaweight=	0.00019	//NASSI
 	for i=0,55{
 		ampaArr.x[i] = AMPAfactor * ampaweight	
@@ -379,7 +379,7 @@ proc iclamp_proc() {
 }
 
 
-for runs = 12, TOTALRUNS-1 {
+for runs = 0, TOTALRUNS-1 {
 	if(PARALLEL){
 		if(DEBUG){report_gidvecs()}
 		if (PC.id == 0) {
@@ -414,9 +414,9 @@ for runs = 12, TOTALRUNS-1 {
 	assert(execute1(EXEC_CMD))
 	
 	//override complex background spiketrains:
-	BG_dendSyn = 16
-	BG_apicSyn = 16
-	BG_apicprSyn = 16
+	BG_dendSyn = 15//16
+	BG_apicSyn = 15//16
+	BG_apicprSyn = 15//16
 	BG_PVSyn = 40
 	
 	//override complex background spiketrains:
@@ -447,7 +447,7 @@ for runs = 12, TOTALRUNS-1 {
 	connectCB2PC(runs)
 	connectCR2PC(runs)
 	connectCR2CB(runs)*/
-	noise(0)
+	//noise(0)
 	//train()
 	//TTX_proc(GPYID) 
 	//iclamp_proc(0,-0.1)
@@ -467,7 +467,7 @@ for runs = 12, TOTALRUNS-1 {
 		for lala=0,offsets.x(5)-1{ // record all cells!
 		  par_rec_membrane_voltage(lala)
 		}
-		par_rec_cai(0)
+		//par_rec_cai(0)
 		//record_source_spikes()
 
 		//if(VCLAMP){par_rec_vclamp_current(GPYID)}
@@ -483,7 +483,7 @@ for runs = 12, TOTALRUNS-1 {
 
 		{ PC.barrier()	} 
 		par_save_membrane_voltage(data_dir,CLUSTER_ID,ID, ISBINARY)
-		par_save_cai(0,CLUSTER_ID,ID)
+		//par_save_cai(0,CLUSTER_ID,ID)
 		//save_source_spikes(data_dir,CLUSTER_ID,ID)
 		//save_source_DIST(data_dir,CLUSTER_ID,ID)
 		//if(VCLAMP){par_save_vclamp_current(data_dir,CLUSTER_ID,ID)}
@@ -525,12 +525,12 @@ for runs = 12, TOTALRUNS-1 {
 		print tempString
 		PCcells.o(qz).dend[0] { sectionMembraneMechSnapshot(tempString) }
 	}*/
+	printf("Runtime: %10.4g\n", runtime)
 }
 
 if(PARALLEL){
 	//printallkbars()
 	//print "Work done on node ", PC.id
-	printf("Runtime: %10.4g\n", runtime)
 	{ PC.runworker() }
 	{ PC.done() }// tell workers to quit
 	print "Success"
