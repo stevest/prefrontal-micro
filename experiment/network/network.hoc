@@ -349,7 +349,7 @@ StimFreq = 1 // Hz
 StimNo = StimDur/1000 * StimFreq
 */
 
-r = new Random(ID*$1 + 300)
+r = new Random(ID*$1 + 300 + PC.id)
 rv = new Random(ID*$1 +400)
 RV = rv.uniform(1, StimDur)
 PID = r.uniform(0,1)
