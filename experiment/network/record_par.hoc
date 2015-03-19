@@ -74,6 +74,50 @@ proc par_rec_cai(){local i,s,q  // use gid as parameter
 }
 
 
+
+
+proc par_rec_inhibition(){local i,s,q  // Record GID
+	for src=0, nPVcells-1 {
+		for trg=0,nPCcells-1 {
+			if (PC.gid_exists(ind2gid(trg,0))) {  // 0==PC cell!
+				for syn=0, (PV2PC_MaxSyn-1) {// for all target neurons on this node
+					syncurrGABAa[src][trg][syn] = new Vector(n,0)		
+					syncurrGABAb[src][trg][syn] = new Vector(n,0)
+					print "inhibition Current!"
+					print gabaOnPC_A[src][trg][syn]
+					//syncurrGABAa[src][trg][syn].record(&gabaOnPC_A[src][trg][syn].i)
+					//syncurrGABAa[src][trg][syn].record(&gabaOnPC_B[src][trg][syn].i)
+				}
+			}
+		}
+	}
+}
+
+//Create Vectors to hold cumulative inhibition (gabaa,gabab)
+objref cumcurGABAa[nPCcells], cumcurGABAb[nPCcells]
+
+proc par_save_inhibition(){local i,s,q  // Record GID
+	for src=0, nPVcells-1 {
+		for trg=0,0 {
+			//cumcurGABAa[trg] = new Vector(n,0)
+			//cumcurGABAb[trg] = new Vector(n,0)
+			if (PC.gid_exists(ind2gid(trg,0))) {  // 0==PC cell!
+				localID = gid2local(PCgids,trg)
+				print "ID 1 exists!"
+				print "SAVE node ",PC.id," localid == ",localID
+				for syn=0, 0 {// for all target neurons on this node
+					print trg
+					print syncurrGABAa[src][trg][PV2PC_MaxSyn-1]
+					/*for k = 0, n-1{
+						
+						//cumcurGABAa[trg].x[k] = cumcurGABAa[trg].x[k] + syncurrGABAa[src][trg][syn].x[k]
+						//cumcurGABAb[trg].x[k] = cumcurGABAb[trg].x[k] + syncurrGABAb[src][trg][syn].x[k]
+					}*/
+				}
+			}
+		}
+	}
+}
 // store voltage currents to files
 strdef vfilePC_filename, ifilePC_filename
 //, basename
@@ -81,7 +125,6 @@ strdef vfilePC_filename, ifilePC_filename
 
 
 proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
-
 { PC.barrier() } 
 strdef ext
 if ($4) {
@@ -127,6 +170,25 @@ for i=0, nPCcells-1 { //for all cells
 
 { PC.barrier() }
 */
+	//for j=0, PC.nhost()-1 {
+		for i=0, (nPCcells-1) {
+			//if (i !=j) {
+//print "iterating through cells @ ", i
+			if (PC.gid_exists(i)) {
+//print "Cell ",i," exists and saving"
+//print "Devent size is ",Devents[i].size()
+				vfilePC = new File()	
+				sprint(vfilePC_filename,"experiment_%d/%s/dendevents_syn%d_run%d.dat", $3,EXP,i, runs) 	
+				//sprint(temp,"%s/%s/dendevents_syn%d_run%d.dat", data_dira, data_dirb,  i, runs+1)
+				vfilePC.wopen(vfilePC_filename)
+				for l=0,Devents[i].size()-1 {
+					vfilePC.printf ("%f\n",Devents[i].x[l])
+				}
+				vfilePC.close()
+			}
+		}
+	//}
+
 }
 
 proc par_save_vclamp_current() {local i,s localobj vfilePC

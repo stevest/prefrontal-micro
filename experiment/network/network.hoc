@@ -662,7 +662,10 @@ for i=0,nPCcells-1{
 }
 clusterPID = new Vector()
 clusterDIST = new Vector(nPCcells)
-
+objref Devents[nPCcells]
+strdef temp
+objref PIDfile, FIDfile
+objref FID[nPCcells][nPCcells][PC2PC_MaxSyn]
 proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,bool,localID,trgGID,srcGID localobj r,fp,rDend
 	if(PARALLEL){ PC.barrier() }
 
@@ -681,14 +684,14 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
 
 	//Create clustering connectivity lists for recurrent connections:
-	//for i=0, PCcells.count()-1 {
+	//for i=0, nPCcells-1 {
 		i=0
 		for syn=0, (PC2PC_MaxSyn-1) {
 			rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
 			clusterDend[i].append(rDendidx)
-			//PID=r.repick()
+			PID=r.repick()
 			//uniformly distribute synapses along basals:
-			PID = (1/PC2PC_MaxSyn)/2 + ((1/PC2PC_MaxSyn)*syn)
+			//PID = (1/PC2PC_MaxSyn)/2 + ((1/PC2PC_MaxSyn)*syn)
 //print " uniform spreaded synapse#",syn," is @ PID = ",PID
 			clusterPID[i].append(PID)
 		}
@@ -769,8 +772,9 @@ if(srcGID!=trgGID){
 				for syn=0, (PC2PC_MaxSyn-1) { //for current syn
 //if((trg == 34)){print "TRG=",trg," RECURRENT SYNAPSE MADE ..."}
 					//PID=r.repick()
-					FIDp=abs(fp.repick())
-					if(FIDp<=steps_per_ms){FIDp=steps_per_ms+0.01}
+					FID[src][trg][syn] =  new Vector(1)
+					FID[src][trg][syn].x[0]=abs(fp.repick())
+					if(FID[src][trg][syn].x[0]<=steps_per_ms){FID[src][trg][syn].x[0]=steps_per_ms+0.01}
 					//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 					if(SIMPLIFIED){	clusterDend[0].x(syn) = 0 }
 					PCcells.o(localID).dend[clusterDend[0].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(clustbias(clusterPID[0].x(syn),$1))}					
@@ -783,16 +787,16 @@ if(srcGID!=trgGID){
 					//PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new NMDA(PID)}
 					//PCcells.o(localID).dend[clusterDend.x(localID)] {nmdaOnPC[src][trg][syn] = new nmda_segev(syn*0.2+0.1)}
 					if(SIMPLIFIED){
-						conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight)
+						conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FID[src][trg][syn].x[0],ampaweight)
 						if(PcellStimList.x(trgGID) ){ 	//All cells with dopamin are enhanced	
-							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,nmdaweight)
+							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FID[src][trg][syn].x[0],nmdaweight)
 						} else {
-							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25)
+							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FID[src][trg][syn].x[0],0.25)
 						}
 					} else {
 
-						conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID] )
-						connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,nmdaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID] )
+						conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FID[src][trg][syn].x[0],ampaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID] )
+						connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FID[src][trg][syn].x[0],nmdaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID] )
 
 					}
 
@@ -809,6 +813,58 @@ if(srcGID!=trgGID){
 		}
 		//synCtr = 0
 	}
+
+	//TEMP ONLY FOR PARALLEL MODE (NOT SINGLE!)
+	//Record output events from every Pyramidal:
+	//Attention to Null Objects! (check index):
+	//some cells are not connected so NULL obj exist
+	for i=0, nPCcells-1 {
+		flag = 0
+		for j=0, nPCcells-1 {
+			if(connMatrix.x[i][j]){
+				if (PC.gid_exists(i)) {
+					Devents[i] = new Vector(n)
+					//print connmdaPC2PC[i][j][0]
+					connmdaPC2PC[i][j][0].record(Devents[i])
+					flag = 1
+				}
+			}
+			if(flag){break}
+		}
+	}
+/*
+	PIDfile = new File()
+	sprint(temp,"experiment_%d/%s/dendevents_PID%d_run%d.dat", ID,EXP,i, runs) 	
+//	sprint(temp,"%s/%s/dendevents_PID%d_run%d.dat", data_dira, data_dirb,  0, $1+1) //for pyramidal #0
+	print PIDfile
+	print PIDfile.wopen(temp)
+	for i=0, nPCcells-1 {
+		//if (i != 0) {//for pyramidal #0
+			for k=0, (PC2PC_MaxSyn-1) {
+				PIDfile.printf("%d %d %f\n",i,k,clusterPID[0].x(k))
+			}
+		//}
+	}
+	PIDfile.close()
+
+	FIDfile = new File()	
+	sprint(temp,"experiment_%d/%s/dendevents_FID%d_run%d.dat", ID,EXP,i, runs) 		
+	//sprint(temp,"%s/%s/dendevents_FID%d_run%d.dat", data_dira, data_dirb,  0, $1+1) //for pyramidal #0
+	FIDfile.wopen(temp)
+	for i=0, 0 {
+		flag = 0
+		for i=0, nPCcells-1 {
+			if(connMatrix.x[i][j]){
+				for k=0, (PC2PC_MaxSyn-1) {
+					FIDfile.printf("%d %d %d %f\n",i,j,k,FID[i][j][k].x[0])
+				}
+				flag = 1
+			}
+			if(flag){break}
+		}
+	}
+	FIDfile.close()
+	*/
 
 } //END procedure initPC
 
@@ -909,6 +965,8 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 	}
 } //end procedure initPC2PV
 
+// Create vectors to record GABA synaptic current per target:
+objref syncurrGABAa[nPVcells][nPCcells][PV2PC_MaxSyn], syncurrGABAb[nPVcells][nPCcells][PV2PC_MaxSyn]
 //------------------------------------------------PV-PC connections-----------------------------------------------------//
 proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fpvpc,rDend
 	if(PARALLEL){ PC.barrier() }
@@ -974,6 +1032,13 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 						if(delstimpvpc<steps_per_ms){delstimpvpc=steps_per_ms}
 						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, GABAaFactor*gabaweight_pv2pc_a)
 						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, GABAbFactor*gabaweight_pv2pc_b)
+						if (trg == 1) {
+							print "inside node ",PC.id," localid == ",localID
+							syncurrGABAa[src][trg][syn] = new Vector(n,0)				
+							syncurrGABAb[src][trg][syn] = new Vector(n,0)				
+							syncurrGABAa[src][trg][syn].record(&gabaOnPC_A[src][trg][syn].i)
+							syncurrGABAb[src][trg][syn].record(&gabaOnPC_B[src][trg][syn].i)
+						}
 					}
 				}
 			}

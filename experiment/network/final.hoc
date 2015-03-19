@@ -378,7 +378,8 @@ proc iclamp_proc() {
 	}*/
 }
 
-
+tstop = 1
+TOTALRUNS = 1
 for runs = 0, TOTALRUNS-1 {
 	if(PARALLEL){
 		if(DEBUG){report_gidvecs()}
@@ -394,9 +395,9 @@ for runs = 0, TOTALRUNS-1 {
 			print "maxstep=",steps_per_ms
 		}  
 	}else{
-		foutput = "single_core"
-		sprint(syscmd,"mkdir -p %s/",foutput) 	
-		if(!system(syscmd)) print "Directory ",foutput," already exists"
+		//foutput = "single_core"
+		//sprint(syscmd,"mkdir -p %s/",foutput) 	
+		//if(!system(syscmd)) print "Directory ",foutput," already exists"
 		assert(xopen("recordandsave/record.hoc"))
 		assert(xopen("recordandsave/save_data.hoc"))
 	}
@@ -431,8 +432,8 @@ for runs = 0, TOTALRUNS-1 {
 	//thinner_apical()
 	stimulation(0,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
-	backgroundActivity(0,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
-	backgroundActivityPV(0,0) //~11Hz Petersen Carl
+	//backgroundActivity(0,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
+	//backgroundActivityPV(0,0) //~11Hz Petersen Carl
 	/*backgroundActivityCB(runs) //~2Hz Petersen Carl
 	backgroundActivityCR(runs) //~2Hz Petersen Carl
 	*/
@@ -467,6 +468,7 @@ for runs = 0, TOTALRUNS-1 {
 		for lala=0,offsets.x(5)-1{ // record all cells!
 		  par_rec_membrane_voltage(lala)
 		}
+		//par_rec_inhibition() //record inhibitory currents to each Pyramidal
 		//par_rec_cai(0)
 		//record_source_spikes()
 
@@ -483,6 +485,7 @@ for runs = 0, TOTALRUNS-1 {
 
 		{ PC.barrier()	} 
 		par_save_membrane_voltage(data_dir,CLUSTER_ID,ID, ISBINARY)
+		par_save_inhibition()
 		//par_save_cai(0,CLUSTER_ID,ID)
 		//save_source_spikes(data_dir,CLUSTER_ID,ID)
 		//save_source_DIST(data_dir,CLUSTER_ID,ID)
