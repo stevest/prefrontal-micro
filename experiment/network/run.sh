@@ -2,7 +2,7 @@
 
 parallel="1"
 simplified="1"
-cluster="0"
+cluster="4"
 # 0=Random, 1=Structured
 exp="1"
 state="1"
@@ -10,7 +10,7 @@ id="12"
 sn="16"
 vclamp="0.0"
 binary="1"
-clustbias="1.0"
+clustbias="0.0"
 
 if [ "$simplified" == "1" ]; then
 	mechanisms="mechanism_simple"

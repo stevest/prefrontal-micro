@@ -121,7 +121,7 @@ if(SIMPLIFIED){
 	BG_PVSyn = synapses_backinh
 
 
-	Stim_MaxSyn_apic = 40//27//90			//initial stimulation
+	Stim_MaxSyn_apic = 35//40//27//90			//initial stimulation
 	Stim_MaxSyn_basal=0//120	//initial stimulation
 
 	/*
@@ -142,10 +142,10 @@ if(SIMPLIFIED){
 	nmdaweights.x[2]=0.47		//1.9
 	nmdaweights.x[3]=0.585		//2.3*/
 	for i=0,55{
-		nmdaArr.x[i] = NMDAfactor * 0.52
+		nmdaArr.x[i] = NMDAfactor * 0.585
 		nmdaArr_bg.x[i] = NMDAfactor_bg * 0.22
 	}
-	nmdaweight = NMDAfactor * 0.52
+	nmdaweight = NMDAfactor * 0.585
 	//ampaweight=	0.00019	//NASSI
 	for i=0,55{
 		ampaArr.x[i] = AMPAfactor * ampaweight	
@@ -378,9 +378,32 @@ proc iclamp_proc() {
 	}*/
 }
 
-tstop = 1
-TOTALRUNS = 1
-for runs = 0, TOTALRUNS-1 {
+//tstop = 1600 
+//n=int(tstop/dt)
+objref Wvec,Gvec
+Wvec = new Vector(6)
+Gvec = new Vector(6)
+Wvec.x[0] = 0.25
+Wvec.x[1] = 0.35
+Wvec.x[2] = 0.47
+Wvec.x[3] = 0.585
+Wvec.x[4] = 0.685
+Wvec.x[5] = 0.785
+Gvec.x[0] = 0.4 
+Gvec.x[1] = 0.6
+Gvec.x[2] = 0.8
+Gvec.x[3] = 1.0
+Gvec.x[4] = 1.2
+Gvec.x[5] = 1.4
+
+TOTALRUNS = 8//Wvec.size() * Gvec.size()
+for runs = 7, TOTALRUNS-1 {
+	Gidx = runs%Gvec.size()
+	Widx = int(runs * Gvec.size() / TOTALRUNS)
+print "Runs is: ",runs
+print "Gidx is: ", Gidx
+print "Widx is: ", Widx
+
 	if(PARALLEL){
 		if(DEBUG){report_gidvecs()}
 		if (PC.id == 0) {
@@ -406,11 +429,13 @@ for runs = 0, TOTALRUNS-1 {
 
 	//Import respective stimulation/background spikes:
 	EXEC_CMD = ""
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")}",ID,runs+1)
+	//sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")}",ID,runs+1)
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")}",ID,1)
 	pprint(EXEC_CMD)
 	assert(execute1(EXEC_CMD))
 	EXEC_CMD = ""
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
+	//sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,1)
 	pprint(EXEC_CMD)
 	assert(execute1(EXEC_CMD))
 	
@@ -439,10 +464,11 @@ for runs = 0, TOTALRUNS-1 {
 	*/
 	
 	//if runs is a constant Randoms do not change (synapse location etc..)
-	connectPC2PC(0,runs)// synaptic location Random seed, axon conductanse delay Random seed
-	connectPV2PV(0,runs)// ssynaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PV(0,runs)// synaptic location Random seed, axon conductanse delay Random seed
-	connectPV2PC(0,runs)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
+	GABAbFactor = Gvec.x[Gidx]
+	connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)
@@ -468,7 +494,7 @@ for runs = 0, TOTALRUNS-1 {
 		for lala=0,offsets.x(5)-1{ // record all cells!
 		  par_rec_membrane_voltage(lala)
 		}
-		//par_rec_inhibition() //record inhibitory currents to each Pyramidal
+		spikerecord()//record spike events of each cell 
 		//par_rec_cai(0)
 		//record_source_spikes()
 
@@ -482,10 +508,15 @@ for runs = 0, TOTALRUNS-1 {
 		if (PC.id==0){
 			print "node ", PC.id, "reached tstop"
 		}
-
 		{ PC.barrier()	} 
 		par_save_membrane_voltage(data_dir,CLUSTER_ID,ID, ISBINARY)
-		par_save_inhibition()
+		par_save_synaptic_locations_PCrec(data_dir,CLUSTER_ID,ID,0)
+		//par_save_inmda(data_dir,CLUSTER_ID,ID,0)
+		par_save_icacai(data_dir,CLUSTER_ID,ID,0)
+		//par_save_inhibition(data_dir, CLUSTER_ID,ID,0)
+		//spikeout(data_dir,CLUSTER_ID,ID,ISBINARY)//Save PV spike events
+		//par_save_synaptic_delays(data_dir,CLUSTER_ID,ID,ISBINARY)
+
 		//par_save_cai(0,CLUSTER_ID,ID)
 		//save_source_spikes(data_dir,CLUSTER_ID,ID)
 		//save_source_DIST(data_dir,CLUSTER_ID,ID)

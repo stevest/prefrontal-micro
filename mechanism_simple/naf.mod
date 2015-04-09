@@ -47,7 +47,21 @@ BREAKPOINT {
 	SOLVE states METHOD cnexp
 	gna = gnafbar*m*m*m*h
 	ina = gna*(v-55)
-	
+VERBATIM
+	//if( ( t - (500 * (int)(t/500))) == 0 ) {	
+	if( (t > 0.0)  ) {	
+		if(   (int)(t*10)%100 == 0 ) {	
+			//printf("MODULO IS: %10.10f\n", t - (1.0 * (int)(t/1.0)) );
+			//printf("mod is equal with zero float: %d\n", ( t - (1.0 * (int)(t/1.0))) == 0 );
+			//printf("mod is equal with zero : %d\n", ( t - (1 * (int)(t/1))) == 0 );
+			//printf("mod is equal with : %f\n",   (t*10)   );
+			//printf("mod is equal with : %d\n",   (int)(t*10)   );
+			//printf("mod is equal with : %f\n",   (((int)(t*10))/10)   );
+			//printf("mod is equal with float: %d\n",  (int)(t*10)%100  );
+		//	printf("@t = %10.10f\n",t);
+		}
+	}
+ENDVERBATIM
 }
 
 DERIVATIVE states {

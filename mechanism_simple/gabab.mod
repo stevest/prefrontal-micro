@@ -111,6 +111,14 @@ BREAKPOINT {
 	SOLVE release METHOD cnexp
 	g = (Ron + Roff)*1(umho)
 	i = g*(v - Erev)
+VERBATIM
+	if( (t > 0.0)  ) {
+	        if(   (int)(t*10)%1000 == 0 ) {
+		//	printf("GABAb.i %10.10f\n",i);
+		}
+	}
+ENDVERBATIM
+
 }
 
 DERIVATIVE release {

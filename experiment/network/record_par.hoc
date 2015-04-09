@@ -1,23 +1,50 @@
-objref tvec, idvec
+objref tvec[nPVcells], idvec[nPVcells]
 // will be Vectors that record all spike times (tvec) 
 // see also http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/parcon.html#spike_record
-proc spikerecord() {local i localobj nc,nil
-  tvec = new Vector() 
-  idvec = new Vector()
+
+// store voltage currents to files
+strdef vfilePC_filename, ifilePC_filename
+proc spikerecord() {local i localobj nc,null, vfilePC
   // the next line causes problems if there are more NetCons than cells //
- // for i=0, nclist.count-1 {
-  for i=0, PCcells.count()-1 { 
-    nc = PCcells.o(i).connect2target(nil) 
-    nc.record(tvec, idvec, i) // the Vector will continue to record spike times // even after the NetCon has been destroyed
-    }
+for k = 0, PCcells.count()-1 {
+                //print "Recording from cell ",PCgids.x[k]
+                PCcells.o(k).axon { dummyNetCon[PCgids.x[k]] = new NetCon(&v(1),null)  }
+                dummyNetCon[PCgids.x[k]].threshold = -10
+                //print dummyNetCon[PCgids.x[k]]
+                Devents[PCgids.x[k]] = new Vector(n,0)
+                dummyNetCon[PCgids.x[k]].record(Devents[PCgids.x[k]])
+                //print Devents[PCgids.x[k]]
+        }
+
+//for kk=0,PC.nhost-1 {
+//if (PC.id == kk) {
+	for i=0, PVcells.count()-1 { 
+		tvec[i] = new Vector() 
+		//idvec[i] = new Vector()
+		//print PVcells.o(i).axon.L
+		PVcells.o(i).axon { nc = new NetCon(&v(1), null) }
+		nc.threshold = -10
+		nc.record(tvec[i]) // the Vector will continue to record spike times // even after the NetCon has been destroyed
+	}
+//}
+//}
 }
 
 //////////////////////////// // Report simulation results ////////////////////////////
-proc spikeout() { local i 
-  printf("\ntime\t cell\n") 
-  for i=0, tvec.size-1 { 
-    printf("%g\t %d\n", tvec.x[i], idvec.x[i])
-  }
+proc spikeout() { local i localobj vfilePC 
+	for k=0, PVcells.count()-1{
+					vfilePC = new File()	
+					sprint(vfilePC_filename,"experiment_%d/%s/eventsPV_src_%d_runs_%d.txt", $3,EXP,PVgids.x[k],runs)
+					vfilePC.wopen(vfilePC_filename)
+					//if ($4) {
+					//	for j=0, cumcurGABAa[trg].size()-1 {
+					//		vfilePC.vwrite(&cumcurGABAa[trg].x[j])
+					//	}
+					//} else {
+						tvec[k].printf(vfilePC,"%8.4f\n")
+					//}
+					vfilePC.close()
+	}
 } 
 // If you save the stdout to a file you can sort the results. A nice idiom is sort -k 1n,1n -k 2n,2n temp1 > temp
 //All the spike times and cells are the same as in the serial implementation, as we can verify by capturing the outputs of the two programs to files, sorting the parallel output, and comparing
@@ -34,6 +61,7 @@ objref r_cai[offsets.x[offsets.size()-1]]
 // each recorded range variable must have a separate tvec which will be different for different cells
 objref recordedCells
 recordedCells = new Vector()
+objref vdendseg[nPCcells][5] //hardcoded!
 // recording routines for the parallel context
 proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 	if (PC.gid_exists($1)) { 
@@ -46,6 +74,18 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 		for q=0,n-1 {r_msec[s].x[q]=q*dt }
 		PC.gid2cell($1).soma {cv.record(&v(0.5),r_volts[s],r_msec[s],0)}
 		recordedCells.append($1)
+		
+		if ($1 <= offsets.x[1]-1) {
+			cum = (1/PC.gid2cell($1).dend[0].nseg)/2
+			for k=0, PC.gid2cell($1).dend[0].nseg-1 {
+				vdendseg[$1][k] = new Vector(n)
+				PC.gid2cell($1).dend[0] {cv.record(&v(cum),vdendseg[$1][k],r_msec[s],0)}
+			//for j=0, (maxsyn-1) {
+				//print_pp_location(nmda[i][j])
+			//}
+				cum = cum + (1/PC.gid2cell($1).dend[0].nseg)
+			}
+		}
 	}
 }
 
@@ -76,55 +116,147 @@ proc par_rec_cai(){local i,s,q  // use gid as parameter
 
 
 
-proc par_rec_inhibition(){local i,s,q  // Record GID
+/*proc par_rec_inhibition(){local i,s,q  // Record GID
 	for src=0, nPVcells-1 {
 		for trg=0,nPCcells-1 {
 			if (PC.gid_exists(ind2gid(trg,0))) {  // 0==PC cell!
 				for syn=0, (PV2PC_MaxSyn-1) {// for all target neurons on this node
 					syncurrGABAa[src][trg][syn] = new Vector(n,0)		
 					syncurrGABAb[src][trg][syn] = new Vector(n,0)
-					print "inhibition Current!"
-					print gabaOnPC_A[src][trg][syn]
+					//print "inhibition Current!"
+					//print gabaOnPC_A[src][trg][syn]
 					//syncurrGABAa[src][trg][syn].record(&gabaOnPC_A[src][trg][syn].i)
 					//syncurrGABAa[src][trg][syn].record(&gabaOnPC_B[src][trg][syn].i)
 				}
 			}
 		}
 	}
-}
+}*/
 
 //Create Vectors to hold cumulative inhibition (gabaa,gabab)
 objref cumcurGABAa[nPCcells], cumcurGABAb[nPCcells]
 
-proc par_save_inhibition(){local i,s,q  // Record GID
-	for src=0, nPVcells-1 {
-		for trg=0,0 {
-			//cumcurGABAa[trg] = new Vector(n,0)
-			//cumcurGABAb[trg] = new Vector(n,0)
-			if (PC.gid_exists(ind2gid(trg,0))) {  // 0==PC cell!
-				localID = gid2local(PCgids,trg)
-				print "ID 1 exists!"
-				print "SAVE node ",PC.id," localid == ",localID
-				for syn=0, 0 {// for all target neurons on this node
-					print trg
-					print syncurrGABAa[src][trg][PV2PC_MaxSyn-1]
-					/*for k = 0, n-1{
-						
-						//cumcurGABAa[trg].x[k] = cumcurGABAa[trg].x[k] + syncurrGABAa[src][trg][syn].x[k]
-						//cumcurGABAb[trg].x[k] = cumcurGABAb[trg].x[k] + syncurrGABAb[src][trg][syn].x[k]
-					}*/
+//, basename
+//basename = "soma_run"
+proc par_save_inhibition(){local i,s,q  localobj vfilePC// Record GID
+{ PC.barrier() } 
+strdef ext
+if ($4) {
+	print "using BINARY extensions"
+	ext = "bin"
+} else {
+	ext = "txt"
+}
+	for trg=0,PCcells.count()-1 {
+		cumcurGABAa[PCgids.x[trg]] = new Vector(n,0)
+		cumcurGABAb[PCgids.x[trg]] = new Vector(n,0)
+		for src=0, nPVcells-1 {
+			if (connMatrix.x[ind2gid(src,1)][PCgids.x[trg]]) {
+				for syn=0, PV2PC_MaxSyn-1 {// for all target neurons on this node
+					for k = 0, n-1{
+						cumcurGABAa[PCgids.x[trg]].x[k] = cumcurGABAa[PCgids.x[trg]].x[k] + syncurrGABAa[src][PCgids.x[trg]][syn].x[k]
+						cumcurGABAb[PCgids.x[trg]].x[k] = cumcurGABAb[PCgids.x[trg]].x[k] + syncurrGABAb[src][PCgids.x[trg]][syn].x[k]
+					}
+				}
+			}
+		}
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/GABAa_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		vfilePC.wopen(vfilePC_filename)
+		
+		if ($4) {
+			for j=0, cumcurGABAa[PCgids.x[trg]].size()-1 {
+				vfilePC.vwrite(&cumcurGABAa[PCgids.x[trg]].x[j])
+			}
+		} else {
+			cumcurGABAa[PCgids.x[trg]].printf(vfilePC,"%8.4f\n")
+		}
+		vfilePC.close()
+		
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/GABAb_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		vfilePC.wopen(vfilePC_filename)
+		if ($4) {
+			for j=0, cumcurGABAb[PCgids.x[trg]].size()-1 {
+				vfilePC.vwrite(&cumcurGABAb[PCgids.x[trg]].x[j])
+			}
+		} else {
+			cumcurGABAb[PCgids.x[trg]].printf(vfilePC,"%8.4f\n")
+		}
+		vfilePC.close()
+	}
+}
+
+proc par_save_inmda(){local i,s,q  localobj vfilePC// Record GID
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+		print "using BINARY extensions"
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
+
+	for trg=0,PCcells.count()-1 {
+		for src=0, nPCcells-1 {
+			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
+				for syn=0, PC2PC_MaxSyn-1 {// for all target neurons on this node
+					vfilePC = new File()	
+					sprint(vfilePC_filename,"experiment_%d/%s/inmda_trg_%d_src_%d_syn_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],src,syn,runs,ext) 
+					vfilePC.wopen(vfilePC_filename)
+					
+					if ($4) {
+						for j=0, curnmdaPC2PC[src][trg][syn].size()-1 {
+							vfilePC.vwrite(&curnmdaPC2PC[src][trg][syn])
+						}
+					} else {
+						curnmdaPC2PC[src][PCgids.x[trg]][syn].printf(vfilePC,"%8.4f\n")
+					}
+					vfilePC.close()
 				}
 			}
 		}
 	}
 }
-// store voltage currents to files
-strdef vfilePC_filename, ifilePC_filename
-//, basename
-//basename = "soma_run"
 
+proc par_save_icacai(){local i,s,q  localobj vfilePC// Record GID
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+		print "using BINARY extensions"
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
 
-proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
+	for trg=0,PCcells.count()-1 {
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/ica_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		vfilePC.wopen(vfilePC_filename)
+		
+		if ($4) {
+			for j=0, icaPC2PC[PCgids.x[trg]].size()-1 {
+				vfilePC.vwrite(&icaPC2PC[PCgids.x[trg]])
+			}
+		} else {
+			icaPC2PC[PCgids.x[trg]].printf(vfilePC,"%8.4f\n")
+		}
+		vfilePC.close()
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/cai_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		vfilePC.wopen(vfilePC_filename)
+		
+		if ($4) {
+			for j=0, caiPC2PC[PCgids.x[trg]].size()-1 {
+				vfilePC.vwrite(&caiPC2PC[PCgids.x[trg]])
+			}
+		} else {
+			caiPC2PC[PCgids.x[trg]].printf(vfilePC,"%8.4f\n")
+		}
+		vfilePC.close()
+	}
+}
+proc par_save_synaptic_delays(){local i,s,q  localobj vfilePC// Record GID
 { PC.barrier() } 
 strdef ext
 if ($4) {
@@ -132,26 +264,110 @@ if ($4) {
 } else {
 	ext = "txt"
 }
-
-//for i=0, PC.nhost-1 {
-	//if (PC.id == i) {
-		for s=0,recordedCells.size()-1{
-			vfilePC = new File()	
-			sprint(vfilePC_filename,"experiment_%d/%s/%d_%d_%d.%s", $3,EXP,$2,recordedCells.x(s), runs,ext) 
-			vfilePC.wopen(vfilePC_filename)
-			if ($4) {
-				for j=0, r_volts[s].size()-1 {
-					vfilePC.vwrite(&r_volts[s].x[j])
-				}
-			} else {
-				r_volts[s].printf(vfilePC,"%8.4f\n")
+//save PV2PC delays
+	for trg=0, PCcells.count()-1 {
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/delayPV2PC_trg_%d_runs_%d.txt", $3,EXP,PCgids.x[trg],runs) 
+		vfilePC.wopen(vfilePC_filename)
+		for src=0, nPVcells-1 {
+			if (connMatrix.x[ind2gid(src,1)][PCgids.x[trg]]) {
+				vfilePC.printf("%d %d",src,PCgids.x[trg])
+				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
 			}
+		}
+		
+		vfilePC.close()
+	}
+//save PC2PC delays
+	for trg=0, PCcells.count()-1 {
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/delayPC2PC_trg_%d_runs_%d.txt", $3,EXP,PCgids.x[trg],runs) 
+		vfilePC.wopen(vfilePC_filename)
+		for src=0, nPCcells-1 {
+			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
+				vfilePC.printf("%d %d",src,PCgids.x[trg])
+				delayPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+			}
+		}
+		
+		vfilePC.close()
+	}
+}
+
+proc par_save_synaptic_locations_PCrec(){ localobj vfilePC
+
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+	ext = "bin"
+	} else {
+	ext = "txt"
+	}
+	//save PC2PC synaptic locations
+	for trg=0, PCcells.count()-1 {
+		for src=0, nPCcells-1 {
+			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
+				vfilePC = new File()	
+				sprint(vfilePC_filename,"experiment_%d/%s/PID_PC2PC_src_%d_trg_%d_runs_%d.%s", $3,EXP,src,PCgids.x[trg],runs,ext) 
+				vfilePC.wopen(vfilePC_filename)
+				for src=0, nPCcells-1 {
+					if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
+						//print "Should save synapse location!"
+						//for syn = 0, (PC2PC_MaxSyn-1) { 
+							vfilePC.printf("%d %d",src,PCgids.x[trg])
+							pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+						//}
+					}
+				}
+				
+				vfilePC.close()
+			}
+		}
+	}
+
+
+}
+
+proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
+
+	for s=0,recordedCells.size()-1{
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/%d_%d_%d.%s", $3,EXP,$2,recordedCells.x(s), runs,ext) 
+		vfilePC.wopen(vfilePC_filename)
+		if ($4) {
+			for j=0, r_volts[s].size()-1 {
+				vfilePC.vwrite(&r_volts[s].x[j])
+			}
+		} else {
+			r_volts[s].printf(vfilePC,"%8.4f\n")
+		}
+		vfilePC.close()
+	}
+
+	{ PC.barrier() }
+/*
+	for i=0, PCcells.count()-1 {
+		for k=0, PCcells.o(i).dend[0].nseg-1 {
+			vfilePC = new File()		
+			sprint(vfilePC_filename,"experiment_%d/%s/vdendseg_segment%d_cell%d_run%d.txt", $3,EXP,k,PCgids.x[i], runs) 
+			//print "Saving in ",vfilePC, " file ", vfilePC_filename, " of size ", vdendseg[PCgids.x[i]][k].size()
+			//sprint(temp,"%s/%s/vdendseg_segment%d_run%d.dat", data_dira, data_dirb,  k, runs+1)
+			vfilePC.wopen(vfilePC_filename)
+			//for j=0,vdendseg[PCgids.x[i]][k].size()-1 {
+				vdendseg[PCgids.x[i]][k].printf (vfilePC,"%.10f\n")
+			//}
+			//print vdendseg[PCgids.x[i]][0]
 			vfilePC.close()
 		}
-	//}
-//}
-
-{ PC.barrier() } 
+	} 
+*/
 
 /*
 { PC.barrier() } 
@@ -170,26 +386,19 @@ for i=0, nPCcells-1 { //for all cells
 
 { PC.barrier() }
 */
-	//for j=0, PC.nhost()-1 {
-		for i=0, (nPCcells-1) {
-			//if (i !=j) {
-//print "iterating through cells @ ", i
-			if (PC.gid_exists(i)) {
-//print "Cell ",i," exists and saving"
-//print "Devent size is ",Devents[i].size()
-				vfilePC = new File()	
-				sprint(vfilePC_filename,"experiment_%d/%s/dendevents_syn%d_run%d.dat", $3,EXP,i, runs) 	
-				//sprint(temp,"%s/%s/dendevents_syn%d_run%d.dat", data_dira, data_dirb,  i, runs+1)
-				vfilePC.wopen(vfilePC_filename)
-				for l=0,Devents[i].size()-1 {
-					vfilePC.printf ("%f\n",Devents[i].x[l])
-				}
-				vfilePC.close()
-			}
+	for i=0, PCcells.count()-1 {
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/dendevents_syn%d_run%d.dat", $3,EXP,PCgids.x[i], runs) 	
+		//sprint(temp,"%s/%s/dendevents_syn%d_run%d.dat", data_dira, data_dirb,  i, runs+1)
+		vfilePC.wopen(vfilePC_filename)
+		for l=0,Devents[PCgids.x[i]].size()-1 {
+			vfilePC.printf ("%f\n",Devents[PCgids.x[i]].x[l])
 		}
-	//}
+		vfilePC.close()
+	}
+		
 
-}
+} //End save membrane voltage proc
 
 proc par_save_vclamp_current() {local i,s localobj vfilePC
 
