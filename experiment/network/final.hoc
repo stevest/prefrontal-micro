@@ -396,8 +396,8 @@ Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 
-TOTALRUNS = 8//Wvec.size() * Gvec.size()
-for runs = 7, TOTALRUNS-1 {
+TOTALRUNS = 18//Wvec.size() * Gvec.size()
+for runs = 6, TOTALRUNS-1 {
 	Gidx = runs%Gvec.size()
 	Widx = int(runs * Gvec.size() / TOTALRUNS)
 print "Runs is: ",runs
@@ -513,7 +513,7 @@ print "Widx is: ", Widx
 		par_save_synaptic_locations_PCrec(data_dir,CLUSTER_ID,ID,0)
 		//par_save_inmda(data_dir,CLUSTER_ID,ID,0)
 		par_save_icacai(data_dir,CLUSTER_ID,ID,0)
-		//par_save_inhibition(data_dir, CLUSTER_ID,ID,0)
+		par_save_inhibition(data_dir, CLUSTER_ID,ID,0)
 		//spikeout(data_dir,CLUSTER_ID,ID,ISBINARY)//Save PV spike events
 		//par_save_synaptic_delays(data_dir,CLUSTER_ID,ID,ISBINARY)
 
