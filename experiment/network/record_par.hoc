@@ -207,7 +207,7 @@ proc par_save_inmda(){local i,s,q  localobj vfilePC// Record GID
 					
 					if ($4) {
 						for j=0, curnmdaPC2PC[src][trg][syn].size()-1 {
-							vfilePC.vwrite(&curnmdaPC2PC[src][trg][syn])
+							vfilePC.vwrite(&curnmdaPC2PC[src][PCgids.x[trg]][syn])
 						}
 					} else {
 						curnmdaPC2PC[src][PCgids.x[trg]][syn].printf(vfilePC,"%8.4f\n")
@@ -218,7 +218,42 @@ proc par_save_inmda(){local i,s,q  localobj vfilePC// Record GID
 		}
 	}
 }
+objref cumcurNMDA[nPCcells]
+proc par_save_sumall_inmda(){local i,s,q  localobj vfilePC// Record GID
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+		print "using BINARY extensions"
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
 
+	for trg=0,PCcells.count()-1 {
+		cumcurNMDA[PCgids.x[trg]] = new Vector(n,0)
+		for src=0, nPCcells-1 {
+			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
+				for syn=0, PC2PC_MaxSyn-1 {// for all target neurons on this node
+					for k = 0, n-1{
+						cumcurNMDA[PCgids.x[trg]].x[k] = cumcurNMDA[PCgids.x[trg]].x[k] + curnmdaPC2PC[src][PCgids.x[trg]][syn].x[k]
+					}
+				}
+			}
+		}
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"experiment_%d/%s/inmda_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		vfilePC.wopen(vfilePC_filename)
+		
+		if ($4) {
+			for j=0, curnmdaPC2PC[src][trg][syn].size()-1 {
+				vfilePC.vwrite(&cumcurNMDA[PCgids.x[trg]])
+			}
+		} else {
+			cumcurNMDA[PCgids.x[trg]].printf(vfilePC,"%8.4f\n")
+		}
+		vfilePC.close()
+	}
+}
 proc par_save_icacai(){local i,s,q  localobj vfilePC// Record GID
 	{ PC.barrier() } 
 	strdef ext
@@ -284,8 +319,7 @@ if ($4) {
 		sprint(vfilePC_filename,"experiment_%d/%s/delayPC2PC_trg_%d_runs_%d.txt", $3,EXP,PCgids.x[trg],runs) 
 		vfilePC.wopen(vfilePC_filename)
 		for src=0, nPCcells-1 {
-			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
-				vfilePC.printf("%d %d",src,PCgids.x[trg])
+			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) { vfilePC.printf("%d %d",src,PCgids.x[trg])
 				delayPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
 			}
 		}
