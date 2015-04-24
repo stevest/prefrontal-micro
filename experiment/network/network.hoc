@@ -12,6 +12,16 @@ objref all_msec
 all_msec = new Vector(n,0)
 for q=0,n-1 {all_msec.x[q]=q*dt }
 
+//To reproduce the results between single/multi core use arrays to
+//simulate different nodes. Due to NEURON not allowing local array
+//objects, allocate them below:
+ncores = 8 //SET THE VIRTUAL # OF CORES FOR RANDOM REPRODUCABILITY!!
+objref PC2PCrarr[ncores],PC2PCRNarr[ncores],PC2PCfparr[ncores],PC2PCrdend[ncores]
+objref STIMrarr[ncores],STIMrapicarr[ncores],STIMrbasal[ncores]
+objref PV2PVrarr[ncores],PV2PVfparr[ncores]
+objref PC2PVrarr[ncores],PC2PVfparr[ncores]
+objref PV2PCrarr[ncores],PV2PCfparr[ncores],PV2PCrbasal[ncores]
+
 //---- Section Reference Variables----//
 BDendsNo = 18
 objref SectionArray[nPCcells][BDendsNo]
@@ -207,7 +217,7 @@ proc noise() { local i
 
 
 
-proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx  localobj r,rApic,rBasal,ri,rvect
+proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID  localobj r,rApic,rBasal,ri,rvect
 	//interval = 50//50
 	//number = 20
 
@@ -228,18 +238,28 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 		print "RVECT[",i,"] = ",rvect.x[i]
 	}*/
 
-	r = new Random(ID*$1+165)
-	PID = r.uniform(0, 1)
-	rApic = new Random(ID*$1+12)
-	rBasal = new Random(ID*$1+67)
+	//set parallel PID randomness
+	if(PARALLEL){
+		r = new Random(ID*$1 + 165 + PC.id )
+		rApic = new Random(ID*$1 + 12 + PC.id)
+		rBasal = new Random(ID*$1 + 67 + PC.id)
+		PID = r.uniform(0,1)
+	} else {
+		for kk=0,ncores-1{
+			STIMrarr[kk] = new Random(ID*$1 + 165 + kk )
+			STIMrapicarr[kk] = new Random(ID*$1 + 12 + kk)
+			STIMrbasal[kk] = new Random(ID*$1 + 67 + kk)
+			PID = STIMrarr[kk].uniform(0,1)
+		}
+	}
 
 	for i=0, nPCcells - 1  { 
 		if(PcellStimList.x(i)){
 		//print " Procceding with stimulation" 
+		trgGID = ind2gid(i,0) //ONLY FOR PC CELLS!
 			if(PARALLEL){
-				tmpGID = ind2gid(i,0) //ONLY FOR PC CELLS!
-				bool = PC.gid_exists(tmpGID)
-				localID = gid2local(PCgids,tmpGID) //target cell
+				bool = PC.gid_exists(trgGID)
+				localID = gid2local(PCgids,trgGID) //target cell
 			}else{
 				bool=1
 				localID = i
@@ -249,8 +269,13 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 
 				// Apical input:
 				for j=0, (Stim_MaxSyn_apic-1) {
-					PID=r.repick()
-					rApicIdx = int(rApic.uniform(0,PCcells.o(localID).ApicNo-1))
+					if(PARALLEL){
+						PID=r.repick()
+						rApicIdx = int(rApic.uniform(0,PCcells.o(localID).ApicNo-1))
+					} else {
+						PID = STIMrarr[trgGID%ncores].repick()
+						rApicIdx = int(STIMrapicarr[trgGID%ncores].uniform(0,PCcells.o(localID).ApicNo-1))
+					}
 					if(SIMPLIFIED){ rApicIdx = 0 } //PROXIMAL!
 					PCcells.o(localID).apic[rApicIdx] {ampapr[i][j] = new GLU(PID)}
 					//EXEC_CMD = ""
@@ -289,8 +314,13 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 				if(!SIMPLIFIED){
 					//Basal input:
 					for j=Stim_MaxSyn_apic, Stim_MaxSyn_apic+Stim_MaxSyn_basal-1 {
-						PID=r.repick()
-						rBasalIdx = int(rBasal.uniform(0,PCcells.o(localID).DendNo-1))
+						if(PARALLEL){
+							PID=r.repick()
+							rBasalIdx = int(rBasal.uniform(0,PCcells.o(localID).DendNo-1))
+						} else {
+							PID = STIMrarr[trgGID%ncores].repick()
+							rBasalIdx = int(STIMrbasal[trgGID%ncores].uniform(0,PCcells.o(localID).DendNo-1))
+						}
 						PCcells.o(localID).dend[rBasalIdx] {ampapr[i][j]=new GLU(PID)}// sta apical!!!!!
 						//EXEC_CMD = ""
 						//sprint(EXEC_CMD,"PCcells.o(%d).dend[%d] {nmdapr[%d][%d]=new %s(%f)}",localID,rBasalIdx,i,j,NMDA_MECH,PID)
@@ -679,9 +709,8 @@ objref curnmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref curampaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref icaPC2PC[nPCcells]
 objref caiPC2PC[nPCcells]
-objref rarr[8],RNarr[8]
-proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,bool,localID,trgGID,srcGID,localNMDAweight,arg,rn,ncores localobj RN,r,fp,rDend,null
-	ncores = 8 //SET THE No OF CORES FOR RANDOM REPRODUCABILITY!!
+
+proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,bool,localID,trgGID,srcGID,localNMDAweight,arg,rn localobj RN,r,fp,rDend,null
 	arg = $3
 	if(PARALLEL){ PC.barrier() }
 
@@ -690,34 +719,39 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 		//for kk=0,PC.nhost-1{
 			r = new Random(ID*$1 + 350 + PC.id ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 			RN = new Random(ID*$1 + 360 + PC.id)
+			fp = new Random(ID*$1 + 3 + PC.id)	
+			rDend = new Random(ID*$1 + 4 + PC.id) 
 		//}
 		rn = RN.uniform(0,1)
 		PID = r.uniform(0,1)
+		FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
 	} else {
 		for kk=0,ncores-1{
-			rarr[kk] = new Random(ID*$1 + 350 + kk) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
-			RNarr[kk] = new Random(ID*$1 + 360 + kk)
-			rn = RNarr[kk].uniform(0,1)
-			PID = rarr[kk].uniform(0,1)
+			PC2PCrarr[kk] = new Random(ID*$1 + 350 + kk) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
+			PC2PCRNarr[kk] = new Random(ID*$1 + 360 + kk)
+			PC2PCfparr[kk] = new Random(ID*$1 + 3 + kk)
+			PC2PCrdend[kk] = new Random(ID*$1 + 4 + kk) 
+			rn = PC2PCRNarr[kk].uniform(0,1)
+			PID = PC2PCrarr[kk].uniform(0,1)
+			FIDp = PC2PCfparr[kk].normal(1.7,0.9)
 		}
 	}
 
-	fp = new Random(ID*$1+3)	
 	//rDend = new Random($1+4 + PC.id ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
-	rDend = new Random(ID*$1+4) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
-	FIDp=fp.normal(1.7,0.9)	//According to Thomson(2007)
+	//rDend = new Random(ID*$1+4) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 
 	//Create clustering connectivity lists for recurrent connections:
 	for i=0, PCcells.count()-1 {
 		//i=0
 		for syn=0, (PC2PC_MaxSyn-1) {
-			rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
-			clusterDend[PCgids.x[i]].append(rDendidx)
-			if (PARALLEL){
-				PID=r.repick()
+			if (PARALLEL) {
+				PID = r.repick()
+				rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
 			} else {
-				PID=rarr[PCgids.x[i]%ncores].repick()
+				PID = PC2PCrarr[PCgids.x[i]%ncores].repick()
+				rDendidx = int(PC2PCrdend[PCgids.x[i]%ncores].uniform(0,PCcells.o(i).DendNo-1) )
 			}
+			clusterDend[PCgids.x[i]].append(rDendidx)
 			//uniformly distribute synapses along basals:
 			//PID = (1/PC2PC_MaxSyn)/2 + ((1/PC2PC_MaxSyn)*syn)
 //print " uniform spreaded synapse#",syn," is @ PID = ",PID
@@ -748,12 +782,15 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 				for j=0, (PC_MaxAutosyn-1) { 
 					if(PARALLEL){
 						PID=r.repick()
+						FIDp = abs(fp.repick())
+						rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
 					} else {
-						PID=rarr[PCgids.x[i]%ncores].repick()
+						PID=PC2PCrarr[trgGID%ncores].repick()
+						FIDp = abs( PC2PCfparr[trgGID%ncores].repick() )
+						rDendidx = int(PC2PCrdend[PCgids.x[i]%ncores].uniform(0,PCcells.o(i).DendNo-1) )
 					}
-					FIDp=abs(fp.repick())
-					if(FIDp<=dt){FIDp=dt+0.01}
-					rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
+					if( FIDp <= dt ){ FIDp = dt + 0.01 }
+					
 					if(SIMPLIFIED){	rDendidx = 0 }
 					PCcells.o(i).dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
 					//EXEC_CMD = ""
@@ -834,10 +871,7 @@ if(srcGID!=trgGID){
 //if((trg == 34)){print "TRG=",trg," RECURRENT SYNAPSE MADE ..."}
 					//PID=r.repick()
 					//arrFID[src][trg][syn] =  new Vector(1)
-					FIDp=abs(fp.repick())
-					if(FIDp<=dt){FIDp=dt+0.01}
 					//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
-					delayPC2PC[src][trg].append(FIDp)
 					//DEBUG:
 					//print "print size()","blah",trgGID
 					if(SIMPLIFIED){	clusterDend[trgGID].x(syn) = 0 }
@@ -847,10 +881,14 @@ if(srcGID!=trgGID){
 						//if(syn>=5){print "syn ERROR!!"}
 						//print clusterPID[trgGID].x(syn)
 						PID = clustbias(clusterPID[trgGID].x[syn],RN.repick())
+						FIDp = abs(fp.repick())
 						//if (PCgids.x[trg]+1 > nPCcells){print "BIGGER!!!!"}
 					} else {
-						PID = clustbias(clusterPID[trgGID].x[syn],RNarr[trgGID%ncores].repick())
+						PID = clustbias(clusterPID[trgGID].x[syn],PC2PCRNarr[trgGID%ncores].repick())
+						FIDp = abs( PC2PCfparr[trgGID%ncores].repick() )
 					}
+					if( FIDp <= dt ){ FIDp = dt + 0.01 }
+					delayPC2PC[src][trg].append(FIDp)
 					pidPC2PC[src][trg].append(PID)
 					PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 					//print "@cell ",trgGID," synapse on dend ",clusterDend.x(localID), " on PID ", syn*0.2+0.1
@@ -931,12 +969,22 @@ if(srcGID!=trgGID){
 
 //---------------------------------------------PV-PV connections--------------------------------------------------------//
 
-proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fpvpv
+proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fp
 	if(PARALLEL){ PC.barrier() }
-	r = new Random(ID*$1 + 250)
-	PID = r.uniform(0,1)
-	fpvpv = new Random(ID*$1-100)
-	delstimpvpv=fpvpv.normal(1.76,0.07)		//latency from IN-IN, according to Bacci (2003)   
+	//set parallel PID randomness
+	if(PARALLEL){
+		r = new Random(ID*$1 + 250 + PC.id )
+		fp = new Random(ID*$1 - 100 + PC.id)
+		PID = r.uniform(0,1)
+		delstimpvpv=fp.normal(1.76,0.07) //latency from IN-IN, according to Bacci (2003)   
+	} else {
+		for kk=0,ncores-1{
+			PV2PVrarr[kk] = new Random(ID*$1 + 250 + kk )
+			PV2PVfparr[kk] = new Random(ID*$1 - 100 + kk)
+			PID = PV2PVrarr[kk].uniform(0,1)
+			delstimpvpv = PV2PVfparr[kk].normal(1.76,0.07) 
+		}
+	}
 
 	for src=0, nPVcells-1 {
 		for trg=0, nPVcells-1 {
@@ -953,16 +1001,26 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 				if (bool) { 
 					if (srcGID == trgGID) { //autapses
 						for syn=0, 0 {
-							PID = r.repick ()
-							delstimpvpv=abs(fpvpv.repick())
+							if(PARALLEL){
+								PID = r.repick ()
+								delstimpvpv=abs(fp.repick())
+							} else {
+								PID = PV2PVrarr[trgGID%ncores].repick()
+								delstimpvpv=abs(PV2PVfparr[trgGID%ncores].repick())
+							}
 							if(delstimpvpv<=dt){delstimpvpv=dt+0.01}
 							PVcells.o(localID).soma gabaOnPV_A[src][trg][syn] = new GABAa(PID)//was GABAain
 							congabaPV2PV_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID,gabaOnPV_A[src][trg][syn],-20,delstimpvpv,autogabaweight )
 						}
 					} else {
 						for syn=0, (PV2PV_MaxSyn-1) {
-							PID = r.repick ()
-							delstimpvpv=abs(fpvpv.repick())
+							if(PARALLEL){
+								PID = r.repick ()
+								delstimpvpv=abs(fp.repick())
+							} else {
+								PID = PV2PVrarr[trgGID%ncores].repick()
+								delstimpvpv=abs(PV2PVfparr[trgGID%ncores].repick())
+							}
 							if(delstimpvpv<=dt){delstimpvpv=dt+0.01}
 							PVcells.o(localID).soma gabaOnPV_A[src][trg][syn] = new GABAa(PID)//was GABAain
 							congabaPV2PV_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID,gabaOnPV_A[src][trg][syn],-20,delstimpvpv,autogabaweight )
@@ -983,12 +1041,23 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 } // End procedure initPV
 
 //----------------------------------------------PC-PV connections-------------------------------------------------------//
-proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fpcpv
+proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fp
 	if(PARALLEL){ PC.barrier() }
-	r = new Random(ID*$1 + 150)
-	PID = r.uniform(0,1)
-	fpcpv = new Random(ID*$1*2)
-	delstimpcpv=fpcpv.normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999)
+
+	//set parallel PID randomness
+	if(PARALLEL){
+		r = new Random(ID*$1 + 150 + PC.id )
+		fp = new Random(ID*$1 * 2 + PC.id)
+		PID = r.uniform(0,1)
+		delstimpcpv=fp.normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999) 
+	} else {
+		for kk=0,ncores-1{
+			PC2PVrarr[kk] = new Random(ID*$1 + 150 + kk )
+			PC2PVfparr[kk] = new Random(ID*$1 * 2 + kk)
+			PID = PC2PVrarr[kk].uniform(0,1)
+			delstimpcpv = PC2PVfparr[kk].normal(0.6, 0.2)	
+		}
+	}
 
 	for src=0, nPCcells-1 {
 		for trg=0, nPVcells-1 {
@@ -1005,8 +1074,13 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 				if (bool) { 
 					// to dend as in XENIA. (Was at the soma):
 					for syn=0, (PC2PV_MaxSyn-1) {
-						PID = r.repick ()
-						delstimpcpv=abs(fpcpv.repick())
+						if(PARALLEL){
+							PID = r.repick ()
+							delstimpcpv=abs(fp.repick())
+						} else {
+							PID = PC2PVrarr[trgGID%ncores].repick()
+							delstimpcpv=abs(PC2PVfparr[trgGID%ncores].repick())
+						}
 						if(delstimpcpv<=dt){delstimpcpv=dt+0.01}
 						PVcells.o(localID).dend ampaOnPV[src][trg][syn] = new GLUIN(PID) //no Dends available in the model! (???????)
 						EXEC_CMD = ""
@@ -1028,13 +1102,31 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 objref syncurrGABAa[nPVcells][nPCcells][PV2PC_MaxSyn], syncurrGABAb[nPVcells][nPCcells][PV2PC_MaxSyn]
 objref delayPV2PC[nPVcells][nPCcells]
 //------------------------------------------------PV-PC connections-----------------------------------------------------//
-proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fpvpc,rDend
+proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fp,rDend
 	if(PARALLEL){ PC.barrier() }
-	r = new Random(ID*$1 + 180)
-	PID = r.uniform(0,1)
-	fpvpc = new Random(ID*$1*8)
-	rDend = new Random(ID*$1+5)
-	delstimpvpc=fpvpc.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
+
+	//set parallel PID randomness
+	if(PARALLEL){
+		r = new Random(ID*$1 + 180 + PC.id )
+		fp = new Random(ID*$1 * 8 + PC.id)
+		rDend = new Random(ID*$1 + 5 + PC.id)
+		PID = r.uniform(0,1)
+		delstimpvpc=fp.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
+	} else {
+		for kk=0,ncores-1{
+			PV2PCrarr[kk] = new Random(ID*$1 + 180 + kk )
+			PV2PCfparr[kk] = new Random(ID*$1 * 8 + kk)
+			PV2PCrbasal[kk] = new Random(ID*$1 + 5 + kk)
+			PID = PV2PCrarr[kk].uniform(0,1)
+			delstimpvpc = PV2PCfparr[kk].normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)	
+		}
+	}
+
+	//r = new Random(ID*$1 + 180)
+	//PID = r.uniform(0,1)
+	//fpvpc = new Random(ID*$1*8)
+	//rDend = new Random(ID*$1+5)
+	//delstimpvpc=fpvpc.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
 	NoSynapsesSoma = int(PV2PC_MaxSyn * 100 / 100) //percentage was 46 but why? (paper?)
 	NoSynapsesDend = PV2PC_MaxSyn - NoSynapsesSoma
 
@@ -1054,8 +1146,15 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 				if (bool) { 
 					//----------------------------Insert synapses at dendrites
 					for syn=0,(NoSynapsesDend-1) { 
-						PID = r.repick()
-						rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
+						if(PARALLEL){
+							PID = r.repick ()
+							rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
+						} else {
+							PID = PV2PCrarr[trgGID%ncores].repick()
+							rDendidx = int(PV2PCrbasal[trgGID%ncores].uniform(0,PCcells.o(localID).DendNo-1) )
+						}
+						//PID = r.repick()
+						//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 						if(SIMPLIFIED){	rDendidx = 0 } //dendrites!
 						PCcells.o(localID).dend[rDendidx] gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
 						PCcells.o(localID).dend[rDendidx] gabaOnPC_B[src][trg][syn] = new GABAb(PID)
@@ -1064,14 +1163,28 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 					//----------------------------Insert synapses at proximal apicals
 					PCcells.o(localID).soma { distance() }
 					for syn=0,(NoSynapsesDend-1) { 
-						PID = r.repick()
-						rApicidx = int(rDend.uniform(0,PCcells.o(localID).ApicNo-1) )
+						if(PARALLEL){
+							PID = r.repick ()
+							rApicidx = int(rDend.uniform(0,PCcells.o(localID).ApicNo-1) )
+						} else {
+							PID = PV2PCrarr[trgGID%ncores].repick()
+							rApicidx = int(PV2PCrbasal[trgGID%ncores].uniform(0,PCcells.o(localID).ApicNo-1) )
+						}
+						//PID = r.repick()
+						//rApicidx = int(rDend.uniform(0,PCcells.o(localID).ApicNo-1) )
 						if(SIMPLIFIED){	rApicidx = 0 //proximal!
 						} else {
 							PCcells.o(localID).apic[rApicidx]{root2here = distance(PID)} // error eixa basals anti gia apicals!
 							while (root2here > 200) {
-								PID = r.repick()
-								rApicidx = int(rDend.uniform(0,PCcells.o(localID).ApicNo-1) )
+								if(PARALLEL){
+									PID = r.repick ()
+									rApicidx = int(rDend.uniform(0,PCcells.o(localID).ApicNo-1) )
+								} else {
+									PID = PV2PCrarr[trgGID%ncores].repick()
+									rApicidx = int(PV2PCrbasal[trgGID%ncores].uniform(0,PCcells.o(localID).ApicNo-1) )
+								}
+								//PID = r.repick()
+								//rApicidx = int(rDend.uniform(0,PCcells.o(localID).ApicNo-1) )
 								PCcells.o(localID).apic[rApicidx]{root2here = distance(PID)}
 							}
 						}
@@ -1080,7 +1193,12 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 					}
 					//----------------------------Insert synapses at soma
 					for syn=0,(NoSynapsesSoma-1) { 
-						PID = r.repick()					
+						if(PARALLEL){
+							PID = r.repick ()
+						} else {
+							PID = PV2PCrarr[trgGID%ncores].repick()
+						}
+						//PID = r.repick()					
 						PCcells.o(localID).soma gabaOnPC_A[src][trg][syn+NoSynapsesDend] = new GABAa(PID) //carefull not to overwrite array!
 						PCcells.o(localID).soma gabaOnPC_B[src][trg][syn+NoSynapsesDend] = new GABAb(PID)
 
@@ -1089,7 +1207,12 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 
 					delayPV2PC[src][trg] = new Vector()
 					for syn=0, (PV2PC_MaxSyn-1) { //for total number of IN-PC synapses
-						delstimpvpc=abs(fpvpc.repick())
+						if(PARALLEL){
+							delstimpvpc=abs(fp.repick())
+						} else {
+							delstimpvpc = PV2PCfparr[trgGID%ncores].repick()
+						}
+						//delstimpvpc=abs(fpvpc.repick())
 						if(delstimpvpc<=dt){delstimpvpc=dt+0.01}
 						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, GABAaFactor*gabaweight_pv2pc_a)
 						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, GABAbFactor*gabaweight_pv2pc_b)
