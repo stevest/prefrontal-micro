@@ -396,8 +396,8 @@ Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 
-TOTALRUNS = 24//Wvec.size() * Gvec.size()
-for runs = 6, TOTALRUNS-1 {
+TOTALRUNS = 9//Wvec.size() * Gvec.size()
+for runs = 8, TOTALRUNS-1 {
 	Gidx = runs%Gvec.size()
 	Widx = int(runs * Gvec.size() / TOTALRUNS)
 print "Runs is: ",runs
