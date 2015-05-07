@@ -38,7 +38,7 @@ soma{
 	gnafbar_Naf =  0.108  *1.675
 
 	insert nap
-	gnapbar_nap =  1.8e-06 
+	gnabar_nap =  1.8e-06 
 
 	insert cal
 	gcalbar_cal =  3e-05
@@ -53,16 +53,16 @@ soma{
 	gcatbar_cat =  6e-06 
 
 	insert kdr
-	gkdrbar_kdr =  0.0054*4
+	gkdrbar_kdr =  0.0054*4		//*4.5//SSS
 
 	insert IKs
-	gKsbar_IKs = 6e-4 *1.71	//2.1
+	gKsbar_IKs = 6e-4 *1.71			//*0.6//SSS	//2.1
 
 	insert kad
 	gkabar_kad = 7e-4 
 
 	insert iC
-	gkcbar_iC = 2.2e-3 
+	gkcbar_iC = 2.2e-3 		*130//SSS
 
 	insert h
 	gbar_h =   9e-06 *0.8
@@ -93,16 +93,16 @@ dend[0]{
 	gnafbar_Naf = 1.8e-3 
 
 	insert nap
-	gnapbar_nap = 1.8e-05 
+	gnabar_nap = 1.8e-05 
 
         insert can
 	gcabar_can = 6e-05 
 	
 	insert kdr
-	gkdrbar_kdr = 0.0054 
+	gkdrbar_kdr = 0.0054		//*3//SSS 
 
 	insert IKs
-	gKsbar_IKs =  0.0006
+	gKsbar_IKs =  0.0006		//*0.9//SSS
 	
 	insert kad
 	gkabar_kad = 0.0007
@@ -114,6 +114,7 @@ dend[0]{
 	gbar_ican=gCAN*0.1
 
 	insert cadyn
+	//taur_cadyn = 120//SSS
 }
 
 apic[0]{
@@ -131,7 +132,7 @@ apic[0]{
 	gnafbar_Naf =  5e-3
 
 	insert nap
-	gnapbar_nap =  5.4e-05 
+	gnabar_nap =  5.4e-05 
 
 	insert cal
 	gcalbar_cal = 1.9e-4  
@@ -149,7 +150,7 @@ apic[0]{
 	gkdrbar_kdr = 2.16e-05 
 
 	insert IKs
-	gKsbar_IKs = 0.0012 
+	gKsbar_IKs = 0.0012 		//*0.0//SSS
 
 	insert kad
 	gkabar_kad =  0.0007
@@ -183,7 +184,7 @@ apic[1]{
 	gnafbar_Naf =  3.6e-3
 
         insert nap
-        gnapbar_nap = 1.8e-4  
+        gnabar_nap = 1.8e-4  
 
 	insert cal
 	gcalbar_cal = 3.6e-6
@@ -201,7 +202,7 @@ apic[1]{
 	gkdrbar_kdr =  5.4e-06    
 
 	insert IKs	
-	gKsbar_IKs = 0.0012   
+	gKsbar_IKs = 0.0012   		//*0.7//SSS
 
 	insert kad
 	gkabar_kad = 7e-05 

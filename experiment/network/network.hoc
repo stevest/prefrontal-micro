@@ -215,7 +215,12 @@ proc noise() { local i
 //---------------------------Initial stimulation (proximal dendrite)(Kuroda, 1998, Constantinides, 2001)---------------//
 
 
-
+objref sns
+sns = new NetStim(0.5)
+sns.interval = 50
+sns.number = 10
+sns.start = 0
+sns.noise = 0
 
 proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID  localobj r,rApic,rBasal,ri,rvect
 	//interval = 50//50
@@ -284,13 +289,13 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					//PCcells.o(localID).apic[rApicIdx] nmdapr[i][j]=new NMDA(PID)
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[i][j] = new nmda_segev(PID)}
 
-					vstim_stim[i][j] = new VecStim(0.5)
-					vstim_stim[i][j].delay = 0
-					vstim_stim[i][j].play(Stim_Apic[$2][i][j]) //rvect.x[i]
+					//vstim_stim[i][j] = new VecStim(0.5)
+					//vstim_stim[i][j].delay = 0
+					//vstim_stim[i][j].play(Stim_Apic[$2][i][j]) //rvect.x[i]
 
 //if (PC.id == 0) {print "Creating synapse # ", j}
 
-					ncAMPA[i][j] = new NetCon(vstim_stim[i][j], ampapr[i][j]) //vstim_stim[i][j]
+					ncAMPA[i][j] = new NetCon(sns, ampapr[i][j]) //vstim_stim[i][j]
 					ncAMPA[i][j].delay=500
 					if(SIMPLIFIED){
 						ncAMPA[i][j].weight = ampaweightpr
@@ -299,7 +304,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					}
 					ncAMPA[i][j].threshold=-10 
 
-					ncNMDA[i][j] = new NetCon(vstim_stim[i][j], nmdapr[i][j])
+					ncNMDA[i][j] = new NetCon(sns, nmdapr[i][j])
 					ncNMDA[i][j].delay=500
 					if(SIMPLIFIED){
 						ncNMDA[i][j].weight = nmdaweightpr
@@ -921,11 +926,11 @@ if(srcGID!=trgGID){
 						connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,nmdaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID] )
 
 					}
-					curampaPC2PC[src][trg][syn] = new Vector(n,0)
+					/*curampaPC2PC[src][trg][syn] = new Vector(n,0)
 					curnmdaPC2PC[src][trg][syn] = new Vector(n,0)
 					curampaPC2PC[src][trg][syn].record(&ampaOnPC[src][trg][syn].iglu,all_msec)
 					curnmdaPC2PC[src][trg][syn].record(&nmdaOnPC[src][trg][syn].inmda,all_msec)
-					
+					*/
 
 					//distancesMat.x[trg][synCtr+1] = distance(PID)
 					//pidMat.x[trg][synCtr+1] = PID
@@ -941,10 +946,10 @@ if(srcGID!=trgGID){
 		}
 		//synCtr = 0
 		if (bool) {	
-					icaPC2PC[trg] = new Vector(n,0)
+					/*icaPC2PC[trg] = new Vector(n,0)
 					caiPC2PC[trg] = new Vector(n,0)
 					icaPC2PC[trg].record(&PCcells.o(localID).dend[0].cai(0.1),all_msec)
-					caiPC2PC[trg].record(&PCcells.o(localID).dend[0].ica(0.1),all_msec)
+					caiPC2PC[trg].record(&PCcells.o(localID).dend[0].ica(0.1),all_msec)*/
 		}
 	}
 
@@ -1217,10 +1222,10 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, GABAaFactor*gabaweight_pv2pc_a)
 						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, GABAbFactor*gabaweight_pv2pc_b)
 						delayPV2PC[src][trg].append(delstimpvpc)
-						syncurrGABAa[src][trg][syn] = new Vector(n,0)				
+						/*syncurrGABAa[src][trg][syn] = new Vector(n,0)				
 						syncurrGABAb[src][trg][syn] = new Vector(n,0)
 						syncurrGABAa[src][trg][syn].record(&gabaOnPC_A[src][trg][syn].i,all_msec)
-						syncurrGABAb[src][trg][syn].record(&gabaOnPC_B[src][trg][syn].i,all_msec)
+						syncurrGABAb[src][trg][syn].record(&gabaOnPC_B[src][trg][syn].i,all_msec)*/
 					}
 				}
 			}

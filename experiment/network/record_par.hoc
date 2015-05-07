@@ -75,7 +75,7 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 		PC.gid2cell($1).soma {cv.record(&v(0.5),r_volts[s],r_msec[s],0)}
 		recordedCells.append($1)
 		
-		if ($1 <= offsets.x[1]-1) {
+		/*if ($1 <= offsets.x[1]-1) {
 			cum = (1/PC.gid2cell($1).dend[0].nseg)/2
 			for k=0, PC.gid2cell($1).dend[0].nseg-1 {
 				vdendseg[$1][k] = new Vector(n)
@@ -85,7 +85,7 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 			//}
 				cum = cum + (1/PC.gid2cell($1).dend[0].nseg)
 			}
-		}
+		}*/
 	}
 }
 
@@ -386,8 +386,8 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 	}
 
 	{ PC.barrier() }
-/*
-	for i=0, PCcells.count()-1 {
+
+	/*for i=0, PCcells.count()-1 {
 		for k=0, PCcells.o(i).dend[0].nseg-1 {
 			vfilePC = new File()		
 			sprint(vfilePC_filename,"experiment_%d/%s/vdendseg_segment%d_cell%d_run%d.txt", $3,EXP,k,PCgids.x[i], runs) 
@@ -400,8 +400,8 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 			//print vdendseg[PCgids.x[i]][0]
 			vfilePC.close()
 		}
-	} 
-*/
+	} */
+
 
 /*
 { PC.barrier() } 

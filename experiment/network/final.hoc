@@ -121,7 +121,7 @@ if(SIMPLIFIED){
 	BG_PVSyn = synapses_backinh
 
 
-	Stim_MaxSyn_apic = 35 synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
+	Stim_MaxSyn_apic = 90 //58 //35 synapses sto meeting 27/4/15 prin tin allagi tou IKs/Kdr! ,,,//40//27//90			//initial stimulation
 	Stim_MaxSyn_basal=0//120	//initial stimulation
 
 	/*
@@ -396,10 +396,12 @@ Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 
-TOTALRUNS = 18//Wvec.size() * Gvec.size()
-for runs = 6, TOTALRUNS-1 {
-	Gidx = runs%Gvec.size()
-	Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
+TOTALRUNS = 2//Wvec.size() * Gvec.size()
+for runs = 1, TOTALRUNS-1 {
+	//Gidx = runs%Gvec.size()
+	//Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
+	Widx = runs//int(runs * 1 / (Wvec.size()))
+	Gidx = 0//runs%Gvec.size()
 print "Runs is: ",runs
 print "Gidx is: ", Gidx
 print "Widx is: ", Widx
