@@ -214,7 +214,12 @@ proc noise() { local i
 
 //---------------------------Initial stimulation (proximal dendrite)(Kuroda, 1998, Constantinides, 2001)---------------//
 
-
+objref sns
+sns  = new NetStim(0.5)
+sns.interval=50//SSS 
+sns.number=20//SSS
+sns.start=0
+sns.noise=0
 
 
 proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID  localobj r,rApic,rBasal,ri,rvect
@@ -284,13 +289,13 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					//PCcells.o(localID).apic[rApicIdx] nmdapr[i][j]=new NMDA(PID)
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[i][j] = new nmda_segev(PID)}
 
-					vstim_stim[i][j] = new VecStim(0.5)
-					vstim_stim[i][j].delay = 0
-					vstim_stim[i][j].play(Stim_Apic[$2][i][j]) //rvect.x[i]
+					//vstim_stim[i][j] = new VecStim(0.5)
+					//vstim_stim[i][j].delay = 0
+					//vstim_stim[i][j].play(Stim_Apic[$2][i][j]) //rvect.x[i]
 
 //if (PC.id == 0) {print "Creating synapse # ", j}
 
-					ncAMPA[i][j] = new NetCon(vstim_stim[i][j], ampapr[i][j]) //vstim_stim[i][j]
+					ncAMPA[i][j] = new NetCon(sns, ampapr[i][j]) //vstim_stim[i][j]
 					ncAMPA[i][j].delay=500
 					if(SIMPLIFIED){
 						ncAMPA[i][j].weight = ampaweightpr
@@ -299,7 +304,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					}
 					ncAMPA[i][j].threshold=-10 
 
-					ncNMDA[i][j] = new NetCon(vstim_stim[i][j], nmdapr[i][j])
+					ncNMDA[i][j] = new NetCon(sns, nmdapr[i][j])
 					ncNMDA[i][j].delay=500
 					if(SIMPLIFIED){
 						ncNMDA[i][j].weight = nmdaweightpr
@@ -328,16 +333,16 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 						//PCcells.o(localID).dend[rBasalIdx] nmdapr[i][j]=new NMDA(PID)//nmda_segev(PID)
 						PCcells.o(localID).dend[rBasalIdx] {nmdapr[i][j]=new nmda_segev(PID)}
 
-						vstim_stim[i][j] = new VecStim(0.5)
-						vstim_stim[i][j].delay = 0
-						vstim_stim[i][j].play(Stim_Dend[$2][i][j-Stim_MaxSyn_apic]) //rvect.x[i]]
+						//vstim_stim[i][j] = new VecStim(0.5)
+						//vstim_stim[i][j].delay = 0
+						//vstim_stim[i][j].play(Stim_Dend[$2][i][j-Stim_MaxSyn_apic]) //rvect.x[i]]
 
-						ncAMPA[i][j]=new NetCon(vstim_stim[i][j], ampapr[i][j])
+						ncAMPA[i][j]=new NetCon(sns, ampapr[i][j])
 						ncAMPA[i][j].delay=500
 						ncAMPA[i][j].weight = StimFactor * ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5
 						ncAMPA[i][j].threshold=-10 
 
-						ncNMDA[i][j]=new NetCon(vstim_stim[i][j], nmdapr[i][j])
+						ncNMDA[i][j]=new NetCon(sns, nmdapr[i][j])
 						ncNMDA[i][j].delay=500
 						ncNMDA[i][j].weight = StimFactor * nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5 // * 0.5           
 						ncNMDA[i][j].threshold= -10 

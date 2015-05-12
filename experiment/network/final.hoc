@@ -121,7 +121,7 @@ if(SIMPLIFIED){
 	BG_PVSyn = synapses_backinh
 
 
-	Stim_MaxSyn_apic = 40 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
+	Stim_MaxSyn_apic = 70 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 	Stim_MaxSyn_basal=0//120	//initial stimulation
 
 	/*
@@ -293,7 +293,7 @@ sadp_dend()
 sadp_apical()  //mplokara kai stous apical
 
 //strdef vfilePC_filename
-assert(sprint(exp_dir,"experiment_%d",ID))
+assert(sprint(exp_dir,"/mnt/cluster/Documents/Glia/experiment_%d",ID))
 assert(sprint(syscmd,"mkdir -p %s",exp_dir))
 
 if(!system(syscmd)){
@@ -306,7 +306,6 @@ if(!system(syscmd)){
 	sprint(pprintStr,"Directory %s already exists",data_dir)
 	pprint(pprintStr)
  }
-
 
 proc vclamp_proc() {
 	if (PC.gid_exists($1)) { 
@@ -396,8 +395,8 @@ Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 
-TOTALRUNS = 7//Wvec.size() * Gvec.size()
-for runs = 6, TOTALRUNS-1 {
+TOTALRUNS = 1//Wvec.size() * Gvec.size()
+for runs = 0, TOTALRUNS-1 {
 	Gidx = runs%Gvec.size()
 	Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
 print "Runs is: ",runs
@@ -464,8 +463,9 @@ print "Widx is: ", Widx
 	*/
 	
 	//if runs is a constant Randoms do not change (synapse location etc..)
-	connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
-	GABAbFactor = Gvec.x[Gidx]
+	//connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PC(0,0,0.35)// synaptic location Random seed, axon conductanse delay Random seed
+	GABAbFactor = 0.8//Gvec.x[Gidx]
 	connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
 	connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 	connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
@@ -509,19 +509,19 @@ print "Widx is: ", Widx
 			print "node ", PC.id, "reached tstop"
 		}
 		{ PC.barrier()	} 
-		par_save_membrane_voltage(data_dir,CLUSTER_ID,ID, ISBINARY)
-		par_save_synaptic_locations_PCrec(data_dir,CLUSTER_ID,ID,0)
-		//par_save_inmda(data_dir,CLUSTER_ID,ID,0)
-		//par_save_sumall_inmda(data_dir,CLUSTER_ID,ID,0)
-		//par_save_icacai(data_dir,CLUSTER_ID,ID,0)
-		//par_save_inhibition(data_dir, CLUSTER_ID,ID,0)
-		//spikeout(data_dir,CLUSTER_ID,ID,ISBINARY)//Save PV spike events
-		//par_save_synaptic_delays(data_dir,CLUSTER_ID,ID,ISBINARY)
+		par_save_membrane_voltage(exp_dir,CLUSTER_ID,ID, ISBINARY)
+		par_save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
+		//par_save_inmda(exp_dir,CLUSTER_ID,ID,0)
+		//par_save_sumall_inmda(exp_dir,CLUSTER_ID,ID,0)
+		//par_save_icacai(exp_dir,CLUSTER_ID,ID,0)
+		//par_save_inhibition(exp_dir, CLUSTER_ID,ID,0)
+		//spikeout(exp_dir,CLUSTER_ID,ID,ISBINARY)//Save PV spike events
+		//par_save_synaptic_delays(exp_dir,CLUSTER_ID,ID,ISBINARY)
 
 		//par_save_cai(0,CLUSTER_ID,ID)
-		//save_source_spikes(data_dir,CLUSTER_ID,ID)
-		//save_source_DIST(data_dir,CLUSTER_ID,ID)
-		//if(VCLAMP){par_save_vclamp_current(data_dir,CLUSTER_ID,ID)}
+		//save_source_spikes(exp_dir,CLUSTER_ID,ID)
+		//save_source_DIST(exp_dir,CLUSTER_ID,ID)
+		//if(VCLAMP){par_save_vclamp_current(exp_dir,CLUSTER_ID,ID)}
 	}else{
 		rec_membrane_voltage()
 
@@ -548,7 +548,7 @@ print "Widx is: ", Widx
 		//if(DEBUG){printf("DEBUG: Saving runs Params...\n")}
 		//save_distances()
 		//if(DEBUG){printf("DEBUG: DONE Saving Distances...\n")}
-		save_membrane_voltage(data_dir,CLUSTER_ID,ID)
+		save_membrane_voltage(exp_dir,CLUSTER_ID,ID)
 		//if(DEBUG){printf("DEBUG: DONE Saving Voltages...\n")}
 		//save_PID()
 		//if(DEBUG){printf("DEBUG: DONE Saving PIDs...\n")}

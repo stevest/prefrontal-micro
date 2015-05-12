@@ -34,7 +34,7 @@ for k = 0, PCcells.count()-1 {
 proc spikeout() { local i localobj vfilePC 
 	for k=0, PVcells.count()-1{
 					vfilePC = new File()	
-					sprint(vfilePC_filename,"experiment_%d/%s/eventsPV_src_%d_runs_%d.txt", $3,EXP,PVgids.x[k],runs)
+					sprint(vfilePC_filename,"%s/%s/eventsPV_src_%d_runs_%d.txt", $s1,EXP,PVgids.x[k],runs)
 					vfilePC.wopen(vfilePC_filename)
 					//if ($4) {
 					//	for j=0, cumcurGABAa[trg].size()-1 {
@@ -161,7 +161,7 @@ if ($4) {
 			}
 		}
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/GABAa_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		sprint(vfilePC_filename,"%s/%s/GABAa_trg_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
 		
 		if ($4) {
@@ -174,7 +174,7 @@ if ($4) {
 		vfilePC.close()
 		
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/GABAb_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		sprint(vfilePC_filename,"%s/%s/GABAb_trg_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
 		if ($4) {
 			for j=0, cumcurGABAb[PCgids.x[trg]].size()-1 {
@@ -202,7 +202,7 @@ proc par_save_inmda(){local i,s,q  localobj vfilePC// Record GID
 			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
 				for syn=0, PC2PC_MaxSyn-1 {// for all target neurons on this node
 					vfilePC = new File()	
-					sprint(vfilePC_filename,"experiment_%d/%s/inmda_trg_%d_src_%d_syn_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],src,syn,runs,ext) 
+					sprint(vfilePC_filename,"%s/%s/inmda_trg_%d_src_%d_syn_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],src,syn,runs,ext) 
 					vfilePC.wopen(vfilePC_filename)
 					
 					if ($4) {
@@ -241,7 +241,7 @@ proc par_save_sumall_inmda(){local i,s,q  localobj vfilePC// Record GID
 			}
 		}
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/inmda_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		sprint(vfilePC_filename,"%s/%s/inmda_trg_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
 		
 		if ($4) {
@@ -266,7 +266,7 @@ proc par_save_icacai(){local i,s,q  localobj vfilePC// Record GID
 
 	for trg=0,PCcells.count()-1 {
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/ica_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		sprint(vfilePC_filename,"%s/%s/ica_trg_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
 		
 		if ($4) {
@@ -278,7 +278,7 @@ proc par_save_icacai(){local i,s,q  localobj vfilePC// Record GID
 		}
 		vfilePC.close()
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/cai_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+		sprint(vfilePC_filename,"%s/%s/cai_trg_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
 		
 		if ($4) {
@@ -302,7 +302,7 @@ if ($4) {
 //save PV2PC delays
 	for trg=0, PCcells.count()-1 {
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/delayPV2PC_trg_%d_runs_%d.txt", $3,EXP,PCgids.x[trg],runs) 
+		sprint(vfilePC_filename,"%s/%s/delayPV2PC_trg_%d_runs_%d.txt", $s1,EXP,PCgids.x[trg],runs) 
 		vfilePC.wopen(vfilePC_filename)
 		for src=0, nPVcells-1 {
 			if (connMatrix.x[ind2gid(src,1)][PCgids.x[trg]]) {
@@ -316,7 +316,7 @@ if ($4) {
 //save PC2PC delays
 	for trg=0, PCcells.count()-1 {
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/delayPC2PC_trg_%d_runs_%d.txt", $3,EXP,PCgids.x[trg],runs) 
+		sprint(vfilePC_filename,"%s/%s/delayPC2PC_trg_%d_runs_%d.txt", $s1,EXP,PCgids.x[trg],runs) 
 		vfilePC.wopen(vfilePC_filename)
 		for src=0, nPCcells-1 {
 			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) { vfilePC.printf("%d %d",src,PCgids.x[trg])
@@ -342,7 +342,7 @@ proc par_save_synaptic_locations_PCrec(){ localobj vfilePC
 		for src=0, nPCcells-1 {
 			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
 				vfilePC = new File()	
-				sprint(vfilePC_filename,"experiment_%d/%s/PID_PC2PC_src_%d_trg_%d_runs_%d.%s", $3,EXP,src,PCgids.x[trg],runs,ext) 
+				sprint(vfilePC_filename,"%s/%s/PID_PC2PC_src_%d_trg_%d_runs_%d.%s", $s1,EXP,src,PCgids.x[trg],runs,ext) 
 				vfilePC.wopen(vfilePC_filename)
 				for src=0, nPCcells-1 {
 					if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
@@ -373,7 +373,7 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 
 	for s=0,recordedCells.size()-1{
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/%d_%d_%d.%s", $3,EXP,$2,recordedCells.x(s), runs,ext) 
+		sprint(vfilePC_filename,"%s/%s/%d_%d_%d.%s", $s1,EXP,$2,recordedCells.x(s), runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
 		if ($4) {
 			for j=0, r_volts[s].size()-1 {
@@ -390,7 +390,7 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 	for i=0, PCcells.count()-1 {
 		for k=0, PCcells.o(i).dend[0].nseg-1 {
 			vfilePC = new File()		
-			sprint(vfilePC_filename,"experiment_%d/%s/vdendseg_segment%d_cell%d_run%d.txt", $3,EXP,k,PCgids.x[i], runs) 
+			sprint(vfilePC_filename,"%s/%s/vdendseg_segment%d_cell%d_run%d.txt", $s1,EXP,k,PCgids.x[i], runs) 
 			//print "Saving in ",vfilePC, " file ", vfilePC_filename, " of size ", vdendseg[PCgids.x[i]][k].size()
 			//sprint(temp,"%s/%s/vdendseg_segment%d_run%d.dat", data_dira, data_dirb,  k, runs+1)
 			vfilePC.wopen(vfilePC_filename)
@@ -406,7 +406,7 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 /*
 { PC.barrier() } 
 vfilePC = new File()	
-sprint(vfilePC_filename,"experiment_%d/%s/%d_%d.txt", $3,EXP,$2,runs)
+sprint(vfilePC_filename,"%s/%s/%d_%d.txt", $s1,EXP,$2,runs)
 
 for i=0, nPCcells-1 { //for all cells
 	if (PC.gid_exists(i)) { // if the current node has the cell i
@@ -422,7 +422,7 @@ for i=0, nPCcells-1 { //for all cells
 */
 	for i=0, PCcells.count()-1 {
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"experiment_%d/%s/dendevents_syn%d_run%d.dat", $3,EXP,PCgids.x[i], runs) 	
+		sprint(vfilePC_filename,"%s/%s/dendevents_syn%d_run%d.dat", $s1,EXP,PCgids.x[i], runs) 	
 		//sprint(temp,"%s/%s/dendevents_syn%d_run%d.dat", data_dira, data_dirb,  i, runs+1)
 		vfilePC.wopen(vfilePC_filename)
 		for l=0,Devents[PCgids.x[i]].size()-1 {
@@ -443,7 +443,7 @@ proc par_save_vclamp_current() {local i,s localobj vfilePC
 		//for s=0,recordedCells.size()-1{
 			s=0			
 			vfilePC = new File()	
-			sprint(ifilePC_filename,"experiment_%d/%s/%d_%d_%d_i.txt", $3,EXP,$2,0, runs) 
+			sprint(ifilePC_filename,"%s/%s/%d_%d_%d_i.txt", $s1,EXP,$2,0, runs) 
 			vfilePC.wopen(ifilePC_filename)
 			r_curr[s].printf(vfilePC,"%8.4f\n")
 			vfilePC.close()
@@ -461,7 +461,7 @@ proc par_save_cai() {local i,s localobj vfilePC
 		//for s=0,recordedCells.size()-1{
 			s=$1			
 			vfilePC = new File()	
-			sprint(ifilePC_filename,"experiment_%d/%s/%d_%d_%d_cai.txt", $3,EXP,$2,s, runs) 
+			sprint(ifilePC_filename,"%s/%s/%d_%d_%d_cai.txt", $s1,EXP,$2,s, runs) 
 			vfilePC.wopen(ifilePC_filename)
 			r_cai[s].printf(vfilePC,"%8.4f\n")
 			vfilePC.close()
@@ -499,7 +499,7 @@ for i=0, PC.nhost-1 {
 	if (PC.id == i) {
 		for s=0,cLocalID.size()-1{			
 			vfilePC = new File()	
-			sprint(ST_filename,"experiment_%d/%s/%d_%d_%d_st.txt", $3,EXP,$2,cLocalID.x(s), runs) 
+			sprint(ST_filename,"%s/%s/%d_%d_%d_st.txt", $s1,EXP,$2,cLocalID.x(s), runs) 
 			vfilePC.wopen(ST_filename)
 			st_vect[s].printf(vfilePC,"%8.4f\n")
 			vfilePC.close()
@@ -516,7 +516,7 @@ for i=0, PC.nhost-1 {
 	if (PC.id == i) {
 		for s=0,clusterDIST.size()-1{	
 			//vfilePC = new File()	
-			sprint(DIST_filename,"experiment_%d/%s/%d_%d_%d_DIST.txt", $3,EXP,$2,PCgids.x(s), runs) 
+			sprint(DIST_filename,"%s/%s/%d_%d_%d_DIST.txt", $s1,EXP,$2,PCgids.x(s), runs) 
 			//vfilePC.wopen(PID_filename)
 			wopen(DIST_filename)
 			//vfilePC.fprint("%8.4f\n",clusterDIST.x(s))
