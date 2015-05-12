@@ -95,7 +95,8 @@ if(PARALLEL){
 //process to print only on node zero (if parallel):
 strdef pprintStr
 proc pprint(){
-	if (name_declared("PC")==2){
+	//if (name_declared("PC")==2){
+	if (PARALLEL){
 		if(PC.id==0){print $s1}
 	} else {
 		print $s1
