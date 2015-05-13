@@ -328,7 +328,7 @@ if ($4) {
 	}
 }
 
-proc par_save_synaptic_locations_PCrec(){ localobj vfilePC
+proc par_save_synaptic_locations_PCrec(){ local fh localobj vfilePC 
 
 	{ PC.barrier() } 
 	strdef ext
@@ -341,15 +341,27 @@ proc par_save_synaptic_locations_PCrec(){ localobj vfilePC
 	for trg=0, PCcells.count()-1 {
 		for src=0, nPCcells-1 {
 			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
-				vfilePC = new File()	
+				vfilePC = new File()
 				sprint(vfilePC_filename,"%s/%s/PID_PC2PC_src_%d_trg_%d_runs_%d.%s", $s1,EXP,src,PCgids.x[trg],runs,ext) 
 				vfilePC.wopen(vfilePC_filename)
+				fh = vfilePC.isopen()
+				while (!fh) {
+					vfilePC.wopen(vfilePC_filename)
+					fh = vfilePC.isopen()
+				}
+				if(DEBUG){print "New file .isopen() =  ",fh}
 				for src=0, nPCcells-1 {
 					if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
+				//		if(PCgids.x[trg]){
 						//print "Should save synapse location!"
 						//for syn = 0, (PC2PC_MaxSyn-1) { 
+						//print "PDgids trg contains ", PCgids.x[trg]
+						//print "SRC contains ", src
+						//print "PID length ", pidPC2PC[src][PCgids.x[trg]].size()
 							vfilePC.printf("%d %d",src,PCgids.x[trg])
 							pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+							//vfilePC.printf("%d",123)
+						//}
 						//}
 					}
 				}
@@ -361,6 +373,47 @@ proc par_save_synaptic_locations_PCrec(){ localobj vfilePC
 
 
 }
+proc par_save_stimulation_locations_PCrec(){ local fh localobj vfilePC 
+
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+	ext = "bin"
+	} else {
+	ext = "txt"
+	}
+	//save PC2PC synaptic locations
+	for trg=0, PCcells.count()-1 {
+print "is stim ", PcellStimList.x(PCgids.x[trg])
+		if(PcellStimList.x(PCgids.x[trg])){
+			vfilePC = new File()
+			sprint(vfilePC_filename,"%s/%s/stimPID_PC2PC_trg_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],runs,ext) 
+			vfilePC.wopen(vfilePC_filename)
+			fh = vfilePC.isopen()
+			while (!fh) {
+				vfilePC.wopen(vfilePC_filename)
+				fh = vfilePC.isopen()
+			}
+			if(DEBUG){print "New file .isopen() =  ",fh}
+			//		if(PCgids.x[trg]){
+					//print "Should save synapse location!"
+					//for syn = 0, (PC2PC_MaxSyn-1) { 
+					//print "PDgids trg contains ", PCgids.x[trg]
+					//print "SRC contains ", src
+					//print "PID length ", pidPC2PC[src][PCgids.x[trg]].size()
+						//vfilePC.printf("%d %d",src,PCgids.x[trg])
+						stimpidPC2PC[PCgids.x[trg]].printf(vfilePC,"%8.4f\n")
+						//vfilePC.printf("%d",123)
+					//}
+					//}
+			
+			vfilePC.close()
+		}
+	}
+
+
+}
+
 
 proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 	{ PC.barrier() } 
@@ -386,7 +439,7 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 	}
 
 	{ PC.barrier() }
-
+/*
 	for i=0, PCcells.count()-1 {
 		for k=0, PCcells.o(i).dend[0].nseg-1 {
 			vfilePC = new File()		
@@ -401,7 +454,7 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 			vfilePC.close()
 		}
 	} 
-
+*/
 
 /*
 { PC.barrier() } 
@@ -420,6 +473,7 @@ for i=0, nPCcells-1 { //for all cells
 
 { PC.barrier() }
 */
+/*
 	for i=0, PCcells.count()-1 {
 		vfilePC = new File()	
 		sprint(vfilePC_filename,"%s/%s/dendevents_syn%d_run%d.dat", $s1,EXP,PCgids.x[i], runs) 	
@@ -430,7 +484,7 @@ for i=0, nPCcells-1 { //for all cells
 		}
 		vfilePC.close()
 	}
-		
+*/		
 
 } //End save membrane voltage proc
 

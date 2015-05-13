@@ -221,7 +221,7 @@ sns.number=20//SSS
 sns.start=0
 sns.noise=0
 
-
+objref stimpidPC2PC[nPCcells]
 proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID  localobj r,rApic,rBasal,ri,rvect
 	//interval = 50//50
 	//number = 20
@@ -271,7 +271,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 			}
 
 			if( bool ){ //&& PcellStimList.x(i)
-
+				stimpidPC2PC[trgGID] = new Vector()
 				// Apical input:
 				for j=0, (Stim_MaxSyn_apic-1) {
 					if(PARALLEL){
@@ -281,6 +281,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 						PID = STIMrarr[trgGID%ncores].repick()
 						rApicIdx = int(STIMrapicarr[trgGID%ncores].uniform(0,PCcells.o(localID).ApicNo-1))
 					}
+					stimpidPC2PC[trgGID].append(PID)
 					if(SIMPLIFIED){ rApicIdx = 0 } //PROXIMAL!
 					PCcells.o(localID).apic[rApicIdx] {ampapr[i][j] = new GLU(PID)}
 					//EXEC_CMD = ""
