@@ -454,7 +454,7 @@ print "Widx is: ", Widx
 	//ECA_30()
 	//thinner_basal()
 	//thinner_apical()
-	stimulation(0,0)   //synaptic location Random seed, axon conductanse delay Random seed
+	stimulation(runs,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
 	//backgroundActivity(0,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
 	//backgroundActivityPV(0,0) //~11Hz Petersen Carl
@@ -540,6 +540,10 @@ print "Widx is: ", Widx
 		//}
 }
 
+		addgraph_2("PCcells.o(60).soma.v(0.5)", 0,tstop, -70, 50)
+		addgraph_2("PCcells.o(60).dend[0].v(0.5)", 0,tstop, -70, 50)
+		addgraph_2("PCcells.o(60).soma.a_IKs(0.5)", 0,tstop, -70, 50)
+		addgraph_2("PCcells.o(60).soma.b_IKs(0.5)", 0,tstop, -70, 50)
 
 		runtime=startsw()
 		run()
