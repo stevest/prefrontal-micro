@@ -53,7 +53,7 @@ soma{
 	gcatbar_cat =  6e-06 
 
 	insert kdr
-	gkdrbar_kdr =  0.0054*4
+	gkdrbar_kdr =  0.0054*4		*1.32 //SSS
 
 	insert IKs
 	gKsbar_IKs = 6e-4 *1.71	//2.1
@@ -68,7 +68,7 @@ soma{
 	gbar_h =   9e-06 *0.8
 	
 	insert kca
-	gbar_kca = 0.025 *5.6 
+	gbar_kca = 0.025 *5.6		*1.05 //SSS 
 
 	insert ican
 	gbar_ican=gCAN

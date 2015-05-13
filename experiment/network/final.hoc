@@ -395,7 +395,7 @@ Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 
-TOTALRUNS = 1//Wvec.size() * Gvec.size()
+TOTALRUNS = 20//Wvec.size() * Gvec.size()
 for runs = 0, TOTALRUNS-1 {
 	Gidx = runs%Gvec.size()
 	Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
@@ -464,11 +464,12 @@ print "Widx is: ", Widx
 	
 	//if runs is a constant Randoms do not change (synapse location etc..)
 	//connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PC(0,0,0.35)// synaptic location Random seed, axon conductanse delay Random seed
-	GABAbFactor = 0.8//Gvec.x[Gidx]
-	connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
-	connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PC(runs,0,0.47)// synaptic location Random seed, axon conductanse delay Random seed
+	GABAbFactor = 10.7//Gvec.x[Gidx]
+	//network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
+	connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)

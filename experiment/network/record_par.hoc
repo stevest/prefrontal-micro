@@ -386,7 +386,7 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 	}
 
 	{ PC.barrier() }
-/*
+
 	for i=0, PCcells.count()-1 {
 		for k=0, PCcells.o(i).dend[0].nseg-1 {
 			vfilePC = new File()		
@@ -401,7 +401,7 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 			vfilePC.close()
 		}
 	} 
-*/
+
 
 /*
 { PC.barrier() } 
