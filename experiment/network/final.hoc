@@ -293,7 +293,7 @@ sadp_dend()
 sadp_apical()  //mplokara kai stous apical
 
 //strdef vfilePC_filename
-assert(sprint(exp_dir,"/mnt/cluster/Documents/Glia/experiment_%d",ID))
+assert(sprint(exp_dir,"experiment_%d",ID))
 assert(sprint(syscmd,"mkdir -p %s",exp_dir))
 
 if(!system(syscmd)){
@@ -467,9 +467,9 @@ print "Widx is: ", Widx
 	connectPC2PC(runs,0,0.47)// synaptic location Random seed, axon conductanse delay Random seed
 	GABAbFactor = 10.7//Gvec.x[Gidx]
 	//network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-	connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
-	connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	//connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
+	//connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	//connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)
@@ -542,8 +542,8 @@ print "Widx is: ", Widx
 
 		addgraph_2("PCcells.o(60).soma.v(0.5)", 0,tstop, -70, 50)
 		addgraph_2("PCcells.o(60).dend[0].v(0.5)", 0,tstop, -70, 50)
-		addgraph_2("PCcells.o(60).soma.a_IKs(0.5)", 0,tstop, -70, 50)
-		addgraph_2("PCcells.o(60).soma.b_IKs(0.5)", 0,tstop, -70, 50)
+		//addgraph_2("PCcells.o(60).soma.a_IKs(0.5)", 0,tstop, -70, 50)
+		//addgraph_2("PCcells.o(60).soma.b_IKs(0.5)", 0,tstop, -70, 50)
 
 		runtime=startsw()
 		run()
@@ -553,7 +553,9 @@ print "Widx is: ", Widx
 		//if(DEBUG){printf("DEBUG: Saving runs Params...\n")}
 		//save_distances()
 		//if(DEBUG){printf("DEBUG: DONE Saving Distances...\n")}
-		save_membrane_voltage(exp_dir,CLUSTER_ID,ID)
+		//save_membrane_voltage(exp_dir,CLUSTER_ID,ID)
+		save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID)
+		save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
 		//if(DEBUG){printf("DEBUG: DONE Saving Voltages...\n")}
 		//save_PID()
 		//if(DEBUG){printf("DEBUG: DONE Saving PIDs...\n")}
