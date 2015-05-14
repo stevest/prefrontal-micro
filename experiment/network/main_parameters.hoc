@@ -32,13 +32,16 @@ CR2PC_MaxSyn=10//XENIA//1	//CR-PC connections to d2 - Tamas, 1997 for cat visual
 
 
 // Scale NMDA to AMPA ratio (NOT recommended! run validation script instead):
-NMDAfactor = 1//3.8//3.8//3.8 gia ta random connected //1.6//0.987
+NMDAfactor = 1
+AMPAfactor = 1
+NMDAfactor_bg = 1
+/*NMDAfactor = 1//3.8//3.8//3.8 gia ta random connected //1.6//0.987
 AMPAfactor = 1
 NMDAfactor_bg = 1 //0.5 gia diaforetika kyttara...
 GABAaFactor = 1//2.3 //test if results in stable PA (nonepileptic)
 GABAbFactor = 0.4//test if results in stable PA (nonepileptic)
 StimFactor = 1 // NMDA and AMPA seight bias (instead of increasing synapse number).
-
+*/
 //-----Objects for record data
 objref cv, vc, ic[10]
 cv=new CVode(0)
@@ -50,7 +53,7 @@ if(!cv.cache_efficient(1)){print "ERRORRRR!"}
 
 //objref PCv[nPCcells], PCt[nPCcells], PVv[nPVcells], PVt[nPVcells]
 //...............
-ampaweightin=	0.0008//VALIDATED // 7.5e-4	/6 //more synapses means less weight!		//according to Wang,Gao,2009
+/*ampaweightin=	0.0008//VALIDATED // 7.5e-4	/6 //more synapses means less weight!		//according to Wang,Gao,2009
 nmdaweightin=	0.000324 //VALIDATED // 3.2e-4	/6		//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 autogabaweight = 0.0006424//VALIDATED // 	0.0073*0.85	//0.00073*11		//0.0073*0.75	xenia//According to Bacci (2003) validated 31/05/2010
 ampaweight_pc2cb = 0.000058 //VALIDATED // 0.000029		//Angulo/Wang validated 28/05/2010
@@ -62,8 +65,7 @@ gabaweight_pv2pc_b = 0.00068*0.13 //VALIDATED // gabaweight_pv2pc_a 	//*0.1//STE
 gabaweight_cb2pc = 0.000045 //VALIDATED // 0.0006*1.5          //*0.1        	//cb-pc connections - according to Xiang, 2009
 gabaweight_cr2pc = 0.00006 //VALIDATED // 0.00087*3           //*0.1      	//cr-pc connections - validated na einai peripou sta idia epipeda me cr-cb & in-in
 gabaweight_cr2cb = 0.00006 //VALIDATED // 0.0083*0.25                	//cr-cb connections - according to Bacci, 2003b 31/05/2010
-
-
+*/
 objref PC
 strdef sout
 if (name_declared("CLUSTER_ID")!=5){

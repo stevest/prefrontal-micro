@@ -90,7 +90,6 @@ assert(xopen("cb.hoc")) // Xenia's interneurons: load template for CB/LTS intern
 assert(xopen("cr.hoc")) // Xenia's interneurons
 
 //fADP for morphology #3:
-fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
 
 if(!xopen("NMDA_Array_1_5.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
 if(!xopen("AMPA_Array_1_1.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
@@ -145,7 +144,7 @@ if(SIMPLIFIED){
 		nmdaArr.x[i] = NMDAfactor * 0.585
 		nmdaArr_bg.x[i] = NMDAfactor_bg * 0.22
 	}
-	nmdaweight = NMDAfactor * 0.585
+	nmdaweight = 0.585
 	//ampaweight=	0.00019	//NASSI
 	for i=0,55{
 		ampaArr.x[i] = AMPAfactor * ampaweight	
@@ -161,9 +160,13 @@ if(SIMPLIFIED){
 	//gbar_kca = gbar_kca/100
 }
 
+fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
 if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
 
 
+sadp_soma()
+sadp_dend()
+sadp_apical()  //mplokara kai stous apical
 assert(xopen ("record_par.hoc"))
 
 proc report_gidvecs() { local i, rank
@@ -288,12 +291,13 @@ proc train() {
 		initDelay = initDelay + 50
 }}
 
-sadp_soma()
-sadp_dend()
-sadp_apical()  //mplokara kai stous apical
 
 //strdef vfilePC_filename
-assert(sprint(exp_dir,"experiment_%d",ID))
+if (PARALLEL){
+	assert(sprint(exp_dir,"/mnt/cluster/Documents/Glia/experiment_%d",ID))
+} else {
+	assert(sprint(exp_dir,"experiment_%d",ID))
+}
 assert(sprint(syscmd,"mkdir -p %s",exp_dir))
 
 if(!system(syscmd)){
@@ -395,7 +399,7 @@ Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 
-TOTALRUNS = 20//Wvec.size() * Gvec.size()
+TOTALRUNS = 1//Wvec.size() * Gvec.size()
 for runs = 0, TOTALRUNS-1 {
 	Gidx = runs%Gvec.size()
 	Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
@@ -439,11 +443,11 @@ print "Widx is: ", Widx
 	assert(execute1(EXEC_CMD))
 	
 	//override complex background spiketrains:
-	BG_dendSyn = 15//16
+	/*BG_dendSyn = 15//16
 	BG_apicSyn = 15//16
 	BG_apicprSyn = 15//16
 	BG_PVSyn = 40
-	
+	*/
 	//override complex background spiketrains:
 	//BG_dendSyn = synapses_backb
 	//BG_apicSyn = synapses_backa
@@ -464,12 +468,12 @@ print "Widx is: ", Widx
 	
 	//if runs is a constant Randoms do not change (synapse location etc..)
 	//connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PC(runs,0,0.47)// synaptic location Random seed, axon conductanse delay Random seed
-	GABAbFactor = 10.7//Gvec.x[Gidx]
+	connectPC2PC(runs,0,0.585)// synaptic location Random seed, axon conductanse delay Random seed
+	//GABAbFactor = 10.7//Gvec.x[Gidx]
 	//network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-	//connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
-	//connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
-	//connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)
@@ -512,7 +516,7 @@ print "Widx is: ", Widx
 		{ PC.barrier()	} 
 		par_save_membrane_voltage(exp_dir,CLUSTER_ID,ID, ISBINARY)
 		//par_save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
-		par_save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
+		//par_save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
 		//if(DEBUG){print "Synaptic locations saved!"}
 		//par_save_inmda(exp_dir,CLUSTER_ID,ID,0)
 		//par_save_sumall_inmda(exp_dir,CLUSTER_ID,ID,0)
