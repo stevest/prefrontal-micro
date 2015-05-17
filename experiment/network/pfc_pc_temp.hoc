@@ -37,29 +37,29 @@ soma{
 	insert Naf
 	gnafbar_Naf =  0.108  *1.675
 
-	insert nap
-	gnabar_nap =  1.8e-06 
+	//insert nap
+	//gnabar_nap =  1.8e-06 
 
-	insert cal
-	gcalbar_cal =  3e-05
+	//insert cal
+	//gcalbar_cal =  3e-05
 
-	insert can
-	gcabar_can = 2e-5 
+	//insert can
+	//gcabar_can = 2e-5 
 
-	insert car
-	gcabar_car = 3e-08 *1000
+	//insert car
+	//gcabar_car = 3e-08 *1000
 
-	insert cat
-	gcatbar_cat =  6e-06 
+	//insert cat
+	//gcatbar_cat =  6e-06 
 
-	insert kdr
-	gkdrbar_kdr =  0.0054*4		// *1.32 //SSS
+	//insert kdr
+	//gkdrbar_kdr =  0.0054*4		// *1.32 //SSS
 
-	insert IKs
-	gKsbar_IKs = 6e-4 *1.71	//2.1
+	//insert IKs
+	//gKsbar_IKs = 6e-4 *1.71	//2.1
 
-	insert kad
-	gkabar_kad = 7e-4 
+	//insert kad
+	//gkabar_kad = 7e-4 
 
 	insert iC
 	gkcbar_iC = 2.2e-3 
@@ -67,8 +67,8 @@ soma{
 	insert h
 	gbar_h =   9e-06 *0.8
 	
-	insert kca
-	gbar_kca = 0.025 *5.6		//  *1.05 //SSS 
+	//insert kca
+	//gbar_kca = 0.025 *5.6		//  *1.05 //SSS 
 
 	insert ican
 	gbar_ican=gCAN
@@ -238,10 +238,10 @@ axon {
 	gkdrbar_kdr=0.0054
 }
 
-connect dend[0](0), soma(0)
+//connect dend[0](0), soma(0)
 connect apic[0](0), soma(1)
-connect apic[1](0), apic[0](1)
-connect axon(0), soma(0.5)
+//connect apic[1](0), apic[0](1)
+//connect axon(0), soma(0.5)
 
 cao0_ca_ion = 2 	/* mM */
 cai0_ca_ion = 50e-6  	/* mM */
