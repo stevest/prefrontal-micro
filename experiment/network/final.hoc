@@ -120,7 +120,7 @@ if(SIMPLIFIED){
 	BG_PVSyn = synapses_backinh
 
 
-	Stim_MaxSyn_apic = 70 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
+	Stim_MaxSyn_apic = 90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 	Stim_MaxSyn_basal=0//120	//initial stimulation
 
 	/*
@@ -471,9 +471,9 @@ print "Widx is: ", Widx
 	connectPC2PC(runs,0,0.585)// synaptic location Random seed, axon conductanse delay Random seed
 	//GABAbFactor = 10.7//Gvec.x[Gidx]
 	//network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-	connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
-	connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	//connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
+	//connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	//connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)

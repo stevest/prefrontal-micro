@@ -3,7 +3,7 @@
 
 // Experimental setup
 //tstop=10 //defined externaly
-//steps_per_ms=10
+steps_per_ms=10
 dt=1/steps_per_ms
 n=int(tstop/dt)
 celsius=34
