@@ -9,6 +9,7 @@ NEURON {
 	USEION ca READ cai
 	RANGE  gbar, po, ik
 	GLOBAL m_inf, tau_m
+	RANGE a
 }
 
 
@@ -33,6 +34,7 @@ ASSIGNED {       : parameters needed to solve DE
 :	h_inf				:inactivation 
 :	tau_h		(ms)
 :	taumin
+	a
 }
 
 PARAMETER {
@@ -76,7 +78,7 @@ INITIAL {
 
 
 PROCEDURE rates(cai(mM)) { 
-	LOCAL a
+	:LOCAL a
 :	a=100
 :	m_inf=(a*cai*cai)/(a*cai*cai+b)
 :	tau_m=(1/(a*cai*cai+b))

@@ -12,6 +12,7 @@ NEURON {
 	USEION k READ ki, ko WRITE ik 		:Changed from READ ek, 23/04/2010,Nassi
 	RANGE gkabar,gka,ik
 	GLOBAL ninf,linf,taul,taun,lmin
+	RANGE qt, a1, a2, zeta1, zeta2
 }
 
 
@@ -55,6 +56,11 @@ ASSIGNED {    :parameters needed to solve DE
 	gka             (mho/cm2)
 	ki		(mM)
 	ko		(mM)
+	qt
+	a1
+	a2
+	zeta1
+	zeta2
 }
 
 
@@ -63,7 +69,7 @@ STATE {       :the unknown parameters to be solved in the DEs
 }
 
 : Solve qt once in initial block
-LOCAL qt
+:LOCAL qt
 
 INITIAL {    :initialize the following parameter using rates()
     qt = q10^((celsius-24)/10(degC))       : temperature adjustment factor
@@ -73,7 +79,8 @@ INITIAL {    :initialize the following parameter using rates()
 }
 
 BREAKPOINT {
-	SOLVE states METHOD cnexp	ek=25 * log(ko/ki)		:Changed, added, 23/04/2010, Nassi
+	SOLVE states METHOD cnexp
+	ek=25 * log(ko/ki)		:Changed, added, 23/04/2010, Nassi
 	ik = gkabar*n*l*(v-ek)
 }
 
@@ -87,17 +94,17 @@ DERIVATIVE states {     : exact when v held constant; integrates over dt step
 
 
 PROCEDURE rates(v (mV)) {		 :callable from hoc
-	LOCAL a
+	:LOCAL a
 
-	a = alpn(v)
-	PROTECT ninf = 1/(1 + a)		 : activation variable steady state value
-	PROTECT taun = betn(v)/(qt*a0n*(1+a))	 : activation variable time constant
+	a1 = alpn(v)
+	PROTECT ninf = 1/(1 + a1)		 : activation variable steady state value
+	PROTECT taun = betn(v)/(qt*a0n*(1+a1))	 : activation variable time constant
 	if (taun<nmin) {
 		PROTECT taun=nmin	 : time constant not allowed to be less than nmin
 	}
 
-	a = alpl(v)
-	PROTECT linf = 1/(1+ a)                  : inactivation variable steady state value
+	a2 = alpl(v)
+	PROTECT linf = 1/(1+ a2)                  : inactivation variable steady state value
 	:taul = 6 (ms)
 	PROTECT taul = 0.26(ms/mV)*(v+50)               : inactivation variable time constant (0.26)
 	if (taul<lmin) {
@@ -106,17 +113,17 @@ PROCEDURE rates(v (mV)) {		 :callable from hoc
 }
 
 
-FUNCTION alpn(v(mV)) { LOCAL zeta
-	zeta = zetan+pw/(1+exp((v-tq)/qq))
+FUNCTION alpn(v(mV)) { :LOCAL zeta
+	zeta1 = zetan+pw/(1+exp((v-tq)/qq))
 UNITSOFF
-	alpn = exp(1.e-3*zeta*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
+	alpn = exp(1.e-3*zeta1*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
 UNITSON
 }
 
-FUNCTION betn(v(mV)) { LOCAL zeta
-	zeta = zetan+pw/(1+exp((v-tq)/qq))
+FUNCTION betn(v(mV)) { :LOCAL zeta
+	zeta2 = zetan+pw/(1+exp((v-tq)/qq))
 UNITSOFF
-	betn = exp(1.e-3*zeta*gmn*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
+	betn = exp(1.e-3*zeta2*gmn*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
 UNITSON
 }
 

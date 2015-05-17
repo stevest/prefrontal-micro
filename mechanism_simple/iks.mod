@@ -5,6 +5,7 @@ NEURON {
 	SUFFIX IKs
 	USEION k READ ki, ko WRITE ik
 	RANGE gKsbar, ik, gk
+	RANGE va, vb, vc, vd
 }
 
 UNITS {
@@ -35,6 +36,10 @@ ASSIGNED {
 	ek  (mV)
 	ki (mM)
 	ko  (mM)
+	va
+	vb
+	vc
+	vd
 }
 
 
@@ -60,7 +65,7 @@ DERIVATIVE states {
 }
 UNITSOFF
 
-PROCEDURE rate(v (mV)) {LOCAL va, vb, vc, vd
+PROCEDURE rate(v (mV)) {:LOCAL va, vb, vc, vd
 
 	va = v + 34
 	vb = v + 65
