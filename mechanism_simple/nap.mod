@@ -63,56 +63,68 @@ DERIVATIVE states {
 
 UNITSOFF
 
-FUNCTION malf( v){ LOCAL va 
-	va=v+12+DA_alphamshift
-	if (fabs(va)<1e-04){
-	 va = va + 0.00001 }
-	malf = (-0.2816*va)/(-1+exp(-va/9.3))
+FUNCTION malf( v){ :LOCAL va 
+	:va=v+12+DA_alphamshift
+	if (fabs(v+12+DA_alphamshift)<1e-04){
+		malf = (-0.2816*(v+12+DA_alphamshift+ 0.00001))/(-1+exp(-(v+12+DA_alphamshift+ 0.00001)/9.3))
+	} else {
+		malf = (-0.2816*(v+12+DA_alphamshift))/(-1+exp(-(v+12+DA_alphamshift)/9.3))
+	}
 	
 }
 
 
-FUNCTION mbet(v(mV))(/ms) { LOCAL vb 
-	vb=v-15+DA_betamshift
-	if (fabs(vb)<1e-04){
-	    vb = vb + 0.00001 }
+FUNCTION mbet(v(mV))(/ms) { :LOCAL vb 
+	:vb=v-15+DA_betamshift
+	if (fabs(v-15+DA_betamshift)<1e-04){
+		mbet = (0.2464*(v-15+DA_betamshift+ 0.00001))/(-1+exp((v-15+DA_betamshift+ 0.00001)/6))
+	} else {
+		mbet = (0.2464*(v-15+DA_betamshift))/(-1+exp((v-15+DA_betamshift)/6))
+	}
 
-	mbet = (0.2464*vb)/(-1+exp(vb/6))
+	
 
 }	
 
 
-FUNCTION half(v(mV))(/ms) { LOCAL vc 
-	vc=v+42.8477
-	if (fabs(vc)<1e-04){
-	   vc=vc+0.00001 }
-        half= (2.8e-5+DA_alphahfactor)*(exp(-vc/4.0248))
+FUNCTION half(v(mV))(/ms) { :LOCAL vc 
+	:vc=v+42.8477
+	if (fabs(v+42.8477)<1e-04){
+		half= (2.8e-5+DA_alphahfactor)*(exp(-(v+42.8477+ 0.00001)/4.0248))
+	} else {
+	        half= (2.8e-5+DA_alphahfactor)*(exp(-(v+42.8477)/4.0248))
+	}
 
 }
 
 
-FUNCTION hbet(v(mV))(/ms) { LOCAL vd
-	vd=v-413.9284
-	if (fabs(vd)<1e-04){
-	vd=vd+0.00001 }
-        hbet= (0.02+DA_betahfactor)/(1+exp(-vd/148.2589))
+FUNCTION hbet(v(mV))(/ms) { :LOCAL vd
+	:vd=v-413.9284
+	if (fabs(v-413.9284)<1e-04){
+	        hbet= (0.02+DA_betahfactor)/(1+exp(-(v-413.9284+ 0.00001)/148.2589))
+	} else {
+		hbet= (0.02+DA_betahfactor)/(1+exp(-(v-413.9284)/148.2589))
+	}
  
 }
 
 
 
 
-PROCEDURE rate(v (mV)) {LOCAL msum, hsum, ma, mb, ha, hb
-	ma=malf(v) mb=mbet(v) ha=half(v) hb=hbet(v)
+PROCEDURE rate(v (mV)) { :LOCAL msum, hsum, ma, mb, ha, hb
+	:ma=malf(v)
+	:mb=mbet(v)
+	:ha=half(v)
+	:hb=hbet(v)
 	
-	msum = ma+mb
-	minf = ma/msum
-	mtau = 1/msum
+	:msum = malf(v)+mbet(v)
+	minf = malf(v)/(malf(v)+mbet(v))
+	mtau = 1/(malf(v)+mbet(v))
 	
 	
-	hsum = ha+hb
-	hinf = ha/hsum
-	htau = 1/hsum
+	:hsum = half(v)+hbet(v)
+	hinf = half(v)/(half(v)+hbet(v))
+	htau = 1/(half(v)+hbet(v))
 }
 
 	

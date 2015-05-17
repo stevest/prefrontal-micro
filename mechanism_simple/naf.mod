@@ -72,40 +72,40 @@ DERIVATIVE states {
 
 UNITSOFF
 
-FUNCTION malf( v){ LOCAL va 
-	va=v+28
-	if (fabs(va)<1e-04){
-	   malf= -0.2816*(-9.3 + va*0.5)
+FUNCTION malf( v){ :LOCAL va 
+	:va=(v+28)
+	if (fabs((v+28))<1e-04){
+	   malf= -0.2816*(-9.3 + (v+28)*0.5)
 	}else{
 	   malf = -0.2816*(v+28)/(-1+exp(-(v+28)/9.3))
 	}
 }
 
 
-FUNCTION mbet(v(mV))(/ms) { LOCAL vb 
-	vb=v+1
-	if (fabs(vb)<1e-04){
-	   mbet = 0.2464*(6 + vb*0.5)
+FUNCTION mbet(v(mV))(/ms) { :LOCAL vb 
+	:vb=(v+1)
+	if (fabs((v+1))<1e-04){
+	   mbet = 0.2464*(6 + (v+1)*0.5)
 	}else{
 	   mbet = 0.2464*(v+1)/(-1+exp((v+1)/6))
 }
 }	
 
 
-FUNCTION half(v(mV))(/ms) { LOCAL vc 
-	vc=v+43.1
-	if (fabs(vc)<1e-04){
-	   half=0.098*(20 + vc*0.5)
+FUNCTION half(v(mV))(/ms) { :LOCAL vc 
+	:vc=(v+43.1)
+	if (fabs((v+43.1))<1e-04){
+	   half=0.098*(20 + (v+43.1)*0.5)
 	}else{
 	   half=0.098/exp((v+23.1)/20) :was 43.1
 }
 }
 
 
-FUNCTION hbet(v(mV))(/ms) { LOCAL vd
-	vd=v+13.1
-	if (fabs(vd)<1e-04){
-	   hbet=1.4*(10 + vd*0.5)
+FUNCTION hbet(v(mV))(/ms) { :LOCAL vd
+	:vd=(v+13.1)
+	if (fabs((v+13.1))<1e-04){
+	   hbet=1.4*(10 + (v+13.1)*0.5)
 	}else{
 	   hbet=1.4/(1+exp(-(v+25.1)/10)) :was 13.1 changed july 30, 2007
 } 
@@ -114,19 +114,22 @@ FUNCTION hbet(v(mV))(/ms) { LOCAL vd
 
 
 
-PROCEDURE rate(v (mV)) {LOCAL q10, msum, hsum, ma, mb, ha, hb
+PROCEDURE rate(v (mV)) { :LOCAL q10, msum, hsum, ma, mb, ha, hb
 	
 
-	ma=malf(v) mb=mbet(v) ha=half(v) hb=hbet(v)
+	:ma=malf(v)
+	:mb=mbet(v)
+	:ha=half(v)
+	:hb=hbet(v)
 	
-	msum = ma+mb
-	minf = ma/msum
-	mtau = 1/(msum)
+	:msum = malf(v)+mbet(v)
+	minf = malf(v)/(malf(v)+mbet(v))
+	mtau = 1/(malf(v)+mbet(v))
 	
 	
-	hsum=ha+hb
-	hinf=ha/hsum
-	htau = 1 / (hsum)
+	:hsum=half(v)+hbet(v)
+	hinf=half(v)/(half(v)+hbet(v))
+	htau = 1 / (half(v)+hbet(v))
 	
 }
 
