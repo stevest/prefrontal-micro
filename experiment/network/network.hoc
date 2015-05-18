@@ -773,61 +773,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	}
 
 
-	//---------------------------------------------------Insert Autapses(Lubke, 1996)
-	for i=0, nPCcells-1 {
-		for j=0, PC_MaxAutosyn-1 {
-			conautonmdaPC2PC[i][j] = null
-			conautoampaPC2PC[i][j] = null
-			autonmdaOnPC[i][j] = null
-			autoampaOnPC[i][j] = null
-		}
-	}
-
-	for i=0, PCcells.count()-1 {
-			//if (connMatrix.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
-				for j=0, (PC_MaxAutosyn-1) { 
-					if(PARALLEL){
-						PID=r.repick()
-						FIDp = abs(fp.repick())
-						rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
-					} else {
-						PID=PC2PCrarr[trgGID%ncores].repick()
-						FIDp = abs( PC2PCfparr[trgGID%ncores].repick() )
-						rDendidx = int(PC2PCrdend[PCgids.x[i]%ncores].uniform(0,PCcells.o(i).DendNo-1) )
-					}
-					if( FIDp <= dt ){ FIDp = dt + 0.01 }
-					
-					if(SIMPLIFIED){	rDendidx = 0 }
-					PCcells.o(i).dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
-					//EXEC_CMD = ""
-					//PCcells.o(i).dend[rDendidx]{print L}
-					//print autonmdaOnPC[i][j]
-					//sprint(EXEC_CMD,"PCcells.o(%d).dend[%d] {autonmdaOnPC[%d][%d] = new %s(%f)}",i,rDendidx,i,j,NMDA_MECH,PID)
-					//print EXEC_CMD
-					//execute(EXEC_CMD)
-					//PCcells.o(i).dend[rDendidx] autonmdaOnPC[i][j] = new NMDA(PID)
-					PCcells.o(i).dend[rDendidx] {autonmdaOnPC[i][j] = new nmda_segev(PID)}
-			//----------------------Connect autapses
-					
-					if(SIMPLIFIED){
-						conautoampaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autoampaOnPC[i][j], -20, FIDp,ampaweight)
-						if( PcellStimList.x(PCgids.x(i))  ){ //proxeirotita, na psaxnw sto cluster; ta stimulated einai ligotera!			
-							conautonmdaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autonmdaOnPC[i][j], -20, FIDp,arg)
-						} else {
-							conautonmdaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autonmdaOnPC[i][j], -20, FIDp,0.25)
-						}
-					} else {
-						conautoampaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autoampaOnPC[i][j], -20, FIDp, ampaArr.x[PcellIDlist.x[PCgids.x(i)]] )
-						conautonmdaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autonmdaOnPC[i][j], -20, FIDp, nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]] )
-					}
-
-					//distancesMat.x[i][0] = distance(PID)
-					//pidMat.x[i][0] = PID
-					//if(PLOT){splot.point_mark(autonmdaOnPC[i][j],3)} //colorize
-				}
-			//}
-	}
-	if(PARALLEL){ PC.barrier() }
+	
+	
 	// connect PC 2 PC with connectivity/weights from MATLAB:
 	//synCtr = 0
 	//Create a dummy cell in each node to gather PC events:
@@ -969,6 +916,63 @@ if(srcGID!=trgGID){
 		dummyNetCon[PCgids.x[k]].record(Devents[PCgids.x[k]])
 		//print Devents[PCgids.x[k]]
 	}*/
+
+	if(PARALLEL){ PC.barrier() }
+	//---------------------------------------------------Insert Autapses(Lubke, 1996)
+	for i=0, nPCcells-1 {
+		for j=0, PC_MaxAutosyn-1 {
+			conautonmdaPC2PC[i][j] = null
+			conautoampaPC2PC[i][j] = null
+			autonmdaOnPC[i][j] = null
+			autoampaOnPC[i][j] = null
+		}
+	}
+
+	for i=0, PCcells.count()-1 {
+			//if (connMatrix.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
+				for j=0, (PC_MaxAutosyn-1) { 
+					if(PARALLEL){
+						PID=r.repick()
+						FIDp = abs(fp.repick())
+						rDendidx = int(rDend.uniform(0,PCcells.o(i).DendNo-1) )
+					} else {
+						PID=PC2PCrarr[PCgids.x[i]%ncores].repick()
+						FIDp = abs( PC2PCfparr[PCgids.x[i]%ncores].repick() )
+						rDendidx = int(PC2PCrdend[PCgids.x[i]%ncores].uniform(0,PCcells.o(i).DendNo-1) )
+					}
+					if( FIDp <= dt ){ FIDp = dt + 0.01 }
+					
+					if(SIMPLIFIED){	rDendidx = 0 }
+					PCcells.o(i).dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
+					//EXEC_CMD = ""
+					//PCcells.o(i).dend[rDendidx]{print L}
+					//print autonmdaOnPC[i][j]
+					//sprint(EXEC_CMD,"PCcells.o(%d).dend[%d] {autonmdaOnPC[%d][%d] = new %s(%f)}",i,rDendidx,i,j,NMDA_MECH,PID)
+					//print EXEC_CMD
+					//execute(EXEC_CMD)
+					//PCcells.o(i).dend[rDendidx] autonmdaOnPC[i][j] = new NMDA(PID)
+					PCcells.o(i).dend[rDendidx] {autonmdaOnPC[i][j] = new nmda_segev(PID)}
+			//----------------------Connect autapses
+					
+					if(SIMPLIFIED){
+						conautoampaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autoampaOnPC[i][j], -20, FIDp,ampaweight)
+						if( PcellStimList.x(PCgids.x(i))  ){ //proxeirotita, na psaxnw sto cluster; ta stimulated einai ligotera!			
+							conautonmdaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autonmdaOnPC[i][j], -20, FIDp,arg)
+						} else {
+							conautonmdaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autonmdaOnPC[i][j], -20, FIDp,0.25)
+						}
+					} else {
+						conautoampaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autoampaOnPC[i][j], -20, FIDp, ampaArr.x[PcellIDlist.x[PCgids.x(i)]] )
+						conautonmdaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autonmdaOnPC[i][j], -20, FIDp, nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]] )
+					}
+
+					//distancesMat.x[i][0] = distance(PID)
+					//pidMat.x[i][0] = PID
+					//if(PLOT){splot.point_mark(autonmdaOnPC[i][j],3)} //colorize
+				}
+			//}
+	}
+
 
 } //END procedure initPC
 
