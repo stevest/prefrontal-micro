@@ -559,9 +559,10 @@ print "Widx is: ", Widx
 		//if(DEBUG){printf("DEBUG: Saving runs Params...\n")}
 		//save_distances()
 		//if(DEBUG){printf("DEBUG: DONE Saving Distances...\n")}
-		//save_membrane_voltage(exp_dir,CLUSTER_ID,ID)
-		save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID)
-		save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
+		save_membrane_voltage(exp_dir,CLUSTER_ID,ID)
+		//save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID)
+		save_synaptic_delays(exp_dir,CLUSTER_ID,ID,0)
+		//save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
 		//if(DEBUG){printf("DEBUG: DONE Saving Voltages...\n")}
 		//save_PID()
 		//if(DEBUG){printf("DEBUG: DONE Saving PIDs...\n")}
