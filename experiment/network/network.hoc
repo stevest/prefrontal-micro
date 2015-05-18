@@ -930,6 +930,7 @@ if(srcGID!=trgGID){
 
 	for i=0, PCcells.count()-1 {
 			//if (connMatrix.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
+				delayPC2PC[PCgids.x[i]][PCgids.x[i]] = new Vector()
 				for j=0, (PC_MaxAutosyn-1) { 
 					if(PARALLEL){
 						PID=r.repick()
@@ -941,7 +942,7 @@ if(srcGID!=trgGID){
 						rDendidx = int(PC2PCrdend[PCgids.x[i]%ncores].uniform(0,PCcells.o(i).DendNo-1) )
 					}
 					if( FIDp <= dt ){ FIDp = dt + 0.01 }
-					
+					delayPC2PC[PCgids.x[i]][PCgids.x[i]].append(FIDp)
 					if(SIMPLIFIED){	rDendidx = 0 }
 					PCcells.o(i).dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
 					//EXEC_CMD = ""
