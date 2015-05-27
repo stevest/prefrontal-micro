@@ -53,22 +53,22 @@ soma{
 	gcatbar_cat =  6e-06 
 
 	insert kdr
-	gkdrbar_kdr =  0.0054*4		// *1.32 //SSS
+	gkdrbar_kdr =  0.0054*4		 //*3 //SSS
 
 	insert IKs
-	gKsbar_IKs = 6e-4 *1.71	//2.1
+	gKsbar_IKs = 6e-4 *1.71		*0.5// SSS //2.1
 
 	insert kad
 	gkabar_kad = 7e-4 
 
 	insert iC
-	gkcbar_iC = 2.2e-3 
+	gkcbar_iC = 2.2e-3		//*10 //SSS 
 
-	insert h
-	gbar_h =   9e-06 *0.8
+	insert h 
+	gbar_h =   9e-06 *0.8		//*0.1//SSS
 	
 	insert kca
-	gbar_kca = 0.025 *5.6		//  *1.05 //SSS 
+	gbar_kca = 0.025 *5.6		//*1.02 //SSS 
 
 	insert ican
 	gbar_ican=gCAN
@@ -99,16 +99,16 @@ dend[0]{
 	gcabar_can = 6e-05 
 	
 	insert kdr
-	gkdrbar_kdr = 0.0054 
+	gkdrbar_kdr = 0.0054		//*15//SSS 
 
 	insert IKs
-	gKsbar_IKs =  0.0006
+	gKsbar_IKs =  0.0006		//*0.1//SSS
 	
 	insert kad
 	gkabar_kad = 0.0007
 
 	insert h
-	gbar_h =9e-06 
+	gbar_h =9e-06		//*0.1//SSS 
 
 	insert ican
 	gbar_ican=gCAN*0.1
@@ -149,7 +149,7 @@ apic[0]{
 	gkdrbar_kdr = 2.16e-05 
 
 	insert IKs
-	gKsbar_IKs = 0.0012 
+	gKsbar_IKs = 0.0012		//*0.01 //SS 
 
 	insert kad
 	gkabar_kad =  0.0007
@@ -201,7 +201,7 @@ apic[1]{
 	gkdrbar_kdr =  5.4e-06    
 
 	insert IKs	
-	gKsbar_IKs = 0.0012   
+	gKsbar_IKs = 0.0012  	//*0.01//SSS 
 
 	insert kad
 	gkabar_kad = 7e-05 

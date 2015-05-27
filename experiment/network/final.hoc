@@ -23,6 +23,12 @@ if (EXPERIMENT) { //if Structured...
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
 assert(execute1(EXEC_CMD))
+if (EXPERIMENT) { //if Structured...
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importGapParametersSTR.hoc\")}",ID)
+} else {
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importGapParametersSTR.hoc\")}",ID)
+}
+assert(execute1(EXEC_CMD))
 
 EXEC_CMD = ""
 {sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulationHeader.hoc\")}",ID)}
@@ -105,11 +111,12 @@ if(SIMPLIFIED){
 	gabaweightb=1.05e-4
 	ampaweightin=	7.5e-4			//according to Wang,Gao,2009
 	nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
-	autogabaweight=	5.1e-4			//According to Bacci (2003) 
+	autogabaweight=	0.006205				//According to Bacci (2003) 
+	PC2PV_MaxSyn=7
 	//------------------Set # of synapses
-	synapses_backb=15//16//18//60//100
-	synapses_backpr=15//16//18//60//100
-	synapses_backa=15//16//18//60//100
+	synapses_backb=100//16//18//60//100
+	synapses_backpr=100//16//18//60//100
+	synapses_backa=100//16//18//60//100
 	synapses_backinh=40
 	synapses_inh=1
 
@@ -129,11 +136,10 @@ if(SIMPLIFIED){
 	gababweights.x[2]=3.38e-4		//0.6
 	gababweights.x[3]=4.65e-4		//0.8
 	*/
-	autogabaweight =	5.1e-4
 	//gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 	gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-	gabaweight_pv2pc_b = gabaweightb    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+	gabaweight_pv2pc_b = gabaweightb   *0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 
 	/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
@@ -149,6 +155,7 @@ if(SIMPLIFIED){
 	for i=0,55{
 		ampaArr.x[i] = AMPAfactor * ampaweight	
 	}
+	//taur_cad = 50//36 //SSS
 
 } else {
 // Complex morphologies case:
@@ -293,7 +300,7 @@ proc train() {
 
 
 //strdef vfilePC_filename
-if (PARALLEL){
+if (1){
 	assert(sprint(exp_dir,"/mnt/cluster/Documents/Glia/experiment_%d",ID))
 } else {
 	assert(sprint(exp_dir,"experiment_%d",ID))
@@ -398,8 +405,8 @@ Gvec.x[2] = 0.8
 Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
-
-TOTALRUNS = 1//Wvec.size() * Gvec.size()
+gidincr = 0
+TOTALRUNS = 10//Wvec.size() * Gvec.size()
 for runs = 0, TOTALRUNS-1 {
 	Gidx = runs%Gvec.size()
 	Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
@@ -438,16 +445,16 @@ print "Widx is: ", Widx
 	assert(execute1(EXEC_CMD))
 	EXEC_CMD = ""
 	//sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,1)
+	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
 	pprint(EXEC_CMD)
 	assert(execute1(EXEC_CMD))
 	
 	//override complex background spiketrains:
-	/*BG_dendSyn = 15//16
-	BG_apicSyn = 15//16
-	BG_apicprSyn = 15//16
-	BG_PVSyn = 40
-	*/
+	BG_dendSyn = 60//16
+	BG_apicSyn = 60//16
+	BG_apicprSyn = 60//16
+	BG_PVSyn =30 
+	
 	//override complex background spiketrains:
 	//BG_dendSyn = synapses_backb
 	//BG_apicSyn = synapses_backa
@@ -460,8 +467,8 @@ print "Widx is: ", Widx
 	//thinner_apical()
 	stimulation(runs,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
-	//backgroundActivity(0,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
-	//backgroundActivityPV(0,0) //~11Hz Petersen Carl
+	backgroundActivity(runs,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
+	backgroundActivityPV(runs,0) //~11Hz Petersen Carl
 	/*backgroundActivityCB(runs) //~2Hz Petersen Carl
 	backgroundActivityCR(runs) //~2Hz Petersen Carl
 	*/
@@ -471,15 +478,15 @@ print "Widx is: ", Widx
 	connectPC2PC(runs,0,0.585)// synaptic location Random seed, axon conductanse delay Random seed
 	//GABAbFactor = 10.7//Gvec.x[Gidx]
 	//network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-	//connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
-	//connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
-	//connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PV(runs,0)// ssynaptic location Random seed, axon conductanse delay Random seed
+	connectPC2PV(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
+	connectPV2PC(runs,0)// synaptic location Random seed, axon conductanse delay Random seed
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)
 	connectCR2PC(runs)
 	connectCR2CB(runs)*/
-	//noise(0)
+	noise(runs)
 	//train()
 	//TTX_proc(GPYID) 
 	//iclamp_proc(0,-0.1)
@@ -499,6 +506,9 @@ print "Widx is: ", Widx
 		for lala=0,offsets.x(5)-1{ // record all cells!
 		  par_rec_membrane_voltage(lala)
 		}
+		for lala=0,offsets.x(1)-1{ // record all cells!
+		  //par_rec_anyvar(lala)
+		}
 		//spikerecord()//record spike events of each cell 
 		//par_rec_cai(0)
 		//record_source_spikes()
@@ -515,6 +525,7 @@ print "Widx is: ", Widx
 		}
 		{ PC.barrier()	} 
 		par_save_membrane_voltage(exp_dir,CLUSTER_ID,ID, ISBINARY)
+		//par_save_anyvar(exp_dir,CLUSTER_ID,ID,0)
 		//par_save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
 		//par_save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
 		//if(DEBUG){print "Synaptic locations saved!"}
@@ -575,6 +586,7 @@ print "Widx is: ", Widx
 		PCcells.o(qz).dend[0] { sectionMembraneMechSnapshot(tempString) }
 	}*/
 	printf("Runtime: %10.4g\n", runtime)
+	gidincr += 1000
 }
 
 if(PARALLEL){

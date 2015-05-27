@@ -69,7 +69,7 @@ DERIVATIVE states {
 	h' = (inf[1]-h)/tau[1]
 }
 
-PROCEDURE rates(v(mV)) {:LOCAL a, b :rest = -70
+PROCEDURE rates(v(mV)) {LOCAL a, b :rest = -70
 	FROM i=0 TO 1 {
 		tau[i] = vartau(v,i)
 		inf[i] = varss(v,i)

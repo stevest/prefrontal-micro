@@ -37,7 +37,6 @@ NEURON {
 	USEION na WRITE ina
 	RANGE gbar, m_inf, tau_m, in, mystart
 	GLOBAL beta, cac, taumin 
-	RANGE alpha2
 }
 
 
@@ -75,7 +74,6 @@ ASSIGNED {
 
 	celsius
 	en
-	alpha2
 }
 
 BREAKPOINT { 
@@ -105,7 +103,7 @@ INITIAL {
 }
 
 
-PROCEDURE evaluate_fct(v(mV),cai(mM)) {  :LOCAL alpha2
+PROCEDURE evaluate_fct(v(mV),cai(mM)) {  LOCAL alpha2
 
 	alpha2 = beta * (cai/cac)^2
 

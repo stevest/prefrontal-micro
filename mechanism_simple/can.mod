@@ -77,13 +77,13 @@ BREAKPOINT {
 
 
 FUNCTION ghk(v(mV), ci(mM), co(mM)) (.001 coul/cm3) {
-	:LOCAL z, eci, eco
-	:z = (1e-3)*2*FARADAY*v/(R*(celsius+273.15))
-	:eco = co*efun((1e-3)*2*FARADAY*v/(R*(celsius+273.15)))
-	:eci = ci*efun(-((1e-3)*2*FARADAY*v/(R*(celsius+273.15))))
+	LOCAL z, eci, eco
+	z = (1e-3)*2*FARADAY*v/(R*(celsius+273.15))
+	eco = co*efun(z)
+	eci = ci*efun(-z)
 	:high cao charge moves inward
 	:negative potential charge moves inward
-	ghk = (.001)*2*FARADAY*((ci*efun(-((1e-3)*2*FARADAY*v/(R*(celsius+273.15))))) - (co*efun((1e-3)*2*FARADAY*v/(R*(celsius+273.15)))))
+	ghk = (.001)*2*FARADAY*(eci - eco)
 }
 
 FUNCTION efun(z) {
@@ -104,15 +104,15 @@ DERIVATIVE states {
 
 
 PROCEDURE rates(v (mV), cai(mM)) { 
-	:LOCAL a, b, alpha2
+	LOCAL a, b, alpha2
 
-	:a = alpm(v)
-	PROTECT minf = 1/(1+alpm(v))
+	a = alpm(v)
+	PROTECT minf = 1/(1+a)
 
-	:b = alph(v)
-	PROTECT hinf = 1/(1+alph(v))
-	:alpha2 = (ki/cai)^2
-	PROTECT s_inf = ((ki/cai)^2) / (((ki/cai)^2) + 1)
+	b = alph(v)
+	PROTECT hinf = 1/(1+b)
+	alpha2 = (ki/cai)^2
+	PROTECT s_inf = alpha2 / (alpha2 + 1)
 }
 
 

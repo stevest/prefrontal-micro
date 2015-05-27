@@ -13,7 +13,7 @@ NEURON {
 	SUFFIX iC
 	USEION k READ ko, ki WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
 	USEION ca READ cai   
-	RANGE  gkcbar,ik
+	RANGE  gkcbar,ik, ost
 }
 
 UNITS {

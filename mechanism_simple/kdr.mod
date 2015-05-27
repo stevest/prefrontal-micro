@@ -5,7 +5,6 @@ NEURON {
 	SUFFIX kdr
 	USEION k READ ki, ko WRITE ik
 	RANGE gkdrbar, ik, gk
-	RANGE va ,vb
 }
 
 UNITS {
@@ -35,8 +34,7 @@ ASSIGNED {
 	ek (mV)
 	ki (mM)
 	ko (mM)
-	va
-	vb
+
 }
 
 
@@ -60,7 +58,7 @@ DERIVATIVE states {
 
 UNITSOFF
 
-FUNCTION alf(v){ :LOCAL va 
+FUNCTION alf(v){ LOCAL va 
 	
 	   va=v-13
 	if (fabs(va)<1e-04){
@@ -72,7 +70,7 @@ FUNCTION alf(v){ :LOCAL va
 }
 
 
-FUNCTION bet(v) { :LOCAL vb 
+FUNCTION bet(v) { LOCAL vb 
 	
 	  vb=v-23
 	if (fabs(vb)<1e-04){
@@ -88,14 +86,13 @@ FUNCTION bet(v) { :LOCAL vb
 
 
 
-PROCEDURE rate(v (mV)) {:LOCAL q10, sum, aa, ab
+PROCEDURE rate(v (mV)) {LOCAL q10, sum, aa, ab
 	
-	:aa=alf(v)
-	:ab=bet(v) 
+	aa=alf(v) ab=bet(v) 
 	
-	:sum = alf(v)+bet(v)
-	inf = alf(v)/(alf(v)+bet(v))
-	tau = 1/(alf(v)+bet(v))
+	sum = aa+ab
+	inf = aa/sum
+	tau = 1/(sum)
 	
 	
 }

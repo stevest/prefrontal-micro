@@ -209,6 +209,47 @@ proc noise() { local i
 
 	
 }
+//Gap junctions code:
+//
+objref par_gaps
+par_gaps = new List()
+gap_src_gid = 2
+
+/*objref rangap
+if (one_tenth_ncell) {
+	rangap = new Random()
+	rangap.MCellRan4(1)
+	rangap.uniform(0,1)
+	ranfrac=.1
+}*/
+
+proc par_gap_create() { local srcgid , trggid, src
+	srcgid = $1
+	trggid = $3	
+	src = $2
+	par_gap_create1(srcgid, trggid, $3)
+	/*if (!use_gap) { return }
+	if (object_id(rangap)) {
+		if (rangap.repick() > ranfrac) { return }
+	}
+	gap_src_gid += 2
+	if ((gid = targetcomp_exists($1, $2)) >= 0) {
+		par_gap_create1(gid, $2, gap_src_gid + 1, gap_src_gid, $5)
+	}
+	if ((gid = targetcomp_exists($3, $4)) >= 0) {
+		par_gap_create1(gid, $4, gap_src_gid, gap_src_gid + 1, $5)
+	}*/
+}
+proc par_gap_create_now() {localobj c, g
+	c =PC.gid2obj($1)
+	c.soma {
+		g = new gGapPar(.5)
+		par_gaps.append(g)
+		PC.target_var(g, &g.vgap, $3)
+		PC.source_var(&v(.5), $2)
+		g.g = $4
+	}
+}
 
 
 
@@ -216,8 +257,8 @@ proc noise() { local i
 
 objref sns
 sns  = new NetStim(0.5)
-sns.interval=50//SSS 
-sns.number=20//SSS
+sns.interval=20//SSS 
+sns.number=50//SSS
 sns.start=0
 sns.noise=0
 
@@ -271,7 +312,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 			}
 
 			if( bool ){ //&& PcellStimList.x(i)
-				stimpidPC2PC[trgGID] = new Vector()
+				//stimpidPC2PC[trgGID] = new Vector()
 				// Apical input:
 				for j=0, (Stim_MaxSyn_apic-1) {
 					if(PARALLEL){
@@ -281,7 +322,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 						PID = STIMrarr[trgGID%ncores].repick()
 						rApicIdx = int(STIMrapicarr[trgGID%ncores].uniform(0,PCcells.o(localID).ApicNo-1))
 					}
-					stimpidPC2PC[trgGID].append(PID)
+					//stimpidPC2PC[trgGID].append(PID)
 					if(SIMPLIFIED){ rApicIdx = 0 } //PROXIMAL!
 					PCcells.o(localID).apic[rApicIdx] {ampapr[i][j] = new GLU(PID)}
 					//EXEC_CMD = ""
@@ -297,7 +338,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 //if (PC.id == 0) {print "Creating synapse # ", j}
 
 					ncAMPA[i][j] = new NetCon(sns, ampapr[i][j]) //vstim_stim[i][j]
-					ncAMPA[i][j].delay=50
+					ncAMPA[i][j].delay=500
 					if(SIMPLIFIED){
 						ncAMPA[i][j].weight = ampaweightpr
 					} else {
@@ -306,7 +347,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					ncAMPA[i][j].threshold=-10 
 
 					ncNMDA[i][j] = new NetCon(sns, nmdapr[i][j])
-					ncNMDA[i][j].delay=50
+					ncNMDA[i][j].delay=500
 					if(SIMPLIFIED){
 						ncNMDA[i][j].weight = nmdaweightpr
 					} else {
@@ -339,12 +380,12 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 						//vstim_stim[i][j].play(Stim_Dend[$2][i][j-Stim_MaxSyn_apic]) //rvect.x[i]]
 
 						ncAMPA[i][j]=new NetCon(sns, ampapr[i][j])
-						ncAMPA[i][j].delay=50
+						ncAMPA[i][j].delay=500
 						ncAMPA[i][j].weight = StimFactor * ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5
 						ncAMPA[i][j].threshold=-10 
 
 						ncNMDA[i][j]=new NetCon(sns, nmdapr[i][j])
-						ncNMDA[i][j].delay=50
+						ncNMDA[i][j].delay=500
 						ncNMDA[i][j].weight = StimFactor * nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]]  //*1.5 // * 0.5           
 						ncNMDA[i][j].threshold= -10 
 						//if(PLOT){splot.point_mark(nmdapr[i][j],2)} //colorize
@@ -546,6 +587,12 @@ for i=0, nPCcells-1 {
 
 }//end proc
 
+objref pvns
+pvns  = new NetStim(0.5)
+pvns.number=40//SSS
+pvns.interval=tstop/pvns.number//SSS 
+pvns.start=0
+pvns.noise=1
 //----------------------------------------------PV background activity-------------------------------------------------------//
 proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
@@ -573,7 +620,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 						vstim_pv[trg][syn].delay = 0
 						vstim_pv[trg][syn].play(BG_Stim_SomaPV[$2][trg][syn])
 
-						BGPV_AMPA[trg][syn]=new NetCon(vstim_pv[trg][syn], ampaBGPV[trg][syn])
+						BGPV_AMPA[trg][syn]=new NetCon(vstim_pv[trg][syn], ampaBGPV[trg][syn]) //vstim_pv[trg][syn]
 						BGPV_AMPA[trg][syn].delay=0
 						BGPV_AMPA[trg][syn].weight =   ampaweightin
 						BGPV_AMPA[trg][syn].threshold=-10
@@ -818,8 +865,8 @@ if(srcGID!=trgGID){
 				//PCcells.o(localID).soma {distance()}
 				//PCcells.o(localID).dend[clusterDend.x(localID)] {clusterDIST.x(localID) = distance(clusterPID.x(localID))}
 				//PCcells.o(localID).dend[clusterDend.x(localID)] {print "dendritic segments are ", nseg}
-				delayPC2PC[src][trg] = new Vector()	
-				pidPC2PC[src][trg] = new Vector()	
+				//delayPC2PC[src][trg] = new Vector()	
+				//pidPC2PC[src][trg] = new Vector()	
 				for syn=0, (PC2PC_MaxSyn-1) { //for current syn
 //if((trg == 34)){print "TRG=",trg," RECURRENT SYNAPSE MADE ..."}
 					//PID=r.repick()
@@ -841,8 +888,8 @@ if(srcGID!=trgGID){
 						FIDp = abs( PC2PCfparr[trgGID%ncores].repick() )
 					}
 					if( FIDp <= dt ){ FIDp = dt + 0.01 }
-					delayPC2PC[src][trg].append(FIDp)
-					pidPC2PC[src][trg].append(PID)
+					//delayPC2PC[src][trg].append(FIDp)
+					//pidPC2PC[src][trg].append(PID)
 					PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 					PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
 					//print "@cell ",trgGID," synapse on dend ",clusterDend.x(localID), " on PID ", syn*0.2+0.1
@@ -875,10 +922,10 @@ if(srcGID!=trgGID){
 						connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,nmdaArr.x[PcellIDlist.x[PCgids.x(localID)]] * weightsMatrix.x[srcGID][trgGID] )
 
 					}
-					curampaPC2PC[src][trg][syn] = new Vector(n,0)
-					curnmdaPC2PC[src][trg][syn] = new Vector(n,0)
-					curampaPC2PC[src][trg][syn].record(&ampaOnPC[src][trg][syn].iglu,all_msec)
-					curnmdaPC2PC[src][trg][syn].record(&nmdaOnPC[src][trg][syn].inmda,all_msec)
+					//curampaPC2PC[src][trg][syn] = new Vector(n,0)
+					//curnmdaPC2PC[src][trg][syn] = new Vector(n,0)
+					//curampaPC2PC[src][trg][syn].record(&ampaOnPC[src][trg][syn].iglu,all_msec)
+					//curnmdaPC2PC[src][trg][syn].record(&nmdaOnPC[src][trg][syn].inmda,all_msec)
 					
 
 					//distancesMat.x[trg][synCtr+1] = distance(PID)
@@ -895,10 +942,10 @@ if(srcGID!=trgGID){
 		}
 		//synCtr = 0
 		if (bool) {	
-					icaPC2PC[trg] = new Vector(n,0)
-					caiPC2PC[trg] = new Vector(n,0)
-					icaPC2PC[trg].record(&PCcells.o(localID).dend[0].cai(0.1),all_msec)
-					caiPC2PC[trg].record(&PCcells.o(localID).dend[0].ica(0.1),all_msec)
+					//icaPC2PC[trg] = new Vector(n,0)
+					//caiPC2PC[trg] = new Vector(n,0)
+					//icaPC2PC[trg].record(&PCcells.o(localID).dend[0].cai(0.1),all_msec)
+					//caiPC2PC[trg].record(&PCcells.o(localID).dend[0].ica(0.1),all_msec)
 		}
 	}
 
@@ -930,7 +977,7 @@ if(srcGID!=trgGID){
 
 	for i=0, PCcells.count()-1 {
 			//if (connMatrix.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
-				delayPC2PC[PCgids.x[i]][PCgids.x[i]] = new Vector()
+				//delayPC2PC[PCgids.x[i]][PCgids.x[i]] = new Vector()
 				for j=0, (PC_MaxAutosyn-1) { 
 					if(PARALLEL){
 						PID=r.repick()
@@ -942,7 +989,7 @@ if(srcGID!=trgGID){
 						rDendidx = int(PC2PCrdend[PCgids.x[i]%ncores].uniform(0,PCcells.o(i).DendNo-1) )
 					}
 					if( FIDp <= dt ){ FIDp = dt + 0.01 }
-					delayPC2PC[PCgids.x[i]][PCgids.x[i]].append(FIDp)
+					//delayPC2PC[PCgids.x[i]][PCgids.x[i]].append(FIDp)
 					if(SIMPLIFIED){	rDendidx = 0 }
 					PCcells.o(i).dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
 					//EXEC_CMD = ""
@@ -1036,6 +1083,15 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 							if(delstimpvpv<=dt){delstimpvpv=dt+0.01}
 							PVcells.o(localID).soma gabaOnPV_A[src][trg][syn] = new GABAa(PID)//was GABAain
 							congabaPV2PV_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID,gabaOnPV_A[src][trg][syn],-20,delstimpvpv,autogabaweight )
+							//congabaPV2PV_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID,gabaOnPV_A[src][trg][syn],-20,delstimpvpv,0)
+						}
+						//Connect gap junctions:
+						if (gapMatrix.x[src][trg]) {
+							if (src < trg) {
+								par_gap_create_now(trgGID,gapMatrix.x[src][trg]+gidincr,gapMatrix.x[src][trg]+gidincr-1,0.00005)
+							} else {
+								par_gap_create_now(trgGID,gapMatrix.x[trg][src]+gidincr-1,gapMatrix.x[trg][src]+gidincr,0.00005)
+							}
 						}
 					}
 				//Gap junctions:
@@ -1096,7 +1152,7 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 						if(delstimpcpv<=dt){delstimpcpv=dt+0.01}
 						PVcells.o(localID).dend ampaOnPV[src][trg][syn] = new GLUIN(PID) //no Dends available in the model! (???????)
 						EXEC_CMD = ""
-						sprint(EXEC_CMD,"PVcells.o(%d).soma {nmdaOnPV[%d][%d][%d] = new %s(%f)}",localID,src,trg,syn,NMDA_MECH,PID)
+						sprint(EXEC_CMD,"PVcells.o(%d).soma {nmdaOnPV[%d][%d][%d] = new %s(%f)}",localID,src,trg,syn,"NMDA",PID)
 						execute(EXEC_CMD)
 						//PVcells.o(localID).dend nmdaOnPV[src][trg][syn] = new NMDA(PID)
 						//PVcells.o(localID).soma nmdaOnPV[src][trg][syn] = new nmda_segev(PID)

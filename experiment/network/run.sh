@@ -2,10 +2,10 @@
 
 parallel="1"
 simplified="1"
-cluster="4"
+cluster="6"
 # 0=Random, 1=Structured
-exp="1"
-state="1"
+exp="0"
+state="7"
 id="12"
 sn="16"
 vclamp="0.0"

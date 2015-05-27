@@ -55,12 +55,15 @@ proc spikeout() { local i localobj vfilePC
 
 
 // see this here on the topic of storing membrane voltage in a parallel context: http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=1987
+objref r_anyval[offsets.x[offsets.size()-1]]
 objref r_volts[offsets.x[offsets.size()-1]],r_msec[offsets.x[offsets.size()-1]]
 objref r_curr[offsets.x[offsets.size()-1]]
 objref r_cai[offsets.x[offsets.size()-1]]
 // each recorded range variable must have a separate tvec which will be different for different cells
 objref recordedCells
 recordedCells = new Vector()
+objref anyvalCells
+anyvalCells = new Vector()
 objref vdendseg[nPCcells][5] //hardcoded!
 // recording routines for the parallel context
 proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
@@ -86,6 +89,19 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 				cum = cum + (1/PC.gid2cell($1).dend[0].nseg)
 			}
 		}
+	}
+}
+proc par_rec_anyvar(){local i,s,q  // use gid as parameter
+{ PC.barrier() } 
+	if (PC.gid_exists($1)) { 
+		s=anyvalCells.size()
+		r_anyval[s]=new Vector(n)
+		r_msec[s]=new Vector(n)
+		//Also a known bug:
+		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
+		for q=0,n-1 {r_msec[s].x[q]=q*dt }
+		PC.gid2cell($1).soma {cv.record(&ihi_h(0.5),r_anyval[s],r_msec[s],0)}
+		anyvalCells.append($1)
 	}
 }
 
@@ -300,7 +316,7 @@ if ($4) {
 	ext = "txt"
 }
 //save PV2PC delays
-	for trg=0, PCcells.count()-1 {
+	/*for trg=0, PCcells.count()-1 {
 		vfilePC = new File()	
 		sprint(vfilePC_filename,"%s/%s/delayPV2PC_trg_%d_runs_%d.txt", $s1,EXP,PCgids.x[trg],runs) 
 		vfilePC.wopen(vfilePC_filename)
@@ -312,7 +328,7 @@ if ($4) {
 		}
 		
 		vfilePC.close()
-	}
+	}*/
 //save PC2PC delays
 	for trg=0, PCcells.count()-1 {
 		vfilePC = new File()	
@@ -423,7 +439,6 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 	} else {
 		ext = "txt"
 	}
-
 	for s=0,recordedCells.size()-1{
 		vfilePC = new File()	
 		sprint(vfilePC_filename,"%s/%s/%d_%d_%d.%s", $s1,EXP,$2,recordedCells.x(s), runs,ext) 
@@ -437,7 +452,6 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 		}
 		vfilePC.close()
 	}
-
 	{ PC.barrier() }
 /*
 	for i=0, PCcells.count()-1 {
@@ -486,6 +500,33 @@ for i=0, nPCcells-1 { //for all cells
 	}
 */		
 
+} //End save membrane voltage proc
+
+proc par_save_anyvar() {local i,s,j localobj vfilePC
+print "parsave anyvar"
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
+	for s=0,anyvalCells.size()-1{
+print "anyvar size is: " r_anyval[s].size()
+		vfilePC = new File()	
+		sprint(vfilePC_filename,"%s/%s/anyvar_%d_%d_%d.%s", $s1,EXP,$2,anyvalCells.x(s), runs,ext) 
+		vfilePC.wopen(vfilePC_filename)
+		if ($4) {
+			for j=0,r_anyval[s].size()-1 {
+				vfilePC.vwrite(&r_anyval[s].x[j])
+			}
+		} else {
+			r_anyval[s].printf(vfilePC,"%10.10f\n")
+		}
+		vfilePC.close()
+	}
+
+	{ PC.barrier() }
 } //End save membrane voltage proc
 
 proc par_save_vclamp_current() {local i,s localobj vfilePC
