@@ -406,7 +406,7 @@ Gvec.x[3] = 1.0
 Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 gidincr = 0
-TOTALRUNS = 10//Wvec.size() * Gvec.size()
+TOTALRUNS = 1//Wvec.size() * Gvec.size()
 for runs = 0, TOTALRUNS-1 {
 	Gidx = runs%Gvec.size()
 	Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
@@ -448,12 +448,12 @@ print "Widx is: ", Widx
 	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
 	pprint(EXEC_CMD)
 	assert(execute1(EXEC_CMD))
-	
+	print "Done loading external stimulation."	
 	//override complex background spiketrains:
-	BG_dendSyn = 60//16
-	BG_apicSyn = 60//16
-	BG_apicprSyn = 60//16
-	BG_PVSyn =30 
+	BG_dendSyn = 1//60//16
+	BG_apicSyn = 0//60//16
+	BG_apicprSyn = 0//60//16
+	BG_PVSyn =1//30 
 	
 	//override complex background spiketrains:
 	//BG_dendSyn = synapses_backb
@@ -465,7 +465,7 @@ print "Widx is: ", Widx
 	//ECA_30()
 	//thinner_basal()
 	//thinner_apical()
-	stimulation(runs,0)   //synaptic location Random seed, axon conductanse delay Random seed
+	//stimulation(runs,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
 	backgroundActivity(runs,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
 	backgroundActivityPV(runs,0) //~11Hz Petersen Carl
@@ -486,7 +486,7 @@ print "Widx is: ", Widx
 	connectCB2PC(runs)
 	connectCR2PC(runs)
 	connectCR2CB(runs)*/
-	noise(runs)
+	//noise(runs)
 	//train()
 	//TTX_proc(GPYID) 
 	//iclamp_proc(0,-0.1)

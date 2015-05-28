@@ -422,6 +422,15 @@ proc clampStim() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, 
 objref bgrecvec
 strdef bgrecvec_filename
 
+objref bns, psn
+psn = new Random(ID*PC.id)
+psn.poisson(0.002)
+bns  = new poissonStim(0.5)
+bns.interval=1//SSS 
+bns.number=tstop//SSS
+bns.start=0
+bns.noise=1
+bns.noiseFromRandom(psn)
 proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,StimFreq,StimNo,SynapsesNo localobj r,rv,rlb,rla
 /*
 //Matlab handles these:
@@ -430,7 +439,6 @@ StimDur = tstop
 StimFreq = 1 // Hz
 StimNo = StimDur/1000 * StimFreq
 */
-
 r = new Random(ID*$1 + 300 + PC.id)
 rv = new Random(ID*$1 +400)
 RV = rv.uniform(1, StimDur)
@@ -474,7 +482,7 @@ for i=0, nPCcells-1 {
 			vstimd[i][j] = new VecStim(0.5)
 			vstimd[i][j].delay = 0
 			vstimd[i][j].play(BG_Stim_basal[$2][i][j])
-			BG_AMPAd[i][j]=new NetCon(vstimd[i][j], ampaBGd[i][j])
+			BG_AMPAd[i][j]=new NetCon(bns, ampaBGd[i][j]) //vstimd[i][j]
 			BG_AMPAd[i][j].delay=0
 			if(SIMPLIFIED){
 				BG_AMPAd[i][j].weight = ampaweight		
@@ -483,7 +491,7 @@ for i=0, nPCcells-1 {
 			}
 			BG_AMPAd[i][j].threshold=-10 
 
-			BG_NMDAd[i][j]=new NetCon(vstimd[i][j], nmdaBGd[i][j])
+			BG_NMDAd[i][j]=new NetCon(bns, nmdaBGd[i][j]) //vstimd[i][j]
 			BG_NMDAd[i][j].delay=0
 			if(SIMPLIFIED){
 				BG_NMDAd[i][j].weight = 0.25		
@@ -510,7 +518,7 @@ for i=0, nPCcells-1 {
 			vstima[i][j] = new VecStim(0.5)
 			vstima[i][j].delay = 0
 			vstima[i][j].play(BG_Stim_Apic[$2][i][j])
-			BG_AMPAa[i][j]=new NetCon(vstima[i][j], ampaBGa[i][j])
+			BG_AMPAa[i][j]=new NetCon(bns, ampaBGa[i][j])//vstima[i][j]
 			BG_AMPAa[i][j].delay=0
 			if(SIMPLIFIED){
 				BG_AMPAa[i][j].weight = ampaweightpr		
@@ -519,7 +527,7 @@ for i=0, nPCcells-1 {
 			}
 			BG_AMPAa[i][j].threshold=-10 
 
-			BG_NMDAa[i][j]=new NetCon(vstima[i][j], nmdaBGa[i][j])
+			BG_NMDAa[i][j]=new NetCon(bns, nmdaBGa[i][j])
 			BG_NMDAa[i][j].delay=0
 			if(SIMPLIFIED){
 				BG_NMDAa[i][j].weight = 0.2		
@@ -545,7 +553,7 @@ for i=0, nPCcells-1 {
 			vstimp[i][j] = new VecStim(0.5)
 			vstimp[i][j].delay = 0
 			vstimp[i][j].play(BG_Stim_Apicpr[$2][i][j])
-			BG_AMPAp[i][j]=new NetCon(vstimp[i][j], ampaBGp[i][j])
+			BG_AMPAp[i][j]=new NetCon(bns, ampaBGp[i][j])//vstimp[i][j]
 			BG_AMPAp[i][j].delay=0
 			if(SIMPLIFIED){
 				BG_AMPAp[i][j].weight = ampaweightpr		
@@ -554,7 +562,7 @@ for i=0, nPCcells-1 {
 			}
 			BG_AMPAp[i][j].threshold=-10 
 
-			BG_NMDAp[i][j]=new NetCon(vstimp[i][j], nmdaBGp[i][j])
+			BG_NMDAp[i][j]=new NetCon(bns, nmdaBGp[i][j])
 			BG_NMDAp[i][j].delay=0
 			if(SIMPLIFIED){
 				BG_NMDAp[i][j].weight =  0.22		
