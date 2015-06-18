@@ -58,7 +58,7 @@ VERBATIM
 			//printf("mod is equal with : %d\n",   (int)(t*10)   );
 			//printf("mod is equal with : %f\n",   (((int)(t*10))/10)   );
 			//printf("mod is equal with float: %d\n",  (int)(t*10)%100  );
-			printf("@t = %10.10f\n",t);
+	//		printf("@t = %10.10f\n",t);
 		}
 	}
 ENDVERBATIM
