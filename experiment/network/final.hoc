@@ -408,7 +408,7 @@ Gvec.x[5] = 1.4
 */
 gidincr = 0
 //tstop = 3000
-TOTALRUNS = 1//Wvec.size() * Gvec.size()
+TOTALRUNS = 100//Wvec.size() * Gvec.size()
 for runs = 0, TOTALRUNS-1 {
 	//Gidx = runs%Gvec.size()
 	//Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))

@@ -2,9 +2,9 @@
 
 parallel="1"
 simplified="1"
-cluster="1"
+cluster="0"
 # 0=Random, 1=Structured
-exp="0"
+exp="1"
 state="7"
 id="12"
 sn="16"
