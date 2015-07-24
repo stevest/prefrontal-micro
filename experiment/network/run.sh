@@ -2,7 +2,7 @@
 
 parallel="1"
 simplified="1"
-cluster="0"
+cluster="1"
 # 0=Random, 1=Structured
 exp="1"
 state="7"

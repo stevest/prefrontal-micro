@@ -257,8 +257,8 @@ proc par_gap_create_now() {localobj c, g
 
 objref sns
 sns  = new NetStim(0.5)
-sns.interval=12.5//SSS 
-sns.number=80//SSS
+sns.interval=12.5//12.5//SSS 
+sns.number=80//80//SSS
 sns.start=0
 sns.noise=0.2
 
@@ -487,7 +487,7 @@ for i=0, nPCcells-1 {
 			BG_AMPAd[i][j]=new NetCon(vstimd[i][j], ampaBGd[i][j]) //vstimd[i][j]
 			BG_AMPAd[i][j].delay=0
 			if(SIMPLIFIED){
-				BG_AMPAd[i][j].weight = ampaweight		
+				BG_AMPAd[i][j].weight = ampaweight*10 //SSS		
 			} else {
 				BG_AMPAd[i][j].weight =   ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]   //1.1
 			}
@@ -496,7 +496,7 @@ for i=0, nPCcells-1 {
 			BG_NMDAd[i][j]=new NetCon(vstimd[i][j], nmdaBGd[i][j]) //vstimd[i][j]
 			BG_NMDAd[i][j].delay=0
 			if(SIMPLIFIED){
-				BG_NMDAd[i][j].weight = 0.25		
+				BG_NMDAd[i][j].weight = 0.25*10 //SSS		
 			} else {
 				BG_NMDAd[i][j].weight =   nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]] 
 			}
@@ -523,7 +523,7 @@ for i=0, nPCcells-1 {
 			BG_AMPAa[i][j]=new NetCon(vstima[i][j], ampaBGa[i][j])//vstima[i][j]
 			BG_AMPAa[i][j].delay=0
 			if(SIMPLIFIED){
-				BG_AMPAa[i][j].weight = ampaweightpr		
+				BG_AMPAa[i][j].weight = ampaweightpr*10 //SSS		
 			} else {
 				BG_AMPAa[i][j].weight =   ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]  
 			}
@@ -532,7 +532,7 @@ for i=0, nPCcells-1 {
 			BG_NMDAa[i][j]=new NetCon(vstima[i][j], nmdaBGa[i][j])
 			BG_NMDAa[i][j].delay=0
 			if(SIMPLIFIED){
-				BG_NMDAa[i][j].weight = 0.2		
+				BG_NMDAa[i][j].weight = 0.2*10 //SSS		
 			} else {
 				BG_NMDAa[i][j].weight =   nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]] *0.5 
 			}
@@ -558,7 +558,7 @@ for i=0, nPCcells-1 {
 			BG_AMPAp[i][j]=new NetCon(vstimp[i][j], ampaBGp[i][j])//vstimp[i][j]
 			BG_AMPAp[i][j].delay=0
 			if(SIMPLIFIED){
-				BG_AMPAp[i][j].weight = ampaweightpr		
+				BG_AMPAp[i][j].weight = ampaweightpr*10 //SSS		
 			} else {
 				BG_AMPAp[i][j].weight =   ampaArr.x[PcellIDlist.x[PCgids.x(localID)]]  
 			}
@@ -567,7 +567,7 @@ for i=0, nPCcells-1 {
 			BG_NMDAp[i][j]=new NetCon(vstimp[i][j], nmdaBGp[i][j])
 			BG_NMDAp[i][j].delay=0
 			if(SIMPLIFIED){
-				BG_NMDAp[i][j].weight =  0.22		
+				BG_NMDAp[i][j].weight =  0.22*10 //SSS		
 			} else {
 				BG_NMDAp[i][j].weight =   nmdaArr_bg.x[PcellIDlist.x[PCgids.x(localID)]] *0.5 
 			}
@@ -632,12 +632,12 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 
 						BGPV_AMPA[trg][syn]=new NetCon(vstim_pv[trg][syn], ampaBGPV[trg][syn]) //vstim_pv[trg][syn]
 						BGPV_AMPA[trg][syn].delay=0
-						BGPV_AMPA[trg][syn].weight =   ampaweightin 
+						BGPV_AMPA[trg][syn].weight =   ampaweightin*10 //SSS 
 						BGPV_AMPA[trg][syn].threshold=-10
 
 						BGPV_NMDA[trg][syn]=new NetCon(vstim_pv[trg][syn], nmdaBGPV[trg][syn])
 						BGPV_NMDA[trg][syn].delay=0
-						BGPV_NMDA[trg][syn].weight =   nmdaweightin 
+						BGPV_NMDA[trg][syn].weight =   nmdaweightin*10 //SSS 
 						BGPV_NMDA[trg][syn].threshold=-10
    
 					}
@@ -768,10 +768,11 @@ objref PIDfile, FIDfile
 objref dummyNetCon[nPCcells]
 objref delayPC2PC[nPCcells][nPCcells]
 objref pidPC2PC[nPCcells][nPCcells]
-objref curnmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
+/*objref curnmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref curampaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref icaPC2PC[nPCcells]
 objref caiPC2PC[nPCcells]
+*/
 
 proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,bool,localID,trgGID,srcGID,localNMDAweight,arg,rn localobj RN,r,fp,rDend,null
 	arg = $3
@@ -1098,11 +1099,11 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 						//Connect gap junctions:
 						
 						if (gapMatrix.x[src][trg]) {
-							if (src < trg) {
+							/*if (src < trg) {
 								par_gap_create_now(trgGID,gapMatrix.x[src][trg]+gidincr,gapMatrix.x[src][trg]+gidincr-1,0.00005)
 							} else {
 								par_gap_create_now(trgGID,gapMatrix.x[trg][src]+gidincr-1,gapMatrix.x[trg][src]+gidincr,0.00005)
-							}
+							}*/
 						}
 						
 					}
@@ -1179,7 +1180,7 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 } //end procedure initPC2PV
 
 // Create vectors to record GABA synaptic current per target:
-objref syncurrGABAa[nPVcells][nPCcells][PV2PC_MaxSyn], syncurrGABAb[nPVcells][nPCcells][PV2PC_MaxSyn]
+//objref syncurrGABAa[nPVcells][nPCcells][PV2PC_MaxSyn], syncurrGABAb[nPVcells][nPCcells][PV2PC_MaxSyn]
 objref delayPV2PC[nPVcells][nPCcells]
 //------------------------------------------------PV-PC connections-----------------------------------------------------//
 proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fp,rDend
@@ -1294,13 +1295,14 @@ print "PV2PC max synapses are: ",PV2PC_MaxSyn
 						}
 						//delstimpvpc=abs(fpvpc.repick())
 						if(delstimpvpc<=dt){delstimpvpc=dt+0.01}
-						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_a)
-						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_b)
+						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_a*4) //SSS
+						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_b*4) //SSS
 						delayPV2PC[src][trg].append(delstimpvpc)
-						syncurrGABAa[src][trg][syn] = new Vector(n,0)				
+						/*syncurrGABAa[src][trg][syn] = new Vector(n,0)				
 						syncurrGABAb[src][trg][syn] = new Vector(n,0)
 						syncurrGABAa[src][trg][syn].record(&gabaOnPC_A[src][trg][syn].i,all_msec)
 						syncurrGABAb[src][trg][syn].record(&gabaOnPC_B[src][trg][syn].i,all_msec)
+						*/
 					}
 				}
 			}

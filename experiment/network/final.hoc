@@ -112,8 +112,8 @@ if(SIMPLIFIED){
 	ampaweightin=	7.5e-4			//according to Wang,Gao,2009
 	nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 	autogabaweight=	0.006205				//According to Bacci (2003) 
-	PC2PV_MaxSyn = 7
-	PV2PC_MaxSyn = 4//SSS 8elw ligotero GABAa!! 
+	PC2PV_MaxSyn = 4 //7is the June working
+	PV2PC_MaxSyn = 1 //SSS ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
 	//------------------Set # of synapses
 	synapses_backb=300//16//18//60//100
 	synapses_backpr=300//16//18//60//100
@@ -140,7 +140,7 @@ if(SIMPLIFIED){
 	//gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 	gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-	gabaweight_pv2pc_b = gabaweightb   *0.1//*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+	gabaweight_pv2pc_b = gabaweightb   *1.0//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 	/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
 	nmdaweights.x[1]=0.35		//1.5
@@ -408,7 +408,7 @@ Gvec.x[5] = 1.4
 */
 gidincr = 0
 //tstop = 3000
-TOTALRUNS = 100//Wvec.size() * Gvec.size()
+TOTALRUNS = 1//Wvec.size() * Gvec.size()
 for runs = 0, TOTALRUNS-1 {
 	//Gidx = runs%Gvec.size()
 	//Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
@@ -452,10 +452,13 @@ print "Runs is: ",runs
 	assert(execute1(EXEC_CMD))
 	print "Done loading external stimulation."	
 	//override complex background spiketrains:
-	BG_dendSyn = 250//170//16
-	BG_apicSyn = 300//250//150//16
-	BG_apicprSyn = 250//170//45//16
-	BG_PVSyn =270 
+	//Different Big networks require different # of BG synapses:
+	//Big 300 requires 27 E, 25 I (for PV2PC 4 synapses/weight)
+	//Big 500 requires  
+	BG_dendSyn = 27//250 default//170//16
+	BG_apicSyn = 27//300default //250//150//16
+	BG_apicprSyn = 27//250default //170//45//16
+	BG_PVSyn = 25//270 default 
 	
 	//override complex background spiketrains:
 	//BG_dendSyn = synapses_backb
@@ -469,6 +472,7 @@ print "Runs is: ",runs
 	//thinner_apical()
 	stimulation(runs,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	//clampStim(runs)
+	//ATTENTION TO WEIGHT OF BG SYNAPSES!! CORRECTED FOR FEWER SYNAPSES!!!!
 	backgroundActivity(runs,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
 	backgroundActivityPV(runs,0) //~11Hz Petersen Carl
 	/*backgroundActivityCB(runs) //~2Hz Petersen Carl

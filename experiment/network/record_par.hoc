@@ -154,7 +154,7 @@ objref cumcurGABAa[nPCcells], cumcurGABAb[nPCcells]
 
 //, basename
 //basename = "soma_run"
-proc par_save_inhibition(){local i,s,q  localobj vfilePC// Record GID
+/*proc par_save_inhibition(){local i,s,q  localobj vfilePC// Record GID
 { PC.barrier() } 
 strdef ext
 if ($4) {
@@ -307,6 +307,7 @@ proc par_save_icacai(){local i,s,q  localobj vfilePC// Record GID
 		vfilePC.close()
 	}
 }
+*/
 proc par_save_synaptic_delays(){local i,s,q  localobj vfilePC// Record GID
 { PC.barrier() } 
 strdef ext

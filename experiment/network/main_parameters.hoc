@@ -45,7 +45,7 @@ StimFactor = 1 // NMDA and AMPA seight bias (instead of increasing synapse numbe
 //-----Objects for record data
 objref cv, vc, ic[10]
 cv=new CVode(0)
-
+cvode_cache_efficient(1)
 if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
 if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
 if(!cv.cache_efficient(1)){print "ERRORRRR!"}
