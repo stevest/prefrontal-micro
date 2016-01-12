@@ -1,6 +1,17 @@
 //--------------Set parameters and run this for the net (generated from MATLAB scripts)
 //--------------Written 1/8/13 Stefanos
-if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+PLOT = 0
+DEBUG = 1
+DUMMY_RUN = 0
+SHUFFLE_SYNAPSES = 0
+save_synaptic_locations = 0
+save_stimulation_locations = 0
+save_synaptic_delays = 0
+strdef pprintStr
+strdef PATH, PPRINT_CMD
+PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+inittime=startsw()
+{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
 //define a basic assert function (dah):
 proc assert(){ 
 //print "Asserting: ", $1
@@ -9,30 +20,91 @@ proc assert(){
 		quit()
 	}
 }
+objref PC
+if (name_declared("PARALLEL")!=5) { // PARALLEL has not been assigned a numerical value from command line
+        PARALLEL = 0 //Default single core
+}
+if(PARALLEL){
+        {PC=new ParallelContext()}
+}
+strdef STDOUT, JOBNAME, PPRINT_CMD
+//process to print only on node zero (if parallel):
+proc pprint(){
+        //if (name_declared("PC")==2){
+        if (PARALLEL){
+                if(PC.id==0){print $s1}
+        } else {
+                print $s1
+	}
+}
+{sprint(STDOUT,"========================================================================================\n")}
+{pprint(STDOUT)}
+{system("echo $(date)", PPRINT_CMD)}
+{sprint(STDOUT, "NEURON MPIRUN STARTING AT: %s",PPRINT_CMD)}
+{pprint(STDOUT)}
+{system("echo $JOB_ID", PPRINT_CMD)}
+{sprint(STDOUT, "WITH JOB ID: %s",PPRINT_CMD)}
+{system("echo $JOB_NAME	", PPRINT_CMD)}
+{sprint(JOBNAME, "%s",PPRINT_CMD)}
+objref strFun
+{strFun = new StringFunctions()}
+{strFun.left(JOBNAME,strFun.len(JOBNAME)-1)}
+{pprint(STDOUT)}
+{sprint(STDOUT,"========================================================================================\n")}
+{pprint(STDOUT)}
+if(PARALLEL){
+        {PC=new ParallelContext()}
+        if(PC.id==0){ printf("Microcircuit running in %d CORES !\n\n", PC.nhost()) }
+}else{
+         printf("Microcircuit running in 'SINGLE CORE' !\n\n")
+}
+
+
+/*if (name_declared("STDOUT")==4){
+	{sprint(pprintStr,"%s",STDOUT)}
+        pprint(pprintStr)
+}
+if (name_declared("JOBNAME")==4){
+        print "Job with name :", JOBNAME
+}
+if (name_declared("RUN")==5){
+        print "Run submited to run is :", RUN
+}*/
+if(PARALLEL){
+
+} else {
+if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+}
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load NEURON environment.")}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
 strdef NMDA_MECH, EXEC_CMD
 EXEC_CMD = ""
 
 if (EXPERIMENT) { //if Structured...
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkParametersSTR.hoc\")}",ID)
+	{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkParametersSTR.hoc\")}",PATH,ID)}
 } else {
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkParametersRND.hoc\")}",ID)
+	sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkParametersRND.hoc\")}",PATH,ID)
 }
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load Network Parameters.")}
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
-assert(execute1(EXEC_CMD))
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
 if (EXPERIMENT) { //if Structured...
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importGapParametersSTR.hoc\")}",ID)
+	{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importGapParametersSTR.hoc\")}",PATH,ID)}
 } else {
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importGapParametersSTR.hoc\")}",ID)
+	sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importGapParametersSTR.hoc\")}",PATH,ID)
 }
-assert(execute1(EXEC_CMD))
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load Gap Parameters.")}
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulationHeader.hoc\")}",ID)}
-assert(execute1(EXEC_CMD))
+{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkStimulationHeader.hoc\")}",PATH,ID)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
 
 /*EXEC_CMD = ""
 sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
@@ -40,15 +112,16 @@ execute(EXEC_CMD)*/
 //if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParamsHeader.hoc\")}",ID)}
-assert(execute1(EXEC_CMD))
+{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importBackgroundStimParamsHeader.hoc\")}",PATH,ID)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
 //if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
 
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"experiment_%d/importStimulationParameters.hoc\")}",ID)}
-assert(execute1(EXEC_CMD))
-
+{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importStimulationParameters.hoc\")}",PATH,ID)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load Stimulation Parameters.")}
 
 
 //xopen("gap.hoc") //for PV gup junctions
@@ -57,9 +130,41 @@ assert(execute1(EXEC_CMD))
 //if(!xopen("importStimulationParameters.hoc")){print "ERROR	Failed to import network parameters!"}
 //xopen("importBasal_fAHP.hoc")
 //xopen("importBasal_sAHP.hoc")
-if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}
+{sprint(EXEC_CMD,"{xopen(\"%smain_parameters.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+//if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load Main Parameters.")}
+//---For many experiments
+strdef syscmd, data_dir, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr ,exp_dir
 
 
+
+
+//strdef vfilePC_filename
+if (1){
+	//assert(sprint(exp_dir,"/mnt/cluster/Documents/Glia/experiment_%d",ID))
+	if(!DUMMY_RUN){assert(sprint(exp_dir,"/home/cluster/stefanos/Documents/Glia/experiment_%d_%s",ID,JOBNAME))}
+} else {
+	if(!DUMMY_RUN){assert(sprint(exp_dir,"experiment_%d",ID))}
+}
+if(!DUMMY_RUN){assert(sprint(syscmd,"mkdir -p %s",exp_dir))}
+{pprint("Creating Job Directory...")}
+{pprint(syscmd)}
+if(!system(syscmd)){
+	{sprint(pprintStr,"Directory %s already exists",exp_dir)}
+	pprint(pprintStr)
+}
+
+if(!DUMMY_RUN){assert(sprint(data_dir,"%s",EXP))}
+if(!DUMMY_RUN){assert(sprint(syscmd,"mkdir -p %s/%s",exp_dir,data_dir))}
+{pprint("Creating Experiment Directory...")}
+{pprint(syscmd)}
+if(!system(syscmd)){
+	{sprint(pprintStr,"Directory %s already exists",data_dir)}
+	pprint(pprintStr)
+ }
+if(PARALLEL){PC.barrier}
 //parse stimulation parameters
 objref PcellStimList
 PcellStimList = new Vector(nPCcells,0)
@@ -75,31 +180,64 @@ if(EXPERIMENT){ //if Structured...
 
 	}
 }
-
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Parse Stimulation Parameters.")}
 
 //procedure to choose which Pyramidal morphologies we want in network
-if(!xopen("chooseMorphologies.hoc")){print "ERROR	Failed to load choose morphologies!"}
+{sprint(EXEC_CMD,"{xopen(\"%schooseMorphologies.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+//if(!xopen("chooseMorphologies.hoc")){print "ERROR	Failed to load choose morphologies!"}
 //argument: percentage of IB cells morphologies in network, random seed:
 chooseMorphologies(60,0)
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Choose morphologies.")}
 
-if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
-if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
+if(PARALLEL){
+} else {
+	if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
+}
+{sprint(EXEC_CMD,"{xopen(\"%s../define_objects.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+//if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Define Objects.")}
 
 if(SIMPLIFIED){
-	if(!xopen("pfc_pc_temp.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
+	{sprint(EXEC_CMD,"{xopen(\"%spfc_pc_temp.hoc\")}",PATH)}
+	if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+	//if(!xopen("pfc_pc_temp.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
 }else{
 	if(!xopen("../RS1cell.hoc") ){print "ERROR	Failed to load L5Pyramidal hoc!"}
 }
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load cell templates.")}
 
-assert(xopen("pv.hoc"))
-assert(xopen("cb.hoc")) // Xenia's interneurons: load template for CB/LTS interneuron
-assert(xopen("cr.hoc")) // Xenia's interneurons
+{sprint(EXEC_CMD,"{xopen(\"%spv.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+{sprint(EXEC_CMD,"{xopen(\"%scb.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+{sprint(EXEC_CMD,"{xopen(\"%scr.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+//assert(xopen("pv.hoc"))
+//assert(xopen("cb.hoc")) // Xenia's interneurons: load template for CB/LTS interneuron
+//assert(xopen("cr.hoc")) // Xenia's interneurons
 
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load interneuron templates.")}
 //fADP for morphology #3:
 
-if(!xopen("NMDA_Array_1_5.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
-if(!xopen("AMPA_Array_1_1.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
-if(!xopen("NMDA_Array_BG_1_1.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
+{sprint(EXEC_CMD,"{xopen(\"%sNMDA_Array_1_5.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+{sprint(EXEC_CMD,"{xopen(\"%sAMPA_Array_1_1.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+{sprint(EXEC_CMD,"{xopen(\"%sNMDA_Array_BG_1_1.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+//if(!xopen("NMDA_Array_1_5.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
+//if(!xopen("AMPA_Array_1_1.hoc")	){print "ERROR	Failed to import AMPA synaptic weights!"}
+//if(!xopen("NMDA_Array_BG_1_1.hoc")){print "ERROR	Failed to import NMDA synaptic weights!"}
+
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load NMDA/AMPA arrays.")}
 
 if(SIMPLIFIED){
 	//overwrite with NASSI's values:
@@ -113,7 +251,7 @@ if(SIMPLIFIED){
 	nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 	autogabaweight=	0.006205				//According to Bacci (2003) 
 	PC2PV_MaxSyn = 4 //7is the June working
-	PV2PC_MaxSyn = 1 //SSS ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
+	PV2PC_MaxSyn = 3 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal week, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
 	//------------------Set # of synapses
 	synapses_backb=300//16//18//60//100
 	synapses_backpr=300//16//18//60//100
@@ -128,7 +266,7 @@ if(SIMPLIFIED){
 	BG_PVSyn = synapses_backinh
 
 
-	Stim_MaxSyn_apic = 90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
+	Stim_MaxSyn_apic = 150//90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 	Stim_MaxSyn_basal=0//120	//initial stimulation
 
 	/*
@@ -140,7 +278,7 @@ if(SIMPLIFIED){
 	//gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 	gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-	gabaweight_pv2pc_b = gabaweightb   *1.0//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+	gabaweight_pv2pc_b = gabaweightb   *0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 	/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
 	nmdaweights.x[1]=0.35		//1.5
@@ -167,15 +305,26 @@ if(SIMPLIFIED){
 	//gbar_kca = gbar_kca/100
 }
 
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Define network parameters.")}
 fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
-if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
+{sprint(EXEC_CMD,"{xopen(\"%snetwork.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+//if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
 
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load network parameters.")}
 
 sadp_soma()
 sadp_dend()
 sadp_apical()  //mplokara kai stous apical
-assert(xopen ("record_par.hoc"))
+{sprint(EXEC_CMD,"{xopen(\"%srecord_par.hoc\")}",PATH)}
+if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+//assert(xopen ("record_par.hoc"))
 
+if(PARALLEL){PC.barrier}
+if(DEBUG){pprint("Load record routines.")}
+strdef s
 proc report_gidvecs() { local i, rank
 	// reports distribution of cells across hosts
 	PC.barrier()  // wait for all hosts to get to this point
@@ -183,6 +332,8 @@ proc report_gidvecs() { local i, rank
 	for rank=0, PC.nhost-1 {  // host 0 first, then 1, 2, etc.
 		if (rank==PC.id) {
 			//printf("@host %d: %dPC, %dPV, %dCB, %dCR\n",PC.id,PCcells.count(), PVcells.count(), CBcells.count(), CRcells.count() )
+			system("hostname",s)
+			print "On host: ",s
 			PCgids.printf()      
 			//PVgids.printf()            
 			//CBgids.printf()    
@@ -271,10 +422,6 @@ if(!PARALLEL){
 //forsec Pcells[0].apical {shape.color(6)}
 
 //---------------------------------------------Multiple Experiments/Runs---------------------------------------------//
-//---For many experiments
-strdef syscmd, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr ,exp_dir
-
-
 strdef temp
 //objref vsoma1, vsoma2, vsoma3, vsoma4, insoma, insomab, curampa, curnmda, curgabaa, curgabab, DendDist, Params
 //objref campa[PC2PC_MaxSyn], ct[8][Stim_MaxSyn], cnmda[PC2PC_MaxSyn], cnmdat[Stim_MaxSyn], cgabaa[PV2PC_MaxSyn], campaa[PC_MaxAutosyn], cnmdaa[PC_MaxAutosyn], campain[Stim_MaxSyn], cnmdain[Stim_MaxSyn], cgabaat[PV2PC_MaxSyn], cgabab[PV2PC_MaxSyn], cgababt[PV2PC_MaxSyn], ampac, nmdac, gabaac, gababc	
@@ -297,26 +444,6 @@ proc train() {
 		ic2[i].amp=3//(nA)
 		initDelay = initDelay + 50
 }}
-
-
-//strdef vfilePC_filename
-if (1){
-	assert(sprint(exp_dir,"/mnt/cluster/Documents/Glia/experiment_%d",ID))
-} else {
-	assert(sprint(exp_dir,"experiment_%d",ID))
-}
-assert(sprint(syscmd,"mkdir -p %s",exp_dir))
-
-if(!system(syscmd)){
-	sprint(pprintStr,"Directory %s already exists",exp_dir)
-	pprint(pprintStr)
-}
-assert(sprint(data_dir,"%s",EXP))
-assert(sprint(syscmd,"mkdir -p %s/%s",exp_dir,data_dir))
-if(!system(syscmd)){
-	sprint(pprintStr,"Directory %s already exists",data_dir)
-	pprint(pprintStr)
- }
 
 proc vclamp_proc() {
 	if (PC.gid_exists($1)) { 
@@ -407,20 +534,23 @@ Gvec.x[4] = 1.2
 Gvec.x[5] = 1.4
 */
 gidincr = 0
-//tstop = 3000
+//tstop = 3
 TOTALRUNS = 1//Wvec.size() * Gvec.size()
-for runs = 0, TOTALRUNS-1 {
+runs = RUN //Get current run from submit script!
+//for runs = 0, TOTALRUNS-1 {
 	//Gidx = runs%Gvec.size()
 	//Widx = int(runs * Gvec.size() / (Wvec.size() * Gvec.size()))
-print "Runs is: ",runs
+	{sprint(PPRINT_CMD,"Runs variable is: %d .\n", runs)}
+	{pprint(PPRINT_CMD)}
+//print "Runs is: ",runs
 //print "Gidx is: ", Gidx
 //print "Widx is: ", Widx
 
 	if(PARALLEL){
 		if(DEBUG){report_gidvecs()}
 		if (PC.id == 0) {
-			sprint(syscmd,"mkdir -p multi_core")
-			system(syscmd)
+			{sprint(syscmd,"mkdir -p multi_core")}
+			{system(syscmd)}
 		}
 		{ PC.barrier()	}
 		{ PC.set_maxstep(steps_per_ms) }
@@ -433,8 +563,12 @@ print "Runs is: ",runs
 		//foutput = "single_core"
 		//sprint(syscmd,"mkdir -p %s/",foutput) 	
 		//if(!system(syscmd)) print "Directory ",foutput," already exists"
-		assert(xopen("recordandsave/record.hoc"))
-		assert(xopen("recordandsave/save_data.hoc"))
+		{sprint(EXEC_CMD,"{xopen(\"%srecordandsave/record.hoc\")}",PATH)}
+		if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+		{sprint(EXEC_CMD,"{xopen(\"%srecordandsave/save_data.hoc\")}",PATH)}
+		if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+		//assert(xopen("recordandsave/record.hoc"))
+		//assert(xopen("recordandsave/save_data.hoc"))
 	}
 
 	
@@ -442,23 +576,30 @@ print "Runs is: ",runs
 	//Import respective stimulation/background spikes:
 	EXEC_CMD = ""
 	//sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")}",ID,runs+1)
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")}",ID,1)
-	pprint(EXEC_CMD)
-	assert(execute1(EXEC_CMD))
+	{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkStimulation_run_%04d.hoc\")}",PATH,ID,1)}
+	{pprint(EXEC_CMD)}
+	if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
 	EXEC_CMD = ""
 	//sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
-	sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,runs+1)
-	pprint(EXEC_CMD)
-	assert(execute1(EXEC_CMD))
-	print "Done loading external stimulation."	
+	{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",PATH,ID,runs+1)}
+	{pprint(EXEC_CMD)}
+	if(!DUMMY_RUN){assert(execute1(EXEC_CMD))}
+	{pprint("Done loading external stimulation.")}
 	//override complex background spiketrains:
 	//Different Big networks require different # of BG synapses:
 	//Big 300 requires 27 E, 25 I (for PV2PC 4 synapses/weight)
 	//Big 500 requires  
-	BG_dendSyn = 27//250 default//170//16
-	BG_apicSyn = 27//300default //250//150//16
-	BG_apicprSyn = 27//250default //170//45//16
-	BG_PVSyn = 25//270 default 
+	//Background activity Like in Perin
+	//BG_dendSyn = 27//250 default//170//16
+	//BG_apicSyn = 27//300default //250//150//16
+	//BG_apicprSyn = 27//250default //170//45//16
+	//BG_PVSyn = 25//270 default 
+	//Background activity like Haider
+	//PC ~1Hz, PV ~14Hz
+	BG_dendSyn = 2//2 synapses as of 1/10 
+	BG_apicSyn = 2//2 synapses as of 1/10
+	BG_apicprSyn = 2//2 synapses as of 1/10
+	BG_PVSyn = 2 //2synapses as of
 	
 	//override complex background spiketrains:
 	//BG_dendSyn = synapses_backb
@@ -470,29 +611,86 @@ print "Runs is: ",runs
 	//ECA_30()
 	//thinner_basal()
 	//thinner_apical()
-	stimulation(runs,0)   //synaptic location Random seed, axon conductanse delay Random seed
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{stimulation(%d,%d)}",0,0)}
+		{assert(execute1(EXEC_CMD))}
+		//stimulation(0,0)   //synaptic location Random seed, axon conductanse delay Random seed
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+	}
 	//clampStim(runs)
 	//ATTENTION TO WEIGHT OF BG SYNAPSES!! CORRECTED FOR FEWER SYNAPSES!!!!
-	backgroundActivity(runs,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
-	backgroundActivityPV(runs,0) //~11Hz Petersen Carl
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{backgroundActivity(%d,%d)}",runs,0)}
+		{assert(execute1(EXEC_CMD))}
+		//backgroundActivity(runs,0) //NO PARALLEL SAFE : try producing the sequence in one node then stimulate each cell
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+	}
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{backgroundActivityPV(%d,%d)}",runs,0)}
+		{assert(execute1(EXEC_CMD))}
+		//backgroundActivityPV(runs,0) //~11Hz Petersen Carl
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+	}
 	/*backgroundActivityCB(runs) //~2Hz Petersen Carl
 	backgroundActivityCR(runs) //~2Hz Petersen Carl
 	*/
 	
 	//if runs is a constant Randoms do not change (synapse location etc..)
 	//connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PC(0,0,0.585)// synaptic location Random seed, axon conductanse delay Random seed
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%f)}",0,0,0.585)}
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+		{assert(execute1(EXEC_CMD))}
+		//connectPC2PC(0,0,0.585)// synaptic location Random seed, axon conductanse delay Random seed
+	}
 	//GABAbFactor = 10.7//Gvec.x[Gidx]
 	//network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-	connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
-	connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
-	connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",0,0)}
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+		{assert(execute1(EXEC_CMD))}
+		//connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
+	}
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",0,0)}
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+		{assert(execute1(EXEC_CMD))}
+		//connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
+	}
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",0,0)}
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+		{assert(execute1(EXEC_CMD))}
+		//connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
+	}
+	
 	/*connectPC2CB(runs)
 	connectPC2CR(runs)	
 	connectCB2PC(runs)
 	connectCR2PC(runs)
 	connectCR2CB(runs)*/
-	noise(runs)
+	if(1){
+		EXEC_CMD = ""
+		{sprint(EXEC_CMD,"{noise(%d)}",runs)}
+		{assert(execute1(EXEC_CMD))}
+		//noise(runs)
+		sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
+		{pprint(PPRINT_CMD)}
+	}
 	//train()
 	//TTX_proc(GPYID) 
 	//iclamp_proc(0,-0.1)
@@ -520,27 +718,47 @@ print "Runs is: ",runs
 		//record_source_spikes()
 
 		//if(VCLAMP){par_rec_vclamp_current(GPYID)}
-		print "Commencing Parallel run."
-		stdinit()
+		{pprint("----------------------------------------------------------------------------------------")}
+		{pprint("Commencing Parallel run!")}
+		{pprint("----------------------------------------------------------------------------------------")}
+		stdinit() //not such function after devel version 7.4
+		inittime = startsw() - inittime
 		runtime=startsw()
-		PC.psolve(tstop)
+		if(!DUMMY_RUN){PC.psolve(tstop)}
 		runtime = startsw() - runtime
-
+		{ PC.barrier()	}
 		if (PC.id==0){
-			print "node ", PC.id, "reached tstop"
+			sprint(PPRINT_CMD,"All reached tstop: %d ms.\n",tstop)
+			{pprint(PPRINT_CMD)}
 		}
-		{ PC.barrier()	} 
-		par_save_membrane_voltage(exp_dir,CLUSTER_ID,ID, ISBINARY)
+		{ PC.barrier()	}
+		if(1){
+			par_save_membrane_voltage(exp_dir,CLUSTER_ID,ID, ISBINARY)
+			{pprint("par_save_membrane_voltage() is active.")}
+		}
+		
 		//par_save_anyvar(exp_dir,CLUSTER_ID,ID,0)
-		//par_save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
-		//par_save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
+		if(save_synaptic_locations){
+			par_save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
+			{pprint("par_save_synaptic_locations_PCrec() is active.")}	
+		}
+		
+		if(save_stimulation_locations){
+			par_save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
+			{pprint("par_save_stimulation_locations_PCrec() is active.")}
+		}
+		
 		//if(DEBUG){print "Synaptic locations saved!"}
 		//par_save_inmda(exp_dir,CLUSTER_ID,ID,0)
 		//par_save_sumall_inmda(exp_dir,CLUSTER_ID,ID,0)
 		//par_save_icacai(exp_dir,CLUSTER_ID,ID,0)
 		//par_save_inhibition(exp_dir, CLUSTER_ID,ID,0)
 		//spikeout(exp_dir,CLUSTER_ID,ID,ISBINARY)//Save PV spike events
-		//par_save_synaptic_delays(exp_dir,CLUSTER_ID,ID,ISBINARY)
+		if(save_synaptic_delays){
+			par_save_synaptic_delays(exp_dir,CLUSTER_ID,ID,ISBINARY)
+			{pprint("par_save_synaptic_delays() is active.")}
+		}
+		
 
 		//par_save_cai(0,CLUSTER_ID,ID)
 		//save_source_spikes(exp_dir,CLUSTER_ID,ID)
@@ -578,7 +796,7 @@ print "Runs is: ",runs
 		//if(DEBUG){printf("DEBUG: DONE Saving Distances...\n")}
 		save_membrane_voltage(exp_dir,CLUSTER_ID,ID)
 		//save_synaptic_locations_PCrec(exp_dir,CLUSTER_ID,ID)
-		save_synaptic_delays(exp_dir,CLUSTER_ID,ID,0)
+		//save_synaptic_delays(exp_dir,CLUSTER_ID,ID,0)
 		//save_stimulation_locations_PCrec(exp_dir,CLUSTER_ID,ID,0)
 		//if(DEBUG){printf("DEBUG: DONE Saving Voltages...\n")}
 		//save_PID()
@@ -591,9 +809,14 @@ print "Runs is: ",runs
 		print tempString
 		PCcells.o(qz).dend[0] { sectionMembraneMechSnapshot(tempString) }
 	}*/
-	printf("Runtime: %10.4g\n", runtime)
+	{sprint(PPRINT_CMD,"Initialization time: %10.4g minutes.\n", inittime/60)}
+	{pprint(PPRINT_CMD)}
+	{sprint(PPRINT_CMD,"Runtime: %10.4g minutes.\n", runtime/60)}
+	{pprint(PPRINT_CMD)}
+	//printf("Initialization time: %10.4g minutes.\n", inittime/60)
+	//printf("Runtime: %10.4g minutes.\n", runtime/60)
 	gidincr += 1000
-}
+//}
 
 if(PARALLEL){
 	//printallkbars()
@@ -603,5 +826,4 @@ if(PARALLEL){
 	print "Success"
 	quit()
 }
-
 

@@ -168,5 +168,7 @@ for i=0,PVcells.count()-1 {
 }
 
 
-assert(xopen("../../lib/current-balancePV.hoc"))
+{sprint(EXEC_CMD,"{xopen(\"%s../../lib/current-balancePV.hoc\")}",PATH)}
+assert(execute1(EXEC_CMD))
+//assert(xopen("../../lib/current-balancePV.hoc"))
 current_balancePV(-73)

@@ -18,8 +18,8 @@ proc current_balance() {
 		}
 	/*finitialize(v_init)*/
 	fcurrent()
-	      	if (cvode.active()) {
-	        	cvode.re_init()
+	      	if (cv.active()) {
+	        	cv.re_init()
 	        }       else {
 	        	fcurrent()
 	        }

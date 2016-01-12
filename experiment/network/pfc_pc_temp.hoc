@@ -1,6 +1,7 @@
 /* 4-compartment model of a deep layer PFC pyramidal cell */
 /* from Durstewitz et al. (2000), J.Neurophysiol. 83: 1733-50 */
-
+//strdef PATH,EXEC_CMD
+//PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
 begintemplate PCcell
 
 objref all, somatic, axonal, basal, apical
@@ -353,7 +354,9 @@ for i=0, PCcells.count()-1 {
 //if(SIMPLIFIED){
 	//xopen("../simplified/current-balance.hoc")
 //} else {
-	assert(xopen ("../../lib/current-balance.hoc"))
+{sprint(EXEC_CMD,"{xopen(\"%s../../lib/current-balance.hoc\")}",PATH)}
+assert(execute1(EXEC_CMD))
+//	assert(xopen ("../../lib/current-balance.hoc"))
 //}
 {current_balance(v_init)}
 

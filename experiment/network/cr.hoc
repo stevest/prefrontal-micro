@@ -194,5 +194,7 @@ for i=0,(CRcells.count()-1) {
 	CRcells.o(i).dend CRcell_list.append()
 }
 
-assert(xopen("../../lib/current-balanceCR.hoc"))
+{sprint(EXEC_CMD,"{xopen(\"%s../../lib/current-balanceCR.hoc\")}",PATH)}
+assert(execute1(EXEC_CMD))
+//assert(xopen("../../lib/current-balanceCR.hoc"))
 current_balanceCR(-70)

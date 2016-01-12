@@ -3,7 +3,7 @@ objref tvec[nPVcells], idvec[nPVcells]
 // see also http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/parcon.html#spike_record
 
 // store voltage currents to files
-strdef vfilePC_filename, ifilePC_filename
+strdef vfilePC_filename, ifilePC_filename, EXEC_CMD
 proc spikerecord() {local i localobj nc,null, vfilePC
   // the next line causes problems if there are more NetCons than cells //
 for k = 0, PCcells.count()-1 {
@@ -77,7 +77,8 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 		for q=0,n-1 {r_msec[s].x[q]=q*dt }
 		PC.gid2cell($1).soma {cv.record(&v(0.5),r_volts[s],r_msec[s],0)}
 		recordedCells.append($1)
-		
+		print "Recording cell: ", $1
+	/*	
 		if ($1 <= offsets.x[1]-1) {
 			cum = (1/PC.gid2cell($1).dend[0].nseg)/2
 			for k=0, PC.gid2cell($1).dend[0].nseg-1 {
@@ -89,6 +90,7 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 				cum = cum + (1/PC.gid2cell($1).dend[0].nseg)
 			}
 		}
+*/
 	}
 }
 proc par_rec_anyvar(){local i,s,q  // use gid as parameter
@@ -154,7 +156,8 @@ objref cumcurGABAa[nPCcells], cumcurGABAb[nPCcells]
 
 //, basename
 //basename = "soma_run"
-/*proc par_save_inhibition(){local i,s,q  localobj vfilePC// Record GID
+/*
+proc par_save_inhibition(){local i,s,q  localobj vfilePC// Record GID
 { PC.barrier() } 
 strdef ext
 if ($4) {
@@ -170,12 +173,14 @@ if ($4) {
 			if (connMatrix.x[ind2gid(src,1)][PCgids.x[trg]]) {
 				for syn=0, PV2PC_MaxSyn-1 {// for all target neurons on this node
 					for k = 0, n-1{
+// !! make SURE that n and tstop (in final) are the same !!
 						cumcurGABAa[PCgids.x[trg]].x[k] = cumcurGABAa[PCgids.x[trg]].x[k] + syncurrGABAa[src][PCgids.x[trg]][syn].x[k]
 						cumcurGABAb[PCgids.x[trg]].x[k] = cumcurGABAb[PCgids.x[trg]].x[k] + syncurrGABAb[src][PCgids.x[trg]][syn].x[k]
 					}
 				}
 			}
 		}
+
 		vfilePC = new File()	
 		sprint(vfilePC_filename,"%s/%s/GABAa_trg_%d_runs_%d.%s", $s1,EXP,PCgids.x[trg],runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
@@ -202,7 +207,8 @@ if ($4) {
 		vfilePC.close()
 	}
 }
-
+*/
+/*
 proc par_save_inmda(){local i,s,q  localobj vfilePC// Record GID
 	{ PC.barrier() } 
 	strdef ext
@@ -234,6 +240,8 @@ proc par_save_inmda(){local i,s,q  localobj vfilePC// Record GID
 		}
 	}
 }
+*/
+/*
 objref cumcurNMDA[nPCcells]
 proc par_save_sumall_inmda(){local i,s,q  localobj vfilePC// Record GID
 	{ PC.barrier() } 
@@ -249,9 +257,12 @@ proc par_save_sumall_inmda(){local i,s,q  localobj vfilePC// Record GID
 		cumcurNMDA[PCgids.x[trg]] = new Vector(n,0)
 		for src=0, nPCcells-1 {
 			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
-				for syn=0, PC2PC_MaxSyn-1 {// for all target neurons on this node
-					for k = 0, n-1{
-						cumcurNMDA[PCgids.x[trg]].x[k] = cumcurNMDA[PCgids.x[trg]].x[k] + curnmdaPC2PC[src][PCgids.x[trg]][syn].x[k]
+				if ( ind2gid(src,0) != PCgids.x[trg] ) {
+					for syn=0, PC2PC_MaxSyn-1 {// for all target neurons on this node
+						//print curnmdaPC2PC[src][PCgids.x[trg]][syn].size()
+						for k = 0, n-1{
+							cumcurNMDA[PCgids.x[trg]].x[k] = cumcurNMDA[PCgids.x[trg]].x[k] + curnmdaPC2PC[src][PCgids.x[trg]][syn].x[k]
+						}
 					}
 				}
 			}
@@ -261,7 +272,7 @@ proc par_save_sumall_inmda(){local i,s,q  localobj vfilePC// Record GID
 		vfilePC.wopen(vfilePC_filename)
 		
 		if ($4) {
-			for j=0, curnmdaPC2PC[src][trg][syn].size()-1 {
+			for j=0, curnmdaPC2PC[src][PCgids.x[trg]][syn].size()-1 {
 				vfilePC.vwrite(&cumcurNMDA[PCgids.x[trg]])
 			}
 		} else {
@@ -270,6 +281,8 @@ proc par_save_sumall_inmda(){local i,s,q  localobj vfilePC// Record GID
 		vfilePC.close()
 	}
 }
+*/
+/*
 proc par_save_icacai(){local i,s,q  localobj vfilePC// Record GID
 	{ PC.barrier() } 
 	strdef ext
@@ -308,6 +321,7 @@ proc par_save_icacai(){local i,s,q  localobj vfilePC// Record GID
 	}
 }
 */
+
 proc par_save_synaptic_delays(){local i,s,q  localobj vfilePC// Record GID
 { PC.barrier() } 
 strdef ext
@@ -317,33 +331,39 @@ if ($4) {
 	ext = "txt"
 }
 //save PV2PC delays
-	/*for trg=0, PCcells.count()-1 {
+	for trg=0, PCcells.count()-1 {
 		vfilePC = new File()	
 		sprint(vfilePC_filename,"%s/%s/delayPV2PC_trg_%d_runs_%d.txt", $s1,EXP,PCgids.x[trg],runs) 
 		vfilePC.wopen(vfilePC_filename)
 		for src=0, nPVcells-1 {
 			if (connMatrix.x[ind2gid(src,1)][PCgids.x[trg]]) {
 				vfilePC.printf("%d %d",src,PCgids.x[trg])
-				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+				{sprint(EXEC_CMD,"{delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,\"%8.4f\")}")}
+				{assert(execute1(EXEC_CMD))}
+				
 			}
 		}
 		
 		vfilePC.close()
-	}*/
+	}
 //save PC2PC delays
+
 	for trg=0, PCcells.count()-1 {
 		vfilePC = new File()	
 		sprint(vfilePC_filename,"%s/%s/delayPC2PC_trg_%d_runs_%d.txt", $s1,EXP,PCgids.x[trg],runs) 
 		vfilePC.wopen(vfilePC_filename)
 		for src=0, nPCcells-1 {
 			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) { vfilePC.printf("%d %d",src,PCgids.x[trg])
-				delayPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+				{sprint(EXEC_CMD,"{delayPC2PC[src][PCgids.x[trg]].printf(vfilePC,\"%8.4f\")}")}
+				{assert(execute1(EXEC_CMD))}
 			}
 		}
 		
 		vfilePC.close()
 	}
+
 }
+
 
 proc par_save_synaptic_locations_PCrec(){ local fh localobj vfilePC 
 
@@ -358,38 +378,52 @@ proc par_save_synaptic_locations_PCrec(){ local fh localobj vfilePC
 	for trg=0, PCcells.count()-1 {
 		for src=0, nPCcells-1 {
 			if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
-				vfilePC = new File()
-				sprint(vfilePC_filename,"%s/%s/PID_PC2PC_src_%d_trg_%d_runs_%d.%s", $s1,EXP,src,PCgids.x[trg],runs,ext) 
-				vfilePC.wopen(vfilePC_filename)
-				fh = vfilePC.isopen()
-				while (!fh) {
+				if ( ind2gid(src,0) != PCgids.x[trg] ){ 
+					vfilePC = new File()
+					sprint(vfilePC_filename,"%s/%s/PID_PC2PC_src_%d_trg_%d_runs_%d.%s", $s1,EXP,src,PCgids.x[trg],runs,ext) 
 					vfilePC.wopen(vfilePC_filename)
 					fh = vfilePC.isopen()
-				}
-				if(DEBUG){print "New file .isopen() =  ",fh}
-				for src=0, nPCcells-1 {
-					if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
-				//		if(PCgids.x[trg]){
-						//print "Should save synapse location!"
-						//for syn = 0, (PC2PC_MaxSyn-1) { 
-						//print "PDgids trg contains ", PCgids.x[trg]
-						//print "SRC contains ", src
-						//print "PID length ", pidPC2PC[src][PCgids.x[trg]].size()
-							vfilePC.printf("%d %d",src,PCgids.x[trg])
-							pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
-							//vfilePC.printf("%d",123)
-						//}
-						//}
+					while (!fh) {
+						vfilePC.wopen(vfilePC_filename)
+						fh = vfilePC.isopen()
 					}
+					//if(DEBUG){print "New file .isopen() =  ",fh}
+					//for src=0, nPCcells-1 {
+						//if (connMatrix.x[ind2gid(src,0)][PCgids.x[trg]]) {
+					//		if(PCgids.x[trg]){
+							//print "Should save synapse location!"
+							//for syn = 0, (PC2PC_MaxSyn-1) { 
+							//print "PDgids trg contains ", PCgids.x[trg]
+							//print "SRC contains ", src
+							//print "PID length ", pidPC2PC[src][PCgids.x[trg]].size()
+								//print "FILE CONTENTS ARE: ", vfilePC
+								//print "PCgids CONTENTS ARE: ", PCgids.x[trg]
+								//print "pidPC2PC is of type: ", pidPC2PC
+								//print "SRC IS: ",src, " TRG is: ",PCgids.x[trg]
+								//print "pidPC2PC contents are: ",pidPC2PC[src][PCgids.x[trg]]
+								vfilePC.printf("%d %d",src,PCgids.x[trg])
+								//NEURONS parser will complain if array does not exist during parsing:
+								//so only way to bypass this is to execute the command at runtime, since no
+								//conditional execution framework exist (#define anyone?)..
+								//Thank you for that feature!
+								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,\"%8.4f\")}")}
+								{assert(execute1(EXEC_CMD))}
+								
+								//vfilePC.printf("%d",123)
+							//}
+							//}
+						//}
+					//}
+					
+					vfilePC.close()
 				}
-				
-				vfilePC.close()
 			}
 		}
 	}
 
 
 }
+
 proc par_save_stimulation_locations_PCrec(){ local fh localobj vfilePC 
 
 	{ PC.barrier() } 
@@ -411,7 +445,7 @@ print "is stim ", PcellStimList.x(PCgids.x[trg])
 				vfilePC.wopen(vfilePC_filename)
 				fh = vfilePC.isopen()
 			}
-			if(DEBUG){print "New file .isopen() =  ",fh}
+			//if(DEBUG){print "New file .isopen() =  ",fh}
 			//		if(PCgids.x[trg]){
 					//print "Should save synapse location!"
 					//for syn = 0, (PC2PC_MaxSyn-1) { 
@@ -419,7 +453,8 @@ print "is stim ", PcellStimList.x(PCgids.x[trg])
 					//print "SRC contains ", src
 					//print "PID length ", pidPC2PC[src][PCgids.x[trg]].size()
 						//vfilePC.printf("%d %d",src,PCgids.x[trg])
-						stimpidPC2PC[PCgids.x[trg]].printf(vfilePC,"%8.4f\n")
+						{sprint(EXEC_CMD,"{stimpidPC2PC[PCgids.x[trg]].printf(vfilePC,\"%8.4f\n\")}")}
+						{assert(execute1(EXEC_CMD))}
 						//vfilePC.printf("%d",123)
 					//}
 					//}
@@ -432,7 +467,7 @@ print "is stim ", PcellStimList.x(PCgids.x[trg])
 }
 
 
-proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
+proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 	{ PC.barrier() } 
 	strdef ext
 	if ($4) {
@@ -441,9 +476,18 @@ proc par_save_membrane_voltage() {local i,s,j localobj vfilePC
 		ext = "txt"
 	}
 	for s=0,recordedCells.size()-1{
+		//print "Saving Cell: ",recordedCells.x(s)
 		vfilePC = new File()	
 		sprint(vfilePC_filename,"%s/%s/%d_%d_%d.%s", $s1,EXP,$2,recordedCells.x(s), runs,ext) 
 		vfilePC.wopen(vfilePC_filename)
+		fh = vfilePC.isopen()
+		fctr = 0
+		while (!fh) {
+			vfilePC.wopen(vfilePC_filename)
+			fh = vfilePC.isopen()
+			fctr = fctr + 1
+		}
+		print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"
 		if ($4) {
 			for j=0, r_volts[s].size()-1 {
 				vfilePC.vwrite(&r_volts[s].x[j])
