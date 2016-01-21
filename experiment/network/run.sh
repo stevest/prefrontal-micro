@@ -15,18 +15,25 @@ echo `pwd`
 
 parallel="1"
 nodes="24"
-jobname="STR_N100_S6_STC0"
+##jobname="STR_N100_S6_STC0"
 jobstdout=""
 simplified="1"
-cluster="0"
+cluster="1"
 # 0=Random, 1=Structured
-exp="1"
+exp="0"
 state="7"
 id="12"
 sn="16"
 vclamp="0.0"
 binary="1"
 clustbias="0.0"
+startRun="0"
+endRun="99"
+if [ "$exp" == "1" ]; then
+	jobname="STR_N100_S20_STC${cluster}"
+else
+	jobname="RND_N100_S20_STC${cluster}"
+fi
 
 if [ "$simplified" == "1" ]; then
 	mechanisms="mechanism_simple"
@@ -70,12 +77,15 @@ jobstdout="$jobstdout\\\n=======================================================
 echo $jobstdout
 #POSIXLY_CORRECT=0
 
-for run in $(seq 50 50);
+for run in $(seq $startRun $endRun);
 do
 	echo $run;
 	uniquejobname="${jobname}_${run}"
 	outputFile=$uniquejobname.out
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/$outputFile -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	## Submit as Job in Sun Grid Engine:
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/SGEoutput/$outputFile -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	## Run locally:
+	##/opt/openmpi/bin/mpirun -v -n 6 /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	#qsub -b y -S /bin/bash -V -N postjob -pe orte 1 -hold_jid $uniquejobname postjob.sh $outputFile $uniquejobname
 done
 #function run_neuron()

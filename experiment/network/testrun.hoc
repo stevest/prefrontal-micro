@@ -1,0 +1,16 @@
+print "Creating Parallel Context..."
+system("echo $JOB_ID")
+//objref pc
+//pc = new ParallelContext()
+
+/*if (name_declared("STDOUT")!=4){
+} else {
+        print "stdout has the value of: ", STDOUT
+}
+*/
+
+//print hello from each host:
+/*print "Number of hosts is: ", pc.nhost
+for i=0, pc.nhost-1{
+	if (pc.id == i) {print "Hello from host ",i}
+}*/

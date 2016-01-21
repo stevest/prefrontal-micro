@@ -1,0 +1,982 @@
+numprocs=14
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+Job with name :testNewScript
+Run submited to run is :45 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Microcircuit running in 14 CORES !
+
+
+========================================================================================
+NEURON MPIRUN starting at Fri Nov  6 11:42:49 EET 2015
+========================================================================================
+JOB NAME IS: testNewScript
+========================================================================================
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNewScript already exists
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+9 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+9  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+9  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        9 xopen("/home/clus...")
+      9 execute1("{xopen("/h...")
+Assertion error. Exiting...
+13 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+13  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+13  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        13 xopen("/home/clus...")
+      13 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+10 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+10  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+10  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        10 xopen("/home/clus...")
+      10 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+11 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+11  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+11  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        11 xopen("/home/clus...")
+      11 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+0 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+0  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+0  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        0 xopen("/home/clus...")
+      2 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+2  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+2  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+0 execute1("{xopen("/h...")
+                                   ^
+        2 xopen("/home/clus...")
+      2 execute1("{xopen("/h...")
+Assertion error. Exiting...
+Assertion error. Exiting...
+1 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+1  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+1  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        1 xopen("/home/clus...")
+      1 execute1("{xopen("/h...")
+Assertion error. Exiting...
+5 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+5  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+5  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        5 xopen("/home/clus...")
+      5 execute1("{xopen("/h...")
+Assertion error. Exiting...
+12 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+12  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+12  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        12 xopen("/home/clus...")
+      12 execute1("{xopen("/h...")
+Assertion error. Exiting...
+3 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+3  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+3  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        3 xopen("/home/clus...")
+      3 execute1("{xopen("/h...")
+4 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+4  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+4  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        4 xopen("/home/clus...")
+      4 execute1("{xopen("/h...")
+Assertion error. Exiting...
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+8 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+8  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+8  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        8 xopen("/home/clus...")
+      8 execute1("{xopen("/h...")
+Assertion error. Exiting...
+7 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+7  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+7  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        7 xopen("/home/clus...")
+      7 execute1("{xopen("/h...")
+Assertion error. Exiting...
+6 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: delayPV2PC not an array variable
+6  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 339
+6  				delayPV2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")
+                                   ^
+        6 xopen("/home/clus...")
+      6 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+numprocs=14
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+Job with name :testNewScript
+Run submited to run is :45 
+	1 
+	1 
+	1 
+Microcircuit running in 14 CORES !
+
+
+========================================================================================
+NEURON MPIRUN starting at Fri Nov  6 11:57:17 EET 2015
+========================================================================================
+JOB NAME IS: testNewScript
+========================================================================================
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Load NEURON environment.
+Job with name :testNewScript
+Run submited to run is :45 
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNewScript already exists
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+1 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+1  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+1  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        1 xopen("/home/clus...")
+      1 execute1("{xopen("/h...")
+6 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+6  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+6  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        6 xopen("/home/clus...")
+      6 execute1("{xopen("/h...")
+Assertion error. Exiting...
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+2 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+2  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+2  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+12 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+12  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+12  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        12 xopen("/home/clus...")
+      12 execute1("{xopen("/h...")
+4 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+4  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+4  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        4 xopen("/home/clus...")
+      4 execute1("{xopen("/h...")
+Assertion error. Exiting...
+Assertion error. Exiting...
+  10 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+10  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+10  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        10 xopen("/home/clus...")
+      10 execute1("{xopen("/h...")
+11 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+11  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+11  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                  Assertion error. Exiting...
+                       ^
+        11 xopen("/home/clus...")
+      11 execute1("{xopen("/h...")
+9 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+9  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+9  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                       Assertion error. Exiting...
+  ^
+        9 xopen("/home/clus...")
+      9 execute1("{xopen("/h...")
+8 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+8  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+8  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                       Assertion error. Exiting...
+                  ^
+        8 xopen("/home/clus...")
+      8 execute1("{xopen("/h...")
+Assertion error. Exiting...
+ 3 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+3  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+3  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                          ^
+        3 xopen("/home/clus...")
+      3 execute1("{xopen("/h...")
+Assertion error. Exiting...
+0 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+0  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+0  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        0 xopen("/home/clus...")
+      0 execute1("{xopen("/h...")
+Assertion error. Exiting...
+7 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+7  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+7  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        7 xopen("/home/clus...")
+      7 execute1("{xopen("/h...")
+Assertion error. Exiting...
+13 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+13  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+13  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         5 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+5  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+5  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+^
+        13 xopen("/home/clus...")
+      13 execute1("{xopen("/h...")
+        5 xopen("/home/clus...")
+      5 execute1("{xopen("/h...")
+Assertion error. Exiting...
+Assertion error. Exiting...
+                                                                     ^
+        2 xopen("/home/clus...")
+      2 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+numprocs=14
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+	1 
+	1 
+	1 
+Job with name :testNewScript
+Run submited to run is :45 
+Microcircuit running in 14 CORES !
+
+
+========================================================================================
+NEURON MPIRUN starting at Fri Nov  6 11:59:58 EET 2015
+========================================================================================
+JOB NAME IS: testNewScript
+========================================================================================
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Load NEURON environment.
+Load Network Parameters.
+Job with name :testNewScript
+Run submited to run is :45 
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNewScript already exists
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+13 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+13  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+13  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        13 xopen("/home/clus...")
+      13 execute1("")
+Assertion error. Exiting...
+6 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+6  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+6  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        6 xopen("/home/clus...")
+      6 execute1("")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+10 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+1 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+1  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+1  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        1 xopen("/home/clus...")
+      1 execute1("")
+3 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+3  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+3  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         Assertion error. Exiting...
+^
+        3 xopen("/home/clus...")
+      3 execute1("")
+Assertion error. Exiting...
+10  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+11 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+11  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+11  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                           0 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+0  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+0  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                                                  ^
+        11 xopen("/home/clus...")
+      11 execute1("")
+     ^
+        0 xopen("/home/clus...")
+      0 execute1("")
+2 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+2  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+2  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                           Assertion error. Exiting...
+Assertion error. Exiting...
+                              ^
+        2 xopen(12 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+12  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+12  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+       "/home/clus...")
+      2 execute1("")
+8 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+8  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+8  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                                 Assertion error. Exiting...
+4 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+4  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+4  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                    ^
+        12 xopen("/home/clus...")
+      12 execute1("")
+5 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+5  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+5  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                                                 ^
+        8 xopen("/home/clus...")
+      8 execute1("")
+     ^
+        4 xopen("/home/clus...")
+      4 execute1("")
+                                  ^
+        5 xopen("/home/clus...")
+      9 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+9  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+9  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                        5 execute1("")
+                 ^
+        9 xopen("/home/clus...")
+      9 execute1("")
+Assertion error. Exiting...
+Assertion error. Exiting...
+Assertion error. Exiting...
+Assertion error. Exiting...
+Assertion error. Exiting...
+10  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+7 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: syntax error
+7  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/record_par.hoc near line 407
+7  								{sprint(EXEC_CMD,"{pidPC2PC[src][PCgids.x[trg]].printf(vfilePC,"%8.4f")}")}
+                                                                         ^
+        7 xopen("/home/clus...")
+      7 execute1("")
+Assertion error. Exiting...
+                                                                         ^
+        10 xopen("/home/clus...")
+      10 execute1("")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+numprocs=14
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+	1 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+	1 
+	1 
+	1 
+Microcircuit running in 14 CORES !
+
+
+========================================================================================
+NEURON MPIRUN starting at Fri Nov  6 12:03:11 EET 2015
+========================================================================================
+JOB NAME IS: testNewScript
+========================================================================================
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Job with name :testNewScript
+Run submited to run is :45 
+Load NEURON environment.
+Load Network Parameters.
+Job with name :testNewScript
+Run submited to run is :45 
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNewScript already exists
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+Load record routines.
+Runs variable is: 45 .
+
+
+gidvecs on 14 host(s)
+On host: compute-0-7.local
+
+0	14	28	42	56	
+70	84	98	112	126	
+140	154	168	182	196	
+210	224	238	252	266	
+280	294	308	322	336	
+350	364	378	392	406	
+420	434	448	462	476	
+490	504	518	532	546	
+560	574	588	602	616	
+630	644	658	672	686	
+
+On host: compute-0-7.local
+
+1	15	29	43	57	
+71	85	99	113	127	
+141	155	169	183	197	
+211	225	239	253	267	
+281	295	309	323	337	
+351	365	379	393	407	
+421	435	449	463	477	
+491	505	519	533	547	
+561	575	589	603	617	
+631	645	659	673	687	
+
+On host: compute-0-7.local
+
+2	16	30	44	58	
+72	86	100	114	128	
+142	156	170	184	198	
+212	226	240	254	268	
+282	296	310	324	338	
+352	366	380	394	408	
+422	436	450	464	478	
+492	506	520	534	548	
+562	576	590	604	618	
+632	646	660	674	688	
+
+On host: compute-0-7.local
+
+3	17	31	45	59	
+73	87	101	115	129	
+143	157	171	185	199	
+213	227	241	255	269	
+283	297	311	325	339	
+353	367	381	395	409	
+423	437	451	465	479	
+493	507	521	535	549	
+563	577	591	605	619	
+633	647	661	675	689	
+
+On host: compute-0-7.local
+
+4	18	32	46	60	
+74	88	102	116	130	
+144	158	172	186	200	
+214	228	242	256	270	
+284	298	312	326	340	
+354	368	382	396	410	
+424	438	452	466	480	
+494	508	522	536	550	
+564	578	592	606	620	
+634	648	662	676	690	
+
+On host: compute-0-7.local
+
+5	19	33	47	61	
+75	89	103	117	131	
+145	159	173	187	201	
+215	229	243	257	271	
+285	299	313	327	341	
+355	369	383	397	411	
+425	439	453	467	481	
+495	509	523	537	551	
+565	579	593	607	621	
+635	649	663	677	691	
+
+On host: compute-0-7.local
+
+6	20	34	48	62	
+76	90	104	118	132	
+146	160	174	188	202	
+216	230	244	258	272	
+286	300	314	328	342	
+356	370	384	398	412	
+426	440	454	468	482	
+496	510	524	538	552	
+566	580	594	608	622	
+636	650	664	678	692	
+
+On host: compute-0-7.local
+
+7	21	35	49	63	
+77	91	105	119	133	
+147	161	175	189	203	
+217	231	245	259	273	
+287	301	315	329	343	
+357	371	385	399	413	
+427	441	455	469	483	
+497	511	525	539	553	
+567	581	595	609	623	
+637	651	665	679	693	
+
+On host: compute-0-7.local
+
+8	22	36	50	64	
+78	92	106	120	134	
+148	162	176	190	204	
+218	232	246	260	274	
+288	302	316	330	344	
+358	372	386	400	414	
+428	442	456	470	484	
+498	512	526	540	554	
+568	582	596	610	624	
+638	652	666	680	694	
+
+On host: compute-0-7.local
+
+9	23	37	51	65	
+79	93	107	121	135	
+149	163	177	191	205	
+219	233	247	261	275	
+289	303	317	331	345	
+359	373	387	401	415	
+429	443	457	471	485	
+499	513	527	541	555	
+569	583	597	611	625	
+639	653	667	681	695	
+
+On host: compute-0-7.local
+
+10	24	38	52	66	
+80	94	108	122	136	
+150	164	178	192	206	
+220	234	248	262	276	
+290	304	318	332	346	
+360	374	388	402	416	
+430	444	458	472	486	
+500	514	528	542	556	
+570	584	598	612	626	
+640	654	668	682	696	
+
+On host: compute-0-7.local
+
+11	25	39	53	67	
+81	95	109	123	137	
+151	165	179	193	207	
+221	235	249	263	277	
+291	305	319	333	347	
+361	375	389	403	417	
+431	445	459	473	487	
+501	515	529	543	557	
+571	585	599	613	627	
+641	655	669	683	697	
+
+On host: compute-0-7.local
+
+12	26	40	54	68	
+82	96	110	124	138	
+152	166	180	194	208	
+222	236	250	264	278	
+292	306	320	334	348	
+362	376	390	404	418	
+432	446	460	474	488	
+502	516	530	544	558	
+572	586	600	614	628	
+642	656	670	684	698	
+
+On host: compute-0-7.local
+
+13	27	41	55	69	
+83	97	111	125	139	
+153	167	181	195	209	
+223	237	251	265	279	
+293	307	321	335	349	
+363	377	391	405	419	
+433	447	461	475	489	
+503	517	531	545	559	
+573	587	601	615	629	
+643	657	671	685	699	
+
+Current run is: 45
+Loading ... 45  in host 0 
+maxstep=10 
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importNetworkStimulation_run_0001.hoc")}
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0046.hoc")}
+Done loading external stimulation.
+Done stimulation.
+Done BG.
+done connect pc 2 pc.
+done connect pv 2 pv.
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+done connect pc 2 pv.
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+PV2PC max synapses are: 3 
+done connect pv 2 pc.
+done noise().
+Commencing Parallel run.
+node 0 reached tstop
+Save membrane voltage.
+Save synaptic locations.
+Save stimulation locations.
+Save synaptic delays.
+Initialization time:      1.864 minutes.
+
+Runtime:    0.01083 minutes.
+
+Success
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory

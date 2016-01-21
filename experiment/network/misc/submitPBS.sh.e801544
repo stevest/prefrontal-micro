@@ -1,0 +1,13 @@
+librdmacm: Warning: couldn't read ABI version.
+librdmacm: Warning: assuming: 4
+librdmacm: Fatal: unable to get RDMA device list
+--------------------------------------------------------------------------
+[[16439,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: bioinf-srv3
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------

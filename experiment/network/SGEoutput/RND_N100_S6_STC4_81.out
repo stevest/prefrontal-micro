@@ -1,0 +1,99 @@
+error: commlib error: access denied (server host resolves rdata host "compute-0-1.local" as "(HOST_NOT_RESOLVABLE)")
+error: executing task of job 2159478 failed: failed sending task to execd@compute-0-14.local: can't find connection
+--------------------------------------------------------------------------
+A daemon (pid 23991) died unexpectedly with status 1 while attempting
+to launch so we are aborting.
+
+There may be more information reported by the environment (see above).
+
+This may be because the daemon was unable to find all the needed shared
+libraries on the remote node. You may set your LD_LIBRARY_PATH to have the
+location of the shared libraries on the remote nodes and this will
+automatically be forwarded to the remote nodes.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that the job aborted, but has no info as to the process
+that caused that situation.
+--------------------------------------------------------------------------
+[compute-0-1.local:23499] [[22955,0],0] ORTE_ERROR_LOG: A message is attempting to be sent to a process whose contact information is unknown in file rml_oob_send.c at line 359
+[compute-0-1.local:23499] [[22955,0],0] attempted to send to [[22955,0],2]: tag 14
+[compute-0-1.local:23499] [[22955,0],0] ORTE_ERROR_LOG: A message is attempting to be sent to a process whose contact information is unknown in file rml_oob_send.c at line 359
+[compute-0-1.local:23499] [[22955,0],0] attempted to send to [[22955,0],1]: tag 14
+numprocs=24
+========================================================================================
+
+NEURON MPIRUN STARTING AT: Mon Nov 23 22:02:07 EET 2015
+
+WITH JOB ID: 2163095
+
+========================================================================================
+
+Microcircuit running in 24 CORES !
+
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Creating Job Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_RND_N100_S6_STC4_81
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_RND_N100_S6_STC4_81 already exists
+Creating Experiment Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_RND_N100_S6_STC4_81/RND_SN16_ST7
+Directory RND_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+Load record routines.
+Runs variable is: 81 .
+
+Current run is: 81
+Loading ... 81  in host 0 
+maxstep=10 
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importNetworkStimulation_run_0001.hoc")}
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0082.hoc")}
+Done loading external stimulation.
+{stimulation(0,0)} executed.
+
+{backgroundActivity(81,0)} executed.
+
+{backgroundActivityPV(81,0)} executed.
+
+{connectPC2PC(0,0,0.585000)} executed.
+
+{connectPV2PV(0,0)} executed.
+
+{connectPC2PV(0,0)} executed.
+
+{connectPV2PC(0,0)} executed.
+
+{noise(81)} executed.
+
+----------------------------------------------------------------------------------------
+Commencing Parallel run!
+----------------------------------------------------------------------------------------
+All reached tstop: 6000 ms.
+
+par_save_membrane_voltage() is active.
+Initialization time:      2.397 minutes.
+
+Runtime:      28.58 minutes.
+
+Success
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory

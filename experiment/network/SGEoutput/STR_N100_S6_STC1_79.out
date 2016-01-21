@@ -1,0 +1,241 @@
+numprocs=24
+========================================================================================
+
+NEURON MPIRUN STARTING AT: Sun Nov 15 18:53:23 EET 2015
+
+WITH JOB ID: 2157750
+
+========================================================================================
+
+Microcircuit running in 24 CORES !
+
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Creating Job Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_STR_N100_S6_STC1_79
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_STR_N100_S6_STC1_79 already exists
+Creating Experiment Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_STR_N100_S6_STC1_79/STR_SN16_ST7
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+Load record routines.
+Runs variable is: 79 .
+
+Current run is: 79
+Loading ... 79  in host 0 
+maxstep=10 
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importNetworkStimulation_run_0001.hoc")}
+4 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+4  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+4  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        4 xopen("/home/clus...")
+      4 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+9 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+9  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+9  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        9 xopen("/home/clus...")
+      9 execute1("{xopen("/h...")
+20 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+20  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+20  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        20 xopen("/home/clus...")
+      20 execute1("{xopen("/h...")
+Assertion error. Exiting...
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+8 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+8  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+8  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        8 xopen("/home/clus...")
+      8 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+21 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+21  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+21  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        21 xopen("/home/clus...")
+      21 execute1("{xopen("/h...")
+Assertion error. Exiting...
+18 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+18  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+18  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        18 xopen("/home/clus...")
+      18 execute1("{xopen("/h...")
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+19 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+19  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+19  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        19 xopen("/home/clus...")
+      19 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+3 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+3  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+3  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        3 xopen("/home/clus...")
+      3 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+1 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+1  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+1  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        1 xopen("/home/clus...")
+      1 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+5 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+5  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+5  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        5 xopen("/home/clus...")
+      5 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+11 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+11  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+11  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        11 xopen("/home/clus...")
+      11 execute1("{xopen("/h...")
+0 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+0  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+0  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                             {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                ^
+        0 xopen("/home/clus...")
+      0 execute1("{xopen("/h...")
+Assertion error. Exiting...
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+10 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+10  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+10  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        10 xopen("/home/clus...")
+      10 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+2 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+2  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+2  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        2 xopen("/home/clus...")
+      2 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+12 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+12  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+12  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        12 xopen("/home/clus...")
+      12 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+15 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+15  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+15  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        15 xopen("/home/clus...")
+      15 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+14 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+14  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+14  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        14 xopen("/home/clus...")
+      14 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+17 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+17  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+17  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        17 xopen("/home/clus...")
+      17 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+16 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+16  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+16  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        16 xopen("/home/clus...")
+      16 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+22 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+22  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+22  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        22 xopen("/home/clus...")
+      22 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+13 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+13  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+13  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        13 xopen("/home/clus...")
+      13 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+7 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+7  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+7  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        7 xopen("/home/clus...")
+      7 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+6 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+6  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+6  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        6 xopen("/home/clus...")
+      6 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+23 /home/cluster/stefanos/Libraries/nrn/x86_64/bin/nrniv: Can't open  /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc
+23  in /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc near line 1
+23  {xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0080.hoc")}
+                                                                                                                                             ^
+        23 xopen("/home/clus...")
+      23 execute1("{xopen("/h...")
+Assertion error. Exiting...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory

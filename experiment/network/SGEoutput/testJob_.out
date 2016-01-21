@@ -1,0 +1,8 @@
+numprocs=1
+Creating Parallel Context...
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+numprocs=1
+Creating Parallel Context...
+2128993
+	0 
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory

@@ -1,0 +1,33 @@
+numprocs=2
+========================================================================================
+
+NEURON MPIRUN STARTING AT: Thu Jan 14 01:01:09 EET 2016
+
+WITH JOB ID: 2423168
+
+========================================================================================
+
+Microcircuit running in 2 CORES !
+
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Creating Job Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_TESTSMALLNET_50
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_TESTSMALLNET_50 already exists
+Creating Experiment Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_TESTSMALLNET_50/STR_SN16_ST7
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...

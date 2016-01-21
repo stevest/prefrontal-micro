@@ -1,0 +1,267 @@
+numprocs=24
+========================================================================================
+
+NEURON MPIRUN STARTING AT: Tue Nov 10 15:41:06 EET 2015
+
+WITH JOB ID: 2129065
+
+========================================================================================
+
+Microcircuit running in 24 CORES !
+
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Creating Job Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation already exists
+Creating Experiment Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation/STR_SN16_ST7
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+Load record routines.
+Runs variable is: 0 .
+
+Current run is: 0
+Loading ... 0  in host 0 
+maxstep=10 
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importNetworkStimulation_run_0001.hoc")}
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0001.hoc")}
+Done loading external stimulation.
+{stimulation(0,0)} executed.
+
+{backgroundActivity(0,0)} executed.
+
+{backgroundActivityPV(0,0)} executed.
+
+{connectPC2PC(0,0,0.585000)} executed.
+
+{connectPV2PV(0,0)} executed.
+
+{connectPC2PV(0,0)} executed.
+
+{connectPV2PC(0,0)} executed.
+
+{noise(0)} executed.
+
+----------------------------------------------------------------------------------------
+Commencing Parallel run!
+----------------------------------------------------------------------------------------
+All reached tstop: 1 ms.
+
+par_save_membrane_voltage() is active.
+Initialization time:      2.406 minutes.
+
+Runtime:   0.006833 minutes.
+
+Success
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+numprocs=24
+========================================================================================
+
+NEURON MPIRUN STARTING AT: Tue Nov 10 16:19:06 EET 2015
+
+WITH JOB ID: 2129066
+
+========================================================================================
+
+Microcircuit running in 24 CORES !
+
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Creating Job Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0 already exists
+Creating Experiment Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0/STR_SN16_ST7
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+Load record routines.
+Runs variable is: 0 .
+
+Current run is: 0
+Loading ... 0  in host 0 
+maxstep=10 
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importNetworkStimulation_run_0001.hoc")}
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0001.hoc")}
+Done loading external stimulation.
+{stimulation(0,0)} executed.
+
+{backgroundActivity(0,0)} executed.
+
+{backgroundActivityPV(0,0)} executed.
+
+{connectPC2PC(0,0,0.585000)} executed.
+
+{connectPV2PV(0,0)} executed.
+
+{connectPC2PV(0,0)} executed.
+
+{connectPV2PC(0,0)} executed.
+
+{noise(0)} executed.
+
+----------------------------------------------------------------------------------------
+Commencing Parallel run!
+----------------------------------------------------------------------------------------
+All reached tstop: 1 ms.
+
+par_save_membrane_voltage() is active.
+Initialization time:      3.239 minutes.
+
+Runtime:   0.008667 minutes.
+
+Success
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory
+numprocs=24
+========================================================================================
+
+NEURON MPIRUN STARTING AT: Tue Nov 10 16:26:06 EET 2015
+
+WITH JOB ID: 2129068
+
+========================================================================================
+
+Microcircuit running in 24 CORES !
+
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Creating Job Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0 already exists
+Creating Experiment Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0/STR_SN16_ST7
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+numprocs=24
+========================================================================================
+
+NEURON MPIRUN STARTING AT: Tue Nov 10 16:26:51 EET 2015
+
+WITH JOB ID: 2129069
+
+========================================================================================
+
+Microcircuit running in 24 CORES !
+
+Load NEURON environment.
+Load Network Parameters.
+Load Gap Parameters.
+Load Stimulation Parameters.
+Experiment ID is: 12
+Experiment Serial Number is: 16
+Microcircuit running with simplified morphologies !
+
+
+VCLAMP value is 0.000000
+GPYID value is 0
+Load Main Parameters.
+Creating Job Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0
+Directory /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0 already exists
+Creating Experiment Directory...
+mkdir -p /home/cluster/stefanos/Documents/Glia/experiment_12_testNotation_0/STR_SN16_ST7
+Directory STR_SN16_ST7 already exists
+Parse Stimulation Parameters.
+Choose morphologies.
+Define Objects.
+initializing PCs...
+Load cell templates.
+initializing 233 PVs...
+initializing CBs...
+initializing CRs...
+Load interneuron templates.
+Load NMDA/AMPA arrays.
+Define network parameters.
+Load network parameters.
+Load record routines.
+Runs variable is: 0 .
+
+Current run is: 0
+Loading ... 0  in host 0 
+maxstep=10 
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importNetworkStimulation_run_0001.hoc")}
+{xopen("/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/experiment_12/importBackgroundStimParams_run_0001.hoc")}
+Done loading external stimulation.
+{stimulation(0,0)} executed.
+
+{backgroundActivity(0,0)} executed.
+
+{backgroundActivityPV(0,0)} executed.
+
+{connectPC2PC(0,0,0.585000)} executed.
+
+{connectPV2PV(0,0)} executed.
+
+{connectPC2PV(0,0)} executed.
+
+{connectPV2PC(0,0)} executed.
+
+{noise(0)} executed.
+
+----------------------------------------------------------------------------------------
+Commencing Parallel run!
+----------------------------------------------------------------------------------------
+All reached tstop: 1 ms.
+
+par_save_membrane_voltage() is active.
+Initialization time:      3.159 minutes.
+
+Runtime:     0.0085 minutes.
+
+Success
+sh: /cluster/stefanos/Libraries/nrn/share/nrn/lib/cleanup: No such file or directory

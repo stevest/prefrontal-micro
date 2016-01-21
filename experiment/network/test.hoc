@@ -1,0 +1,5 @@
+//objref blah[10]
+strdef s
+s = "objref blah[10]"
+execute1(s)
+blah[0] = new Vector(10)
