@@ -1,4 +1,26 @@
 #!/bin/bash
+##Make sure that before each run git repo is clean, so
+##one can track each run to its source code:
+##Documentation in: https://git-scm.com/docs/git-status
+dirtygit="0"
+##Files MODIFIED since index:
+dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | wc -l) ))
+##Files DELETED since index:
+dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ D" | wc -l) ))
+##Files added to the index, but uncommitted
+dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^A" | wc -l) ))
+##Check for new/untracked files (its better safe than sorry):
+dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -l) ))
+
+
+if [[ $dirtygit > 0 ]]; then
+	echo "Can not continue with run when git repo is dirty. Exiting..."
+	exit 1
+else
+	echo "Git repo is clean. Continue run with SHA1: "
+	echo `git rev-parse HEAD`
+fi
+
 source /opt/gridengine/default/common/settings.csh
 ##$ -S /bin/sh
 ##$ -V
@@ -12,6 +34,8 @@ source /opt/gridengine/default/common/settings.csh
 
 cd /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network
 echo `pwd`
+
+
 
 parallel="1"
 nodes="24"
@@ -83,7 +107,7 @@ do
 	uniquejobname="${jobname}_${run}"
 	outputFile=$uniquejobname.out
 	## Submit as Job in Sun Grid Engine:
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/SGEoutput/$outputFile -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	##qsub -b y -S /bin/bash -V -N $uniquejobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/SGEoutput/$outputFile -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	## Run locally:
 	##/opt/openmpi/bin/mpirun -v -n 6 /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	#qsub -b y -S /bin/bash -V -N postjob -pe orte 1 -hold_jid $uniquejobname postjob.sh $outputFile $uniquejobname

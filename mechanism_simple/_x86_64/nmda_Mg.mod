@@ -1,0 +1,1 @@
+../nmda_Mg.mod
