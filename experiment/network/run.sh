@@ -4,7 +4,9 @@
 ##Documentation in: https://git-scm.com/docs/git-status
 dirtygit="0"
 ##Files MODIFIED since index:
-dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | wc -l) ))
+##Exclude run script(s) from check:
+echo "Excluding /run.sh"
+dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | grep -v "/run.sh" | wc -l) ))
 ##Files DELETED since index:
 dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ D" | wc -l) ))
 ##Files added to the index, but uncommitted
