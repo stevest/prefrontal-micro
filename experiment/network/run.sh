@@ -17,7 +17,7 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -
 
 if [[ $dirtygit > 0 ]]; then
 	echo "Can not continue with run when git repo is dirty. Exiting..."
-	exit 1
+	#exit 1
 else
 	echo "Git repo is clean. Continue run with SHA1: "
 	echo `git rev-parse HEAD`
@@ -34,40 +34,31 @@ source /opt/gridengine/default/common/settings.csh
 ##$ -R y
 ##sge_o_workdir="/home/cluster/stefanos/Documents/Github/prefrontal-micro/experiment/network/"
 
-cd /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network
+simhome="/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network"
+storagehome="/home/cluster/stefanos/Documents/Glia"
+cd $simhome
+echo "Currently at directory:"
 echo `pwd`
 
-
-
 parallel="1"
-nodes="24"
+nodes="48"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-simplified="1"
-cluster="1"
+cluster="0"
 # 0=Random, 1=Structured
-exp="0"
-state="7"
-id="12"
-sn="16"
-vclamp="0.0"
-binary="1"
+exp="1"
 clustbias="0.0"
-startRun="0"
-endRun="99"
+startRun="1"
+endRun="9"
+#naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	jobname="STR_N100_S20_STC${cluster}"
+	jobname="Ss6c${cluster}r"
 else
-	jobname="RND_N100_S20_STC${cluster}"
+	jobname="Rs6c${cluster}r"
 fi
 
-if [ "$simplified" == "1" ]; then
-	mechanisms="mechanism_simple"
-else
-	mechanisms="mechanism_complex"
-fi
+mechanisms="mechanism_simple"
 
-echo mechanisms folder is $mechanisms
 
 if [ "$parallel" == "1" ]; then
 
@@ -106,12 +97,21 @@ echo $jobstdout
 for run in $(seq $startRun $endRun);
 do
 	echo $run;
-	uniquejobname="${jobname}_${run}"
+	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
+	outputDir="${storagehome}/${uniquejobname}"
+	echo "Output Job directory is:"
+	echo $outputDir
+	if [ -d $outputDir ]; then
+		echo "Job directory already exists. Stopping before overriding data."
+		#exit 1
+	else
+		mkdir -p $outputDir;
+	fi
 	## Submit as Job in Sun Grid Engine:
-	##qsub -b y -S /bin/bash -V -N $uniquejobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/SGEoutput/$outputFile -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	## Run locally:
-	##/opt/openmpi/bin/mpirun -v -n 6 /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	##/opt/openmpi/bin/mpirun -v -n $nodes /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c 'execute1("strdef JOBNAME, JOBDIR")' -c 'execute1("JOBNAME = \"'$jobname'\"")' -c 'execute1("JOBDIR = \"'$outputDir'\"")' -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	#qsub -b y -S /bin/bash -V -N postjob -pe orte 1 -hold_jid $uniquejobname postjob.sh $outputFile $uniquejobname
 done
 #function run_neuron()
