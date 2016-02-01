@@ -276,7 +276,7 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 			RLA = rla.uniform(0,PCcells.o(localID).ApicNo-1)
 			//Import respective stimulation/background spikes:
 			EXEC_CMD = ""
-			{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/TEST/BG_cellgid%03d_run_%03d.hoc\")}",i+1,$1+1)}
+			{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/OLDBGST/BG_cellgid%03d_run_%03d.hoc\")}",i+1,$1+1)}
 			{assert(execute1(EXEC_CMD))}
 			for j=0, BG_dendSyn-1 {
 				//RLB = 0
@@ -384,7 +384,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 				if (bool) { 
 					// to dend as in XENIA. (Was at the soma):
 					EXEC_CMD = ""
-					{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/TEST/BG_cellgid%03d_run_%03d.hoc\")}",trgGID+1,$1+1)}
+					{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/OLDBGST/BG_cellgid%03d_run_%03d.hoc\")}",trgGID+1,$1+1)}
 					{assert(execute1(EXEC_CMD))}
 					for syn=0, (BG_PVSyn-1) {
 
