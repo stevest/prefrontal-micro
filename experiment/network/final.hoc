@@ -74,6 +74,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkParametersRND.hoc\")}",PATH,ID)
 }
 if(PARALLEL){PC.barrier}
+tstop = 20000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -222,7 +223,7 @@ gababweights.x[3]=4.65e-4		//0.8
 //gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-gabaweight_pv2pc_b = gabaweightb   *0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = gabaweightb   *0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 /*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
 nmdaweights.x[1]=0.35		//1.5
@@ -410,7 +411,6 @@ if(PARALLEL){
 		par_save_membrane_voltage(JOBDIR,CLUSTER_ID,ID, ISBINARY)
 		{pprint("par_save_membrane_voltage() is active.")}
 	}
-	/*
 	//par_save_anyvar(JOBDIR,CLUSTER_ID,ID,0)
 	if(save_synaptic_locations){
 		par_save_synaptic_locations_PCrec(JOBDIR,CLUSTER_ID,ID,0)
@@ -426,7 +426,6 @@ if(PARALLEL){
 		par_save_synaptic_delays(JOBDIR,CLUSTER_ID,ID,ISBINARY)
 		{pprint("par_save_synaptic_delays() is active.")}
 	}
-	*/
 
 }else{
 	//rec_membrane_voltage()

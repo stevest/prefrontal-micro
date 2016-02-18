@@ -41,20 +41,22 @@ echo "Currently at directory:"
 echo `pwd`
 
 parallel="1"
-nodes="96"
+#All nodes are: 288
+nodes="288"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
-exp="1"
+exp="0"
 clustbias="0.0"
-startRun="43"
-endRun="47"
+startRun="0"
+endRun="49"
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	jobname="Ss20c${cluster}r"
+	#jobname="Ss20c${cluster}r"
+	jobname="GABAb02New_Ss20c${cluster}r"
 else
-	jobname="Rs20c${cluster}r"
+	jobname="GABAb02New_Rs20c${cluster}r"
 fi
 
 mechanisms="mechanism_simple"

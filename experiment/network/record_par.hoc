@@ -2,7 +2,7 @@
 // see also http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/parcon.html#spike_record
 
 // store voltage currents to files
-strdef vfilePC_filename, EXEC_CMD
+strdef str, vfilePC_filename, EXEC_CMD
 
 // If you save the stdout to a file you can sort the results. A nice idiom is sort -k 1n,1n -k 2n,2n temp1 > temp
 //All the spike times and cells are the same as in the serial implementation, as we can verify by capturing the outputs of the two programs to files, sorting the parallel output, and comparing
@@ -58,8 +58,8 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 	for s=0,recordedCells.size()-1{
 		//print "Saving Cell: ",recordedCells.x(s)
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"%s/%d_%d_%d.%s", $s1,$2,recordedCells.x(s),RUN,ext) 
-		print "Saving @ ", vfilePC_filename
+		sprint(vfilePC_filename,"%s/%03d_%03d_%03d.%s", $s1,recordedCells.x(s),RUN,$2,ext) 
+		//print "Saving @ ", vfilePC_filename
 		vfilePC.wopen(vfilePC_filename)
 		fh = vfilePC.isopen()
 		fctr = 0
@@ -68,7 +68,7 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 			fh = vfilePC.isopen()
 			fctr = fctr + 1
 		}
-		print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"
+		if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 		if ($4) {
 			for j=0, r_volts[s].size()-1 {
 				vfilePC.vwrite(&r_volts[s].x[j])
@@ -83,5 +83,65 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 
 } //End save membrane voltage proc
 
+/*
+proc par_save_synaptic_locations_PCrec(){ local fh, fctr localobj vfilePC 
 
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+	ext = "bin"
+	} else {
+	ext = "txt"
+	}
+	//save PC2PC synaptic locations
+	for trg=0, nPCcells-1{
+		for src=0, nPCcells-1{
+			{PC.barrier()}
+			if(object_id(pidPC2PC[src][trg])!= 0){
+				print "Synaptic locations src: ",src," ,target: ",trg," : "
+				for ii=0,pidPC2PC[src][trg].size()-1{
+					print pidPC2PC[src][trg].x[ii], " "
+				}
+			}
+		}
+	}
+}
 
+proc par_save_stimulation_locations_PCrec(){ 
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+	ext = "bin"
+	} else {
+	ext = "txt"
+	}
+	for src=0, nPCcells-1{
+		{PC.barrier()}
+		if (object_id(stimpidPC2PC[src]) != 0){
+			str = ""
+			sprint(str,"Stimulation locations src %d:",src)
+			for ii=0,stimpidPC2PC[src].size()-1{
+				sprint(str,"%s %f",str, stimpidPC2PC[src].x[ii])
+			}
+			print str
+		}
+	}
+}
+
+proc par_save_synaptic_delays(){ 
+	{ PC.barrier() } 
+	for src=0, nPCcells-1{
+	for trg=0, nPCcells-1{
+		{PC.barrier()}
+		if (object_id(delayPC2PC[src][trg]) != 0){
+			str = ""
+			sprint(str,"Delays src %d, trg %d:",src,trg)
+			for ii=0,delayPC2PC[src][trg].size()-1{
+				sprint(str,"%s %f",str, delayPC2PC[src][trg].x[ii])
+			}
+			print str
+		}
+	}
+	}
+}
+*/

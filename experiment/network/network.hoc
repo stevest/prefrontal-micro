@@ -174,7 +174,7 @@ strdef EXEC_CMD
 //is to have the commands executed on runtime. Else parser will complain
 //about missing variables.
 if(save_stimulation_locations){
-	{sprint(EXEC_CMD,"{objref stimpidPC2PC[nPCcells]}")}
+	{sprint(EXEC_CMD,"{objref stimpidPC2PC[%d]}",nPCcells)}
 	{assert(execute1(EXEC_CMD))}
 }
 objref r_stimPC[nPCcells], rApic_stimPC[nPCcells], rBasal_stimPC[nPCcells] 
@@ -201,7 +201,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 
 			if( bool ){ //&& PcellStimList.x(i)
 				if(save_stimulation_locations){
-					{sprint(EXEC_CMD,"{stimpidPC2PC[trgGID] = new Vector()}")}
+					{sprint(EXEC_CMD,"{stimpidPC2PC[%d] = new Vector()}",trgGID)}
 					{assert(execute1(EXEC_CMD))}
 				}
 				// Apical input:
@@ -209,7 +209,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					PID=r_stimPC[i].repick()
 					rApicIdx = int(rApic_stimPC[i].uniform(0,PCcells.o(localID).ApicNo-1))
 					if(save_stimulation_locations){
-						{sprint(EXEC_CMD,"{stimpidPC2PC[trgGID].append(PID)}")}
+						{sprint(EXEC_CMD,"{stimpidPC2PC[%d].append(%f)}",trgGID,PID)}
 						{assert(execute1(EXEC_CMD))}
 					}
 					rApicIdx = 0 //PROXIMAL!
@@ -218,12 +218,12 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 
 					ncAMPA[i][j] = new NetCon(sns, ampapr[i][j]) //vstim_stim[i][j]
 					ncAMPA[i][j].delay=500
-					ncAMPA[i][j].weight = ampaweightpr
+					ncAMPA[i][j].weight = ampaweightpr// *15//SSS
 					ncAMPA[i][j].threshold=-10 
 
 					ncNMDA[i][j] = new NetCon(sns, nmdapr[i][j])
 					ncNMDA[i][j].delay=500
-					ncNMDA[i][j].weight = nmdaweightpr
+					ncNMDA[i][j].weight = nmdaweightpr// *15//SSS
 					ncNMDA[i][j].threshold=-10
 				}
 
@@ -276,7 +276,7 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 			RLA = rla.uniform(0,PCcells.o(localID).ApicNo-1)
 			//Import respective stimulation/background spikes:
 			EXEC_CMD = ""
-			{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/OLDBGST/BG_cellgid%03d_run_%03d.hoc\")}",i+1,$1+1)}
+			{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/NEWBGST/BG_cellgid%03d_run_%03d.hoc\")}",i+1,$1+1)}
 			{assert(execute1(EXEC_CMD))}
 			for j=0, BG_dendSyn-1 {
 				//RLB = 0
@@ -384,7 +384,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 				if (bool) { 
 					// to dend as in XENIA. (Was at the soma):
 					EXEC_CMD = ""
-					{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/OLDBGST/BG_cellgid%03d_run_%03d.hoc\")}",trgGID+1,$1+1)}
+					{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/NEWBGST/BG_cellgid%03d_run_%03d.hoc\")}",trgGID+1,$1+1)}
 					{assert(execute1(EXEC_CMD))}
 					for syn=0, (BG_PVSyn-1) {
 
@@ -448,11 +448,11 @@ objref PIDfile, FIDfile
 //objref arrPID[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref dummyNetCon[nPCcells]
 if(save_synaptic_delays){
-	{sprint(EXEC_CMD,"{objref delayPC2PC[nPCcells][nPCcells]}")}
+	{sprint(EXEC_CMD,"{objref delayPC2PC[%d][%d]}",nPCcells,nPCcells)}
 	{assert(execute1(EXEC_CMD))}
 }
 if(save_synaptic_locations){
-	{sprint(EXEC_CMD,"{objref pidPC2PC[nPCcells][nPCcells]}")}
+	{sprint(EXEC_CMD,"{objref pidPC2PC[%d][%d]}",nPCcells,nPCcells)}
 	{assert(execute1(EXEC_CMD))}
 }
 /*objref curnmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
@@ -524,11 +524,11 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 						//PCcells.o(localID).dend[clusterDend.x(localID)] {clusterDIST.x(localID) = distance(clusterPID.x(localID))}
 						//PCcells.o(localID).dend[clusterDend.x(localID)] {print "dendritic segments are ", nseg}
 						if(save_synaptic_delays){
-							{sprint(EXEC_CMD,"{delayPC2PC[src][trg] = new Vector()}")}
+							{sprint(EXEC_CMD,"{delayPC2PC[%d][%d] = new Vector()}",src,trg)}
 							{assert(execute1(EXEC_CMD))}
 						}
 						if(save_synaptic_locations){
-							{sprint(EXEC_CMD,"{pidPC2PC[src][trg] = new Vector()}")}
+							{sprint(EXEC_CMD,"{pidPC2PC[%d][%d] = new Vector()}",src,trg)}
 							{assert(execute1(EXEC_CMD))}
 						}
 						for syn=0, (PC2PC_MaxSyn-1) { //for current syn
@@ -539,11 +539,11 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							FIDp = abs(fp_PC2PC[trg].repick())
 							if( FIDp <= dt ){ FIDp = dt + 0.01 }
 							if(save_synaptic_delays){
-								{sprint(EXEC_CMD,"{delayPC2PC[src][trg].append(FIDp)}")}
+								{sprint(EXEC_CMD,"{delayPC2PC[%d][%d].append(%f)}",src,trg,FIDp)}
 								{assert(execute1(EXEC_CMD))}
 							}
 							if(save_synaptic_locations){
-								{sprint(EXEC_CMD,"{pidPC2PC[src][trg].append(PID)}")}
+								{sprint(EXEC_CMD,"{pidPC2PC[%d][%d].append(%f)}",src,trg,PID)}
 								{assert(execute1(EXEC_CMD))}
 							}
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
@@ -578,7 +578,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	for i=0, PCcells.count()-1 {
 		//if (connMatrix.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
 			if(save_synaptic_delays){
-				{sprint(EXEC_CMD,"{delayPC2PC[PCgids.x[i]][PCgids.x[i]] = new Vector()}")}
+				{sprint(EXEC_CMD,"{delayPC2PC[%d][%d] = new Vector()}",PCgids.x[i],PCgids.x[i])}
 				{assert(execute1(EXEC_CMD))}
 			}
 			for j=0, (PC_MaxAutosyn-1) { 
@@ -587,7 +587,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 				rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 				if( FIDp <= dt ){ FIDp = dt + 0.01 }
 				if(save_synaptic_delays){
-					{sprint(EXEC_CMD,"{delayPC2PC[PCgids.x[i]][PCgids.x[i]].append(FIDp)}")}
+					{sprint(EXEC_CMD,"{delayPC2PC[%d][%d].append(%f)}",PCgids.x[i],PCgids.x[i],FIDp)}
 					{assert(execute1(EXEC_CMD))}
 				}
 				rDendidx = 0
@@ -717,7 +717,7 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 // Create vectors to record GABA synaptic current per target:
 //objref syncurrGABAa[nPVcells][nPCcells][PV2PC_MaxSyn], syncurrGABAb[nPVcells][nPCcells][PV2PC_MaxSyn]
 if(save_synaptic_delays){
-	{sprint(EXEC_CMD,"{objref delayPV2PC[nPVcells][nPCcells]}")}
+	{sprint(EXEC_CMD,"{objref delayPV2PC[%d][%d]}",nPVcells,nPCcells)}
 	{assert(execute1(EXEC_CMD))}
 }
 //------------------------------------------------PV-PC connections-----------------------------------------------------//
@@ -784,7 +784,7 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 					}
 
 					if(save_synaptic_delays){
-						{sprint(EXEC_CMD,"{delayPV2PC[src][trg] = new Vector()}")}
+						{sprint(EXEC_CMD,"{delayPV2PC[%d][%d] = new Vector()}",src,trg)}
 						{assert(execute1(EXEC_CMD))}
 					}
 					for syn=0, (PV2PC_MaxSyn-1) { //for total number of IN-PC synapses
@@ -794,7 +794,7 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_a*1) //SSS change weight instead of # of synapses
 						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_b*1) //SSS DEFAULT WEIGHT is 4 !!
 						if(save_synaptic_delays){
-							{sprint(EXEC_CMD,"{delayPV2PC[src][trg].append(delstimpvpc)}")}
+							{sprint(EXEC_CMD,"{delayPV2PC[%d][%d].append(%f)}",src,trg,delstimpvpc)}
 							{assert(execute1(EXEC_CMD))}
 						}
 						/*syncurrGABAa[src][trg][syn] = new Vector(n,0)				
