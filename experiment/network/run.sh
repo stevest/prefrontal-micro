@@ -50,13 +50,13 @@ cluster="0"
 exp="0"
 clustbias="0.0"
 startRun="0"
-endRun="49"
+endRun="99"
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="Ss20c${cluster}r"
-	jobname="GABAb02New_Ss20c${cluster}r"
+	jobname="GABAb015NEWBGST_Ss20c${cluster}r"
 else
-	jobname="GABAb02New_Rs20c${cluster}r"
+	jobname="GABAb015NEWBGST_Rs20c${cluster}r"
 fi
 
 mechanisms="mechanism_simple"
@@ -111,7 +111,7 @@ do
 		mkdir -p $outputDir;
 	fi
 	## Submit as Job in Sun Grid Engine:
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	## Run locally:
 	##/opt/openmpi/bin/mpirun -v -n $nodes /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c 'execute1("strdef JOBNAME, JOBDIR")' -c 'execute1("JOBNAME = \"'$jobname'\"")' -c 'execute1("JOBDIR = \"'$outputDir'\"")' -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	#qsub -b y -S /bin/bash -V -N postjob -pe orte 1 -hold_jid $uniquejobname postjob.sh $outputFile $uniquejobname
