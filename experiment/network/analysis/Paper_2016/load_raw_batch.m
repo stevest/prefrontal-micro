@@ -1,45 +1,58 @@
-function [st,tstop]=load_raw_batch(pathto,runsid,varargin)
-% Load experiment batch.
+function [st,tstop]=load_raw_batch(pathto,varargin)
+% Load experiment batch..
+% ...GIVEN that one run is inside the pathto folder.
+% One run is equivalent to one MPI batch job (in its own folder!).
+
 
 s=false;
 for a=1:length(varargin)
     if strcmp(varargin{a},'spikes');s=true;end
 end
 
+% jungle
 r = dir(pathto);
 rf = {r(~[r.isdir]).name};
 % Get only .bin files:
 files = sort(rf(cellfun(@(x) strcmp(x(end-3:end),'.bin'),rf)));
 n = size(files,2);
 
-st = cell(933,1);
-
-% textprogressbar('Loading batch: ');
-for fn=1:n
-    % get cell id:
-    tmp = strsplit(files{fn}, {'_','.'});
-    cid = str2double(tmp{1})+1;
-    % get run id
-    rid = str2double(tmp{2})+1;
-    
-    if rid == runsid
-        filename = fullfile(pathto,files{fn});
-        disp(filename);
-        if( exist(filename,'file') )
-            trace = nrn_vread(filename,'n');
-            trace = trace(1:10:end);
-            if s
-                [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
-            else
-                st{cid,1} = trace';
-            end
-        else
-            st{cid,1} = [];
-        end
-    end
-%     textprogressbar((fn/n)*100);
+if (n == 0)
+   warning('No files found in folder!');
+   st={};
+   return;
 end
-% textprogressbar('done');
+st = cell(n,1);
+
+textprogressbar('Loading batch: ');
+for fn=1:n
+    %These, tmp, index change according to dataset!
+    tmp = strsplit(files{fn}, {'_','.'});
+    % get cell id:
+    cid = str2double(tmp{2})+1;
+    % get run id
+    rid = str2double(tmp{3})+1;
+    
+    filename = fullfile(pathto,files{fn});
+%     disp(filename);
+    if( exist(filename,'file') )
+        try
+            trace = nrn_vread(filename,'n');
+        catch e
+            warning('Error with nrn_vread() !');
+        end
+        % dt equals 0.1:
+        trace = trace(1:10:end);
+        if s
+            [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
+        else
+            st{cid,1} = trace';
+        end
+    else
+        st{cid,1} = [];
+    end
+    textprogressbar((fn/n)*100);
+end
+textprogressbar('done');
 
 %given that batch will have the same tstop:
 tstop = size(trace,1)-1;
