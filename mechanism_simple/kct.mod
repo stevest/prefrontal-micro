@@ -1,5 +1,5 @@
 
-TITLE Kct current
+TITLE  Fast Ca-dependent potassium current
 
 COMMENT Equations from Shao L.R., Halvorsrud R., Borg-Graham L., Storm J.F. The role of BK-type Ca2_-dependent K+ channels in spike broadening during repetitive firing in rat hippocampal pyramidal cells J.Physiology (1999),521:135-146   
 		  The Krasnow Institute
