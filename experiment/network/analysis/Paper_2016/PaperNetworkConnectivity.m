@@ -32,20 +32,24 @@ distPC2PC = triu(distPC2PCwrapped,1) + tril(distPC2PCwrapped',-1);
  
 % 3d points for PV. Returns 3d points and distances from PCcells  
 % Nassi -Max seperation Distance as PC-PC
-[PVsomata, distPV2PC, distPC2PCwrapped] = CreateCubeNetworkPV(cube_dimensions, nPV, PCsomata);
+[PVsomata, distPV2PC, distPV2PCwrapped] = CreateCubeNetworkPV(cube_dimensions, nPV, PCsomata);
 distPV2PCb = distPV2PC;
-distPV2PC = distPC2PCwrapped;
+distPV2PC = distPV2PCwrapped;
 
 % visualize differences after wrapping (Also do it after clustering?)
 tmprn = 0:5:500;
 figure;hold on;
 title('PC2PC');
+plot(tmprn,histc(distPC2PC(logical(triu(ones(N),1))),tmprn) / ((N^2-N)/2),'r');
 plot(tmprn,histc(distPC2PCb(logical(triu(ones(N),1))),tmprn) / ((N^2-N)/2),'b');
-plot(tmprn,histc(distPC2PCwrapped(logical(triu(ones(N),1))),tmprn) / ((N^2-N)/2),'r');
+legend({'No wrapping','Wrapping'});
+xlabel('Intersomatic distance (um)');ylabel('Relative frequency');
 figure;hold on;
 title('PV2PC');
-plot(tmprn,histc(distPV2PC(:),tmprn) / (nPC*nPV),'b')
-plot(tmprn,histc(distPV2PCwrapped(:),tmprn) / (nPC*nPV),'r')
+plot(tmprn,histc(distPV2PC(:),tmprn) / (nPC*nPV),'r')
+plot(tmprn,histc(distPV2PCb(:),tmprn) / (nPC*nPV),'b')
+legend({'No wrapping','Wrapping'});
+xlabel('Intersomatic distance (um)');ylabel('Relative frequency');
 
 figure;
 scatter3(PCsomata(:,1),PCsomata(:,2),PCsomata(:,3)); 
@@ -166,6 +170,11 @@ Con_prob(2,1)=(sum(sum((ConnMatPC2PV==1 & ConnMatPV2PC'==1)))*100) / numel(ConnM
 Con_prob(3,1)=(sum(sum((ConnMatPC2PV==1 & ConnMatPV2PC'==0)))*100) / numel(ConnMatPC2PV);
 Con_prob(4,1)=(sum(sum((ConnMatPC2PV==0 & ConnMatPV2PC'==1)))*100) / numel(ConnMatPC2PV);
 
+cm = [1,1,1;0,0,0;0.2,0.2,0.2;0.5,0.5,0.5];
+figure;bar([Con_prob,Con_prob]','stacked');
+xlabel('PC to PV');ylabel('Percentage');
+colormap(cm);
+
 %PV-PV. Connection Probability: O.77 (Gibson, Connors, 1999)
 %Eh, o Gibson einai layers 4 and 6, eno o Galarreta, Hestrin, 1999 (same
 %issue) einai smoatosensory/visual L5:
@@ -243,6 +252,7 @@ plot(connProbsPC2PC(0:upto)*fact,'k');
 % set(gca,'Ydir','normal');
 plot(recipProbsPC2PC(0:upto)*fact,'b');
 legend({'Overall','Unidirectional','Reciprocal'});
+xlabel('Intersomatic distance (um)');ylabel('Connection probability');
 
 %% Create Networks the Revised way:
 myrange = 1:10:max(distPC2PC(:))+10;
