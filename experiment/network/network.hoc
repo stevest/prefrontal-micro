@@ -516,7 +516,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 		}
 		for src=0,nPCcells-1 {
 			srcGID = ind2gid(src,0) //PC cells!
-			if(connMatrix.x[srcGID][trgGID]){
+			if(C.x[srcGID][trgGID]){
 				if(srcGID!=trgGID){
 					if (bool) { 
 						//if(DEBUG){printf("Connectivity constraint: PC%d projects to PC%d\n",PCgids.x(src),PCgids.x(trg))}
@@ -549,12 +549,12 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
 
-							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  weightsMatrix.x[srcGID][trgGID] )
+							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  C.x[srcGID][trgGID] )
 							//if(PcellStimList.x(trgGID) ){ 	//All cells with dopamin are enhanced	
-								//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,arg  *  weightsMatrix.x[srcGID][trgGID] ) 
+								//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,arg  *  C.x[srcGID][trgGID] ) 
 								//print "Jolted ", src, " ", trg," with weight ", arg
 							//} else {
-								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  weightsMatrix.x[srcGID][trgGID] )
+								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  C.x[srcGID][trgGID] )
 								//print "Connected ", src, " ", trg," with weight ",0.25
 							//}
 						}
@@ -576,7 +576,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	}
 
 	for i=0, PCcells.count()-1 {
-		//if (connMatrix.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
+		//if (C.x[PCgids.x(i)][PCgids.x(i)]) { //If autapses are enabled..
 			if(save_synaptic_delays){
 				{sprint(EXEC_CMD,"{delayPC2PC[%d][%d] = new Vector()}",PCgids.x[i],PCgids.x[i])}
 				{assert(execute1(EXEC_CMD))}
@@ -623,7 +623,7 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 		for trg=0, nPVcells-1 {
 			trgGID = ind2gid(trg,1) //PV cells!
 			srcGID = ind2gid(src,1) //PV cells!
-			if (connMatrix.x[srcGID][trgGID]) { //NO NEED to account for PC overhead in matrix, gid are GLOBAL ID ;)
+			if (C.x[srcGID][trgGID]) { //NO NEED to account for PC overhead in matrix, gid are GLOBAL ID ;)
 				if(PARALLEL){
 					bool = PC.gid_exists(trgGID)
 					localID = gid2local(PVgids,trgGID) //target cell
@@ -689,7 +689,7 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 		for trg=0, nPVcells-1 {
 			trgGID = ind2gid(trg,1) //PV cells!
 			srcGID = ind2gid(src,0) //PC cells!
-			if (connMatrix.x[srcGID][trgGID]) { //if connection exists; account for PC overhead in matrix
+			if (C.x[srcGID][trgGID]) { //if connection exists; account for PC overhead in matrix
 				if(PARALLEL){
 					bool = PC.gid_exists(trgGID)
 					localID = gid2local(PVgids,trgGID) //target cell
@@ -742,7 +742,7 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 		for trg=0,nPCcells-1 {
 			trgGID = ind2gid(trg,0) //PC cells!
 			srcGID = ind2gid(src,1) //PV cells!
-			if (connMatrix.x[srcGID][trgGID]) { //if connection exists; account for PC overhead in matrix
+			if (C.x[srcGID][trgGID]) { //if connection exists; account for PC overhead in matrix
 				if(PARALLEL){
 					bool = PC.gid_exists(trgGID)
 					localID = gid2local(PCgids,trgGID) //target cell

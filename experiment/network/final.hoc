@@ -38,16 +38,19 @@ proc pprint(){
 {sprint(STDOUT, "NEURON MPIRUN STARTING AT: %s",PPRINT_CMD)}
 {pprint(STDOUT)}
 //JOBID is generated from SGE so get it:
+{sprint(STDOUT, "JOB NAME: %s",JOBNAME)}
+{pprint(STDOUT)}
 {system("echo $JOB_ID", PPRINT_CMD)}
-{sprint(STDOUT, "WITH JOB ID: %s",PPRINT_CMD)}
+{sprint(STDOUT, "JOB ID: %s",PPRINT_CMD)}
+{pprint(STDOUT)}
 //{system("echo $JOB_NAME	", PPRINT_CMD)}
 //{sprint(JOBNAME, "%s",PPRINT_CMD)}
 //JOBNAME: read it from arguments, because of envars bug.
-{pprint(JOBNAME)}
+{pprint("Git sha1: ")}
+{pprint(GITSHA1)}
 //objref strFun
 //{strFun = new StringFunctions()}
 //{strFun.left(JOBNAME,strFun.len(JOBNAME)-1)}
-{pprint(STDOUT)}
 {sprint(STDOUT,"========================================================================================\n")}
 {pprint(STDOUT)}
 if(PARALLEL){
@@ -69,12 +72,12 @@ if(1){pprint("Load NEURON environment.")}
 strdef NMDA_MECH, EXEC_CMD
 EXEC_CMD = ""
 if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkParametersSTR.hoc\")}",PATH,ID)}
+	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR.hoc\")}",PATH)}
 } else {
-	sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkParametersRND.hoc\")}",PATH,ID)
+	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND.hoc\")}",PATH)
 }
 if(PARALLEL){PC.barrier}
-tstop = 20000 
+tstop = 20 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -90,24 +93,24 @@ if(1){pprint("Load Network Parameters.")}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Gap Parameters.")}
-
+/*
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkStimulationHeader.hoc\")}",PATH,ID)}
+{sprint(EXEC_CMD,"{xopen(\"%simportNetworkStimulationHeader.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-
+*/
 /*EXEC_CMD = ""
 sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
 execute(EXEC_CMD)*/
 //if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
-
+/*
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importBackgroundStimParamsHeader.hoc\")}",PATH,ID)}
+{sprint(EXEC_CMD,"{xopen(\"%simportBackgroundStimParamsHeader.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
 //if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
-
+*/
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importStimulationParameters.hoc\")}",PATH,ID)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Stimulation Parameters.")}
@@ -407,7 +410,7 @@ if(PARALLEL){
 	{pprint(PPRINT_CMD)}
 	{ PC.barrier()	}
 	
-	if(1){
+	if(0){
 		par_save_membrane_voltage(JOBDIR,CLUSTER_ID,ID, ISBINARY)
 		{pprint("par_save_membrane_voltage() is active.")}
 	}
