@@ -410,7 +410,7 @@ if(PARALLEL){
 	{pprint(PPRINT_CMD)}
 	{ PC.barrier()	}
 	
-	if(0){
+	if(1){
 		par_save_membrane_voltage(JOBDIR,CLUSTER_ID,ID, ISBINARY)
 		{pprint("par_save_membrane_voltage() is active.")}
 	}
