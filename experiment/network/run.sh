@@ -36,22 +36,22 @@ echo `pwd`
 
 parallel="1"
 #All nodes are: 288
-nodes="64"
+nodes="288"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
-exp="1"
+exp="0"
 sn="1"
 clustbias="0.0"
 startRun="0"
-endRun="0"
+endRun="79"
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	jobname="TEST"
-	#jobname="GABAb015NEWBGST_Ss20c${cluster}r"
+	#jobname="TEST"
+	jobname="GABAb015NEWBGST_Ss20c${cluster}r"
 else
-	jobname="GABAb015NEWBGST_Rs20c${cluster}r"
+	jobname="GABAb01NEWBGST_Rs20c${cluster}r"
 fi
 
 mechanisms="mechanism_simple"
