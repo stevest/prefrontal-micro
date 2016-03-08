@@ -77,7 +77,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s.hoc\")}",PATH,SN)
 }
 if(PARALLEL){PC.barrier}
-tstop = 20 
+tstop = 20000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
