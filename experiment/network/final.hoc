@@ -69,12 +69,12 @@ if(PARALLEL){PC.barrier}
 if(1){pprint("Load NEURON environment.")}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
-strdef NMDA_MECH, EXEC_CMD
+strdef EXEC_CMD
 EXEC_CMD = ""
 if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR.hoc\")}",PATH)}
+	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s.hoc\")}",PATH,SN)}
 } else {
-	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND.hoc\")}",PATH)
+	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s.hoc\")}",PATH,SN)
 }
 if(PARALLEL){PC.barrier}
 tstop = 20 
@@ -110,7 +110,7 @@ if(1){assert(execute1(EXEC_CMD))}
 */
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters.hoc\")}",PATH)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s.hoc\")}",PATH,SN)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Stimulation Parameters.")}
@@ -143,13 +143,13 @@ objref PcellStimList
 {PcellStimList = new Vector(nPCcells,0)}
 
 if(EXPERIMENT){ //if Structured...
-	for i=0,PcellStimListSTR.nrow-1{
-		PcellStimList.x[PcellStimListSTR.x[i][CLUSTER_ID]]=1
+	for i=0,PcellStimListSTR[CLUSTER_ID].size()-1{
+		PcellStimList.x[PcellStimListSTR[CLUSTER_ID].x[i]]=1
 
 	}
 } else {
-	for i=0,PcellStimListRND.nrow-1{
-		PcellStimList.x[PcellStimListRND.x[i][CLUSTER_ID]] = 1
+	for i=0,PcellStimListRND[CLUSTER_ID].size()-1{
+		PcellStimList.x[PcellStimListRND[CLUSTER_ID].x[i]] = 1
 
 	}
 }

@@ -51,15 +51,7 @@ if (name_declared("EXPERIMENT")!=5){
 	exit(1)
 }
 
-strdef EXP
-if( EXPERIMENT ){
-	sprint(EXP,"STR_SN%d_ST%d",1,1)
-} else {
-	sprint(EXP,"RND_SN%d_ST%d",1,1)
-}
-	
 
-NMDA_MECH = "nmda_segev"
 sprint(pprintStr,"Microcircuit running with simplified morphologies !\n\n")
 pprint(pprintStr)
 
