@@ -77,7 +77,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s.hoc\")}",PATH,SN)
 }
 if(PARALLEL){PC.barrier}
-tstop = 20000 
+tstop = 6000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -145,6 +145,8 @@ objref PcellStimList
 if(EXPERIMENT){ //if Structured...
 	for i=0,PcellStimListSTR[CLUSTER_ID].size()-1{
 		PcellStimList.x[PcellStimListSTR[CLUSTER_ID].x[i]]=1
+		 {sprint(PPRINT_CMD,"Stimulating cell: %d",PcellStimListSTR[CLUSTER_ID].x[i])}
+		pprint(PPRINT_CMD)
 
 	}
 } else {
@@ -209,10 +211,10 @@ synapses_backinh=500
 synapses_inh=1
 
 //override complex background spiketrains:
-BG_dendSyn = synapses_backb
-BG_apicSyn = synapses_backa
-BG_apicprSyn = synapses_backpr
-BG_PVSyn = synapses_backinh
+BG_dendSyn = 2//synapses_backb
+BG_apicSyn = 2//synapses_backa
+BG_apicprSyn = 2//synapses_backpr
+BG_PVSyn = 2//synapses_backinh
 
 Stim_MaxSyn_apic = 150//90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 Stim_MaxSyn_basal=0//120	//initial stimulation
@@ -326,7 +328,7 @@ if(1){
 	{pprint(PPRINT_CMD)}
 }
 //ATTENTION TO WEIGHT OF BG SYNAPSES!! CORRECTED FOR FEWER SYNAPSES!!!! SSS
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivity(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -334,7 +336,7 @@ if(1){
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivityPV(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -345,7 +347,7 @@ if(1){
 
 //if RUN is a constant Randoms do not change (synapse location etc..)
 //connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%f)}",0,0,0.585)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -355,7 +357,7 @@ if(1){
 }
 //GABAbFactor = 10.7//Gvec.x[Gidx]
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -363,7 +365,7 @@ if(1){
 	{assert(execute1(EXEC_CMD))}
 	//connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -371,7 +373,7 @@ if(1){
 	{assert(execute1(EXEC_CMD))}
 	//connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -380,7 +382,7 @@ if(1){
 	//connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
 
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{noise(%d)}",RUN)}
 	{assert(execute1(EXEC_CMD))}
