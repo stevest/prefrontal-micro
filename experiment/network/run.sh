@@ -49,10 +49,10 @@ endRun="99"
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="niceCRAP_str"
-	jobname="updatedGABAb01NEWBGST_Ss20c${cluster}_SN${sn}_r"
+	jobname="updatedStimGABAb01NEWBGST_Ss20c${cluster}_SN${sn}_r"
 else
 	#jobname="niceCRAP_rnd"
-	jobname="updatedGABAb01NEWBGST_Rs20c${cluster}_SN${sn}_r"
+	jobname="updatedStimGABAb01NEWBGST_Rs20c${cluster}_SN${sn}_r"
 fi
 
 mechanisms="mechanism_simple"

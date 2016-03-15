@@ -216,7 +216,7 @@ BG_apicSyn = 2//synapses_backa
 BG_apicprSyn = 2//synapses_backpr
 BG_PVSyn = 2//synapses_backinh
 
-Stim_MaxSyn_apic = 150//90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
+Stim_MaxSyn_apic = 90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 Stim_MaxSyn_basal=0//120	//initial stimulation
 
 /*
