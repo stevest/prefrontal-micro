@@ -6,6 +6,7 @@ SHUFFLE_SYNAPSES = 0
 save_synaptic_locations = 0 
 save_stimulation_locations = 0
 save_synaptic_delays = 0 
+save_inmda = 1 
 // Experimental setup
 //tstop=10 //defined externaly
 steps_per_ms=10
@@ -13,6 +14,9 @@ dt=1/steps_per_ms
 n=int(tstop/dt)
 celsius=34
 
+objref r_msec
+r_msec = new Vector(n)
+for k=0,n-1 {r_msec.x[k] = k*dt }
 //-------------------------------------------------------------
 //Primary synapses (Xenia)
 Stim_MaxSyn_apic=100//16 min by Nassi criterion	//initial stimulation

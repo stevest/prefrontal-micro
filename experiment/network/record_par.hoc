@@ -82,7 +82,47 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 	
 
 } //End save membrane voltage proc
+objref cuminmdaPC2PC[nPCcells][nPCcells]
+proc par_save_inmda(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
 
+	for trg=0,nPCcells-1 {
+		for src=0, nPCcells-1 {
+			srcPC = ind2gid(src,0)
+			trgPC = ind2gid(trg,0)
+			//if(srcPC!=trgPC){
+				//if (C.x[srcPC][trgPC]) {
+				if (object_id(inmdaPC2PC[srcPC][trgPC][0])) {
+					cuminmdaPC2PC[srcPC][trgPC] = new Vector(n,0)
+					for syn=0, PC2PC_MaxSyn-1 {// for all target neurons on this node
+						for k = 0, n-1{
+							cuminmdaPC2PC[srcPC][trgPC].x[k] = cuminmdaPC2PC[srcPC][trgPC].x[k] + inmdaPC2PC[srcPC][trgPC][syn].x[k]
+						}
+					}
+					vfilePC = new File()	
+					sprint(vfilePC_filename,"%s/inmda_srcPC%03d_trgPC%03d.%s", $s1, srcPC,trgPC,ext) 
+					//sprint(vfilePC_filename,"experiment_%d/%s/inmda_trg_%d_runs_%d.%s", $3,EXP,PCgids.x[trg],runs,ext) 
+					vfilePC.wopen(vfilePC_filename)
+					
+					if ($4) {
+						for j=0, cuminmdaPC2PC[srcPC][trgPC].size()-1 {
+							vfilePC.vwrite(&cuminmdaPC2PC[srcPC][trgPC].x[j])
+						}
+					} else {
+						cuminmdaPC2PC[ind2gid(src,0)][ind2gid(trg,0)].printf(vfilePC,"%8.4f\n")
+					}
+					vfilePC.close()
+				}
+			//}
+		}
+	}
+}
 /*
 proc par_save_synaptic_locations_PCrec(){ local fh, fctr localobj vfilePC 
 

@@ -45,7 +45,7 @@ exp="0"
 sn="3"
 clustbias="0.0"
 startRun="0"
-endRun="99"
+endRun="0"
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="niceCRAP_str"

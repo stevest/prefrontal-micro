@@ -455,6 +455,10 @@ if(save_synaptic_locations){
 	{sprint(EXEC_CMD,"{objref pidPC2PC[%d][%d]}",nPCcells,nPCcells)}
 	{assert(execute1(EXEC_CMD))}
 }
+if(save_inmda){
+	{sprint(EXEC_CMD,"{objref inmdaPC2PC[%d][%d][%d]}",nPCcells,nPCcells,PC2PC_MaxSyn)}
+	{assert(execute1(EXEC_CMD))}
+}
 /*objref curnmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref curampaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref icaPC2PC[nPCcells]
@@ -548,7 +552,12 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							}
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
-
+							if(save_inmda){
+								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].inmda)}",src,trg,syn,src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+							}
 							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  W.x[srcGID][trgGID] )
 							//if(PcellStimList.x(trgGID) ){ 	//All cells with dopamin are enhanced	
 								//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,arg  *  W.x[srcGID][trgGID] ) 

@@ -77,7 +77,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s.hoc\")}",PATH,SN)
 }
 if(PARALLEL){PC.barrier}
-tstop = 20000 
+tstop = 10000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -159,10 +159,7 @@ if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Parse Stimulation Parameters.")}
 
 objref PcellIDlist
-PcellIDlist = new Vector(nPCcells)
-for n=0,(nPCcells-1){
-	PcellIDlist.x[n] = 1
-}
+PcellIDlist = new Vector(nPCcells,1)
 
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Choose morphologies.")}
@@ -430,6 +427,11 @@ if(PARALLEL){
 	if(save_synaptic_delays){
 		par_save_synaptic_delays(JOBDIR,CLUSTER_ID,ID,ISBINARY)
 		{pprint("par_save_synaptic_delays() is active.")}
+	}
+
+	if(save_inmda){
+		par_save_inmda(JOBDIR,CLUSTER_ID,ID,ISBINARY)
+		{pprint("par_save_inmda() is active.")}
 	}
 
 }else{
