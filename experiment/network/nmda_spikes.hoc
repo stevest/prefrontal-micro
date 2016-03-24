@@ -1,0 +1,110 @@
+strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING
+PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+//define a basic assert function:
+proc assert(){ 
+	if(!$1){	
+		print "Assertion error. Exiting..."
+		quit()
+	}
+}
+
+steps_per_ms=10
+dt=1/steps_per_ms
+n=int(tstop/dt)
+celsius=34
+
+tstop = 500 
+nPCcells = 1
+
+v_init = -66 
+objref cv
+cv=new CVode(0)
+if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
+if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
+if(!cv.cache_efficient(1)){print "ERRORRRR!"}
+
+
+{xopen("../../lib/basic-graphics.hoc")}
+{xopen("../define_objects.hoc")}
+{xopen("pfc_pc_temp.hoc")}
+
+
+//-------------------Set synaptic weights
+ampaweight=	0.00019		//0.00019//According to Wang(2008)
+
+/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
+nmdaweights.x[1]=0.35		//1.5
+nmdaweights.x[2]=0.47		//1.9
+nmdaweights.x[3]=0.585		//2.3*/
+nmdaweight = 0.25
+
+taur_cad = 50//36 //SSS
+
+ISI = 10
+
+objref nmdaVect
+nmdaVect = new Vector()
+nmdaVect.append(nmdaweight)
+for i=1,200-1{
+	nmdaVect.append(nmdaVect.x[i-1]+0.01)
+}
+
+objref r, ns1, PCv, vsoma
+ns1=new NetStim(0.5)
+ns1.interval=ISI 
+ns1.number=2
+ns1.start=0
+ns1.noise=0
+r = new Random(0)
+r.normal(0, 0.0003)
+
+synapses = 200
+objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
+orgloc = 70 //location indendrite (distance from soma in um)
+syn = 5 //synapses activated by glutamate
+addgraph_2("PCcells.o(0).soma.v(0.5)", 0,tstop, -70, 50)
+print nmdaVect.size()
+
+while (syn < synapses) {
+	loc = orgloc
+	while ( loc < 71) { //PCcells.o(0).dend[0].L
+		for nw = 0, nmdaVect.size()-1 {
+			print "---------------------"
+			print syn, loc, nmdaVect.x[nw]
+			for j=0, (syn-1) {
+				PID = loc / PCcells.o(0).dend[0].L + r.repick()
+				if(PID<=0){PID=0.01}
+				if(PID>=1){PID=1}				
+				PCcells.o(0).dend[0] ampapr[j]=new GLU(PID)
+				PCcells.o(0).dend[0] nmdapr[j]=new nmda_segev(PID)
+				nc1[j]=new NetCon(ns1, ampapr[j])
+				nc1[j].delay=100
+				nc1[j].weight=ampaweight
+				nc1[j].threshold=-20 
+				nc2[j]=new NetCon(ns1, nmdapr[j])
+				nc2[j].delay=100
+				nc2[j].weight=nmdaVect.x[nw]	                       
+				nc2[j].threshold=-20 
+			}
+			
+			PCv = new Vector()
+			PCv.record(&PCcells.o(0).soma.v(.5)) 
+			run()
+			vsoma = new File()		
+			sprint(STRING,"DATA/nmda_loc_%d_syn_%d_nmdaw_%d_ISI_%d.txt", loc, syn,int(nmdaVect.x[nw]*1000), ISI)
+			vsoma.wopen(STRING)
+			for j=0, PCv.size()-1 {
+				vsoma.printf ("%f\n",PCv.x[j])
+			}
+			vsoma.close()
+
+		}
+		loc += 10
+	}
+	syn += 5
+}
+
+
+

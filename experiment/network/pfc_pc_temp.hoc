@@ -35,11 +35,11 @@ soma{
 	e_pas = -66
 	Ra = 100         /* ohm-cm */
 
-	insert Naf
-	gnafbar_Naf =  0.108  *1.675
+	//insert Naf
+	//gnafbar_Naf =  0.108  *1.675
 
-	insert nap
-	gnabar_nap =  1.8e-06 
+	//insert nap
+	//gnabar_nap =  1.8e-06 
 
 	insert cal
 	gcalbar_cal =  3e-05
@@ -71,8 +71,8 @@ soma{
 	insert kca
 	gbar_kca = 0.025 *5.6		//*1.02 //SSS 
 
-	insert ican
-	gbar_ican=gCAN
+	//insert ican
+	//gbar_ican=gCAN
 
 	insert cadyn
 }
@@ -81,7 +81,7 @@ soma{
 
 dend[0]{
 	//basal dendrites
-	nseg=5//9 //changed to 5 segments to accommodate uniformly spreaded synapses
+	nseg=15//5//9 //changed to 5 segments to accommodate uniformly spreaded synapses
 	L=150
 	diam=1 
 	insert pas
@@ -111,8 +111,8 @@ dend[0]{
 	insert h
 	gbar_h =9e-06		//*0.1//SSS 
 
-	insert ican
-	gbar_ican=gCAN*0.1
+	//insert ican
+	//gbar_ican=gCAN*0.1
 
 	insert cadyn
 }
@@ -164,8 +164,8 @@ apic[0]{
 	insert h
 	gbar_h =1.4e-5		
 
-	insert ican
-	gbar_ican=gCAN*0.1
+	//insert ican
+	//gbar_ican=gCAN*0.1
 
 	insert cadyn
 }
@@ -216,8 +216,8 @@ apic[1]{
 	insert h
 	gbar_h =9e-05 
 
-	insert ican
-	gbar_ican=gCAN*0.1
+	//insert ican
+	//gbar_ican=gCAN*0.1
 
 	insert cadyn
 }
@@ -232,8 +232,8 @@ axon {
 	e_pas = -66
 	Ra = 150         /* ohm-cm */
 
-	insert Naf
-	gnafbar_Naf=0.18
+	//insert Naf
+	//gnafbar_Naf=0.18
 
 	insert kdr
 	gkdrbar_kdr=0.0054
@@ -277,31 +277,11 @@ PCcells=new List()
 PCgids=new Vector()
 
 proc createPyrs(){ local i,host,gid localobj cell,mynil
-	if(PARALLEL){
-		{PC.barrier()}
-		if(PC.id==0) {printf("initializing PCs...\n") }     
-		for i=0, nPCcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
-			host=i%PC.nhost
-			gid=ind2gid(i,0)
-			if(host==PC.id){
-				PCgids.append(gid)
-				cell = new PCcell()
-				PC.set_gid2node(gid,PC.id)
-				cell.axon {//synapse_source(gid)//,&v(1))
-					PC.cell(gid,new NetCon(&v(1), mynil),1)
-				}  
-				PC.threshold(gid,-20)          
-				PCcells.append(cell)  
-			}    
-		}
-	}else{
-		for i = 0, (nPCcells-1) {
-			cell = new PCcell()
-			PCcells.append(cell) 
-			PCgids.append(i)
-		}
+	for i = 0, (nPCcells-1) {
+		cell = new PCcell()
+		PCcells.append(cell) 
+		PCgids.append(i)
 	}
-
 }
 
 createPyrs()
@@ -350,73 +330,7 @@ for i=0, PCcells.count()-1 {
 	}
 }
 
-//printf("Applying PC current balance\n")
-//if(SIMPLIFIED){
-	//xopen("../simplified/current-balance.hoc")
-//} else {
-{sprint(EXEC_CMD,"{xopen(\"%s../../lib/current-balance.hoc\")}",PATH)}
-assert(execute1(EXEC_CMD))
-//	assert(xopen ("../../lib/current-balance.hoc"))
-//}
+xopen("../../lib/current-balance.hoc")
+
 {current_balance(v_init)}
 
-
-
-/*
-//Creating new neurons
-nPcells = 75//7//200
-
-objref Pcells[nPcells]
-
-for i = 0, (nPcells-1) {
-Pcells[i] = new Pcell()
-}
-
-//Create a list with segments
-objref soma_list, dend0_list, dend1_list, dend2_list, axon_list, dend_list, pcell_list, cell0_list
-
-soma_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].soma soma_list.append()
-}
-
-dend0_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[0] dend0_list.append()
-}
-
-dend1_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[1] dend1_list.append()
-}
-
-dend2_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[2] dend2_list.append()
-}
-
-axon_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].axon axon_list.append()
-}
-
-dend_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].dend[0] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] dend_list.append()}
-
-pcell_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].soma pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[0] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] pcell_list.append()}
-
-cell0_list=new SectionList()
-Pcells[0].soma cell0_list.append()
-Pcells[0].dend[0] cell0_list.append()
-Pcells[0].dend[1] cell0_list.append()
-Pcells[0].dend[2] cell0_list.append()
-
-xopen("../bash_templates/current-balance.hoc")
-
-current_balance(-66)*/
