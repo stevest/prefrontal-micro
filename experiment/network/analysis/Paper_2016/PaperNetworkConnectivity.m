@@ -6,12 +6,6 @@ aa=1;
 rng('default') 
 rng(aa)
 
-%Set paths
-% mypath = '/home/cluster/papoutsi/Desktop/STEFANOS/nassi/experiment/network/matlab_files';
-% mypath2 = '/home/cluster/papoutsi/Desktop/STEFANOS/nassi/';
-% addpath('/home/cluster/papoutsi/Desktop/STEFANOS/nassi/experiment/network/matlab_files/adapt_apV3')
-% addpath('/home/cluster/papoutsi/Desktop/STEFANOS/nassi/experiment/network/matlab_files/code')
-
 % Number of neurons
 nPC = 700;
 nPV = round(nPC*25/75);% PV mporoun na einai kai 15% !!!
@@ -40,8 +34,8 @@ distPV2PC = distPV2PCwrapped;
 tmprn = 0:5:500;
 figure;hold on;
 title('PC2PC');
-plot(tmprn,histc(distPC2PC(logical(triu(ones(N),1))),tmprn) / ((N^2-N)/2),'r');
-plot(tmprn,histc(distPC2PCb(logical(triu(ones(N),1))),tmprn) / ((N^2-N)/2),'b');
+plot(tmprn,histc(distPC2PC(logical(triu(ones(nPC),1))),tmprn) / ((nPC^2-nPC)/2),'r');
+plot(tmprn,histc(distPC2PCb(logical(triu(ones(nPC),1))),tmprn) / ((nPC^2-nPC)/2),'b');
 legend({'No wrapping','Wrapping'});
 xlabel('Intersomatic distance (um)');ylabel('Relative frequency');
 figure;hold on;
@@ -108,7 +102,7 @@ beforeHisto = histc(ConnMatPV2PC(:) .* distPV2PC(:),rang) ./ rangHisto;
 % Test if the PC2PV reciprocals are 20% of all pairs. Based on Otsuka, Kaywagushi-Figure2B. Rearrange connection accordingly.:
 ctr = 80000;
 while ctr && (0.1 < abs(((sum(sum((ConnMatPC2PV & ConnMatPV2PC')))*100) / numel(ConnMatPC2PV)) - 20))
-    
+    ctr
     % if reciprocals are more/less, move connections to reach 20%:
     foundIt = 0;
     while ~foundIt
@@ -298,7 +292,7 @@ Er = Er & logical(triu(ones(size(Er)),1));
 sum(Er(:)) / ((N^2-N)/2)
 E = logical(E);
 
-iters = 100;
+iters = 300;
 Es = logical(zeros(N,N,iters));
 F_prob = zeros(N,N);
 CN_prob = zeros(N,N);
@@ -338,31 +332,13 @@ pnr_str_(t,:) = pnr_str./distBins';
 
 for t=2:iters
     t
-    timetaken = tic;
     NCN= m_commonNeighbors(Es(:,:,t-1));
-    fprintf('Common neighbors computed in %f seconds.\n',toc(timetaken));
-
     mean_NCN(t)=mean(NCN(~eye(N)));
     CN_prob=((NCN)./max(NCN(~eye(N))));
-%     F_prob(:,:,t)=CN_prob(:,:,t).*Pd;
-% To previous update factor ta anevaze sto 8eo. Prepei na min allazoun ta
-% possosta twn reciprocals, alla na anadiortanonontai.
-    % my damping factor (den doulevei kala..):
-%     F_prob(:,:,t) = 0.01 * CN_prob(:,:,t) +  0.99 * Pd;
-% Perin's: CN linearly interpolated connection probability values does not
-% work either:
-% F_prob(:,:,t) = CN_prob(:,:,t) ;
-    timetaken = tic;
-F_prob = CN_prob .* Pd; %einai simantiko na kanw * Pd !
-% F_prob(:,:,t) = F_prob(:,:,t) * (sum(sum(E)) / N^2) * ((N*N)-N)/sum(sum(F_prob(:,:,t)));
-F_prob = F_prob * ( (sum(sum(Pd))) / sum(sum(F_prob)) );
 
-% Nassi's solution above is problematic because the individual pair
-% probability can be greater than one eliminating completely other pairs p
-% in order to keep the sum constant !
-    fprintf('F prob updated in %f seconds.\n',toc(timetaken));
-    
-    timetaken = tic;
+    F_prob = CN_prob .* Pd;
+    F_prob = F_prob * ( (sum(sum(Pd))) / sum(sum(F_prob)) );
+
     xx=(log(0.22)-log(F_prob))/0.0052;
     xx(xx<0) = 0;
     pr= recipProbsPC2PC(xx);
@@ -381,8 +357,7 @@ F_prob = F_prob * ( (sum(sum(Pd))) / sum(sum(F_prob)) );
     tmpConnL(tmpV(~tmpI)) = 1;
     tmpConnL = tmpConnL';
     Es(:,:,t) = tmpConnU | tmpConnL | tmpRecip;
-    fprintf('Es updated in %f seconds.\n',toc(timetaken));
-
+    
 end
 
 for t=2:iters
@@ -523,7 +498,7 @@ nweights_str = (weights_str/max(weights_str(:)))*2.3;
 
 %% Run Clustering:
 
-mr = -50:1:10; % preference range
+mr = -200:5:-60; % preference range
 tmpidx = cell(1,length(mr));
 dpsim = cell(1,length(mr));
 [X,Y] = meshgrid(1:N);
@@ -536,7 +511,7 @@ for k=1:length(mr)
 [tmpidx{k},~,dpsim{k},~]=apclusterSparse(similarity_str,mr(k),'dampfact',0.95, ...
         'convits',200,'maxits',5000,'details');
 end
-[targ_str,~,labels_str] = unique(tmpidx{k}(:,end));
+% [targ_str,~,labels_str] = unique(tmpidx{k}(:,end));
 
 % Random network:
 CN_rnd = m_commonNeighbors(PC2PC_rnd);
@@ -551,9 +526,20 @@ for k=1:length(mr)
 [tmpidx_rnd{k},~,dpsim_rnd{k},~]=apclusterSparse(similarity_rnd,mr(k),'dampfact',0.95, ...
         'convits',200,'maxits',5000,'details');
 end
-[targ_rnd,~,labels_rnd] = unique(tmpidx_rnd{k}(:,end));
+% [targ_rnd,~,labels_rnd] = unique(tmpidx_rnd{k}(:,end));
 
-figure;plot(cellfun(@(x) x(end), dpsim_rnd))
+% figure;plot(cellfun(@(x) x(end), dpsim_rnd))
+figure;hold on;
+plot(cellfun(@(x) length(unique(x(:,end))),tmpidx_rnd ))
+plot(cellfun(@(x) length(unique(x(:,end))),tmpidx ))
+legend({'RND','STR'})
+
+[~,~,l_rnd]=unique(tmpidx_rnd{4}(:,end))
+[~,~,l_str]=unique(tmpidx{13}(:,end))
+for k=1:7
+   nc_rnd(k) =  sum(l_rnd==k);
+   nc_str(k) =  sum(l_str==k);
+end
 %% Fill AllConnMat and export it:
 % load('C:\Users\marouli\Documents\GitHub\prefrontal-micro\experiment\network\states_07_G.mat')
 load('X:\Documents\GitHub\prefrontal-micro\experiment\network\states_07_G.mat')
