@@ -1,6 +1,6 @@
 strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING
 PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
-if(!load_file("nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
 //{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
 //define a basic assert function:
 proc assert(){ 
@@ -38,7 +38,7 @@ ampaweight=	0.00019		//0.00019//According to Wang(2008)
 nmdaweights.x[1]=0.35		//1.5
 nmdaweights.x[2]=0.47		//1.9
 nmdaweights.x[3]=0.585		//2.3*/
-nmdaweight = 0.25
+nmdaweight = 0.05
 
 taur_cad = 50//36 //SSS
 
@@ -47,8 +47,8 @@ ISI = 10
 objref nmdaVect
 nmdaVect = new Vector()
 nmdaVect.append(nmdaweight)
-for i=1,200-1{
-	nmdaVect.append(nmdaVect.x[i-1]+0.01)
+for i=1,40-1{
+	nmdaVect.append(nmdaVect.x[i-1]+0.05)
 }
 
 objref r, ns1, PCv, vsoma
@@ -60,7 +60,7 @@ ns1.noise=0
 r = new Random(0)
 r.normal(0, 0.0003)
 
-synapses = 200
+synapses = 800
 objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 orgloc = 70 //location indendrite (distance from soma in um)
 syn = 5 //synapses activated by glutamate
@@ -80,11 +80,11 @@ while (syn < synapses) {
 				PCcells.o(0).dend[0] ampapr[j]=new GLU(PID)
 				PCcells.o(0).dend[0] nmdapr[j]=new nmda_segev(PID)
 				nc1[j]=new NetCon(ns1, ampapr[j])
-				nc1[j].delay=100
+				nc1[j].delay=50
 				nc1[j].weight=ampaweight
 				nc1[j].threshold=-20 
 				nc2[j]=new NetCon(ns1, nmdapr[j])
-				nc2[j].delay=100
+				nc2[j].delay=50
 				nc2[j].weight=nmdaVect.x[nw]	                       
 				nc2[j].threshold=-20 
 			}
@@ -103,7 +103,7 @@ while (syn < synapses) {
 		}
 		loc += 10
 	}
-	syn += 5
+	syn += 20
 }
 
 

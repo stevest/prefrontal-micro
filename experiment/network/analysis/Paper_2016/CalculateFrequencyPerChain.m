@@ -60,8 +60,7 @@ end
 %% Call nice function instead:
 sc_str = run.StimMat_str(:,1);
 nsc_str = find(~ismember(1:700,run.StimMat_str(:,1)));
-sc_rnd = run.StimMat_rnd(:,1);
-nsc_rnd = find(~ismember(1:700,run.StimMat_rnd(:,1)));
+
 
 %Which cluster is stimulated:
 stc=1;
@@ -74,7 +73,7 @@ st = batch_str_spikes(sc_str,1:72);
 
 
 run.tstop = 20000;
-run.nruns = 72;
+run.nruns = 66;
 % Number of states to get/plot:
 nstates = 30;
 % Array of windows A to apply:
@@ -96,23 +95,40 @@ for Q = Qseq
 %     save(sprintf('vote_smooth_states_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','-v6');
 end
 
+% From new (different) random configurations:
+stc=2;
+sc_rnd = run.stimulatedCells_rnd{stc};
+nsc_rnd = find(~ismember(1:700,sc_rnd));
 
-
-st = batch_rnd_spikes(sc_rnd,1:72);
+st = batch_rnd_spikes(sc_rnd,1:run.nruns);
 configuration = 'rnd';
 for Q = Qseq
     [voteState, U] = getStates(run, Q, st, stc, nstates,0.01, configuration);
     % figure;plot(sort(sum(voteState,2),'descend'));
     
 %     Get most frequent states by smooth data (NOT raw relative frequency):
-    tic;
+%     tic;
 %     smoothed_states = zeros(size(voteState));
 %     parfor kk=1:size(voteState,1)
 %         smoothed_states(kk,:) = smooth(voteState(kk,:)',100,'rlowess')'; % SSS changed to moving for speed!
 %     end
 %     fprintf('Generating max of smoothed states took: %fs\n',toc);
-    save(sprintf('tmpnewdata\\vote_states_%s_Q%d',configuration,Q),'voteState','U','-v6');
+    save(sprintf('tmpnewdata/vote_states_rnd_sn2_%s_Q%d',configuration,Q),'voteState','U','-v7.3');
 %     save(sprintf('vote_smooth_states_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','-v6');
+end
+for Q = Qseq
+    load(sprintf('tmpnewdata/vote_states_rnd_sn2_%s_Q%d',configuration,Q));
+%     Get most frequent states by smooth data (NOT raw relative frequency):
+    tic;
+    smoothed_states = zeros(size(voteState));
+%     rlowess_states = zeros(size(voteState));
+    parfor kk=1:size(voteState,1)
+        smoothed_states(kk,:) = smooth(voteState(kk,:)',100,'moving')'; % SSS changed to moving for speed!
+%         rlowess_states(kk,:) = smooth(voteState(kk,:)',100,'rlowess')'; % SSS changed to moving for speed!
+    end
+    fprintf('Generating max of smoothed states took: %fs\n',toc);
+    save(sprintf('tmpnewdata/vote_smooth_states_rnd_sn2_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','-v7.3');
+%     save(sprintf('vote_smooth_states_rnd_sn2_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','rlowess_states','-v7.3');
 end
 % n=run.tstop;
 % Q = Qseq;

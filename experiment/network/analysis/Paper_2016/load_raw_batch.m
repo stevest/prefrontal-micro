@@ -16,7 +16,7 @@ rf = {r(~[r.isdir]).name};
 files = sort(rf(cellfun(@(x) strcmp(x(end-3:end),'.bin'),rf)));
 n = size(files,2);
 
-if (n == 0)
+if (isempty(files))
    warning('No files found in folder!');
    st={};
    return;
@@ -28,9 +28,9 @@ for fn=1:n
     %These, tmp, index change according to dataset!
     tmp = strsplit(files{fn}, {'_','.'});
     % get cell id:
-    cid = str2double(tmp{2})+1;
+    cid = str2double(tmp{1})+1;
     % get run id
-    rid = str2double(tmp{3})+1;
+    rid = str2double(tmp{2})+1;
     
     filename = fullfile(pathto,files{fn});
 %     disp(filename);
