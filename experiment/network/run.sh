@@ -39,17 +39,17 @@ parallel="1"
 nodes="288"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="2"
+cluster="1"
 # 0=Random, 1=Structured
-exp="0"
+exp="1"
 sn="3"
 clustbias="0.0"
 startRun="0"
-endRun="0"
+endRun="99"
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="niceCRAP_str"
-	jobname="updatedStimGABAb01NEWBGST_Ss20c${cluster}_SN${sn}_r"
+	jobname="updatedStimGABAb02NEWBGST_Ss10c${cluster}_SN${sn}_r"
 else
 	#jobname="niceCRAP_rnd"
 	jobname="updatedStimGABAb01NEWBGST_Rs20c${cluster}_SN${sn}_r"
