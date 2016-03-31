@@ -1,121 +1,163 @@
-figure;hold on;
-title('Structured');
-for stc=1:7
-%     figure;imagesc(voteState{1,stc}(:,sidx(2:100)))
-[~,sidx] = sort(mean(str_voteState{1,stc}),'descend');
-   hs = plot(sum(str_voteState{1,stc}(:,sidx(2:100)))/size(str_clusterStatesAll{stc},1),'r');
-end
-
-figure;hold on;
-title('Random');
-for stc=1:7
-%     figure;imagesc(voteState{1,stc}(:,sidx(2:100)))
-[~,sidx] = sort(mean(rnd_voteState{1,stc}),'descend');
-   hr = plot(sum(rnd_voteState{1,stc}(:,sidx(2:100)))/size(rnd_clusterStatesAll{stc},1),'b');
-end
-
-legend([hr,hs],{'Random','Structured'})
-%%
-figure;hold on;
-title('Structured');
-for stc=1:7
-%     figure;imagesc(voteState{1,stc}(:,sidx(2:100)))
-[~,sidx] = sort(mean(voteState{1,stc}),'descend');
-   hr = plot(sum(voteState{1,stc}(:,sidx(2:100)))/size(clusterStatesAll{stc},1),'g');
-end
-%%
-RUNS = RUNS_str;
-NC = run.NC_str;
-
-% labels = zeros(700,1);
-% for k = 1:run.NC_str
-%     labels(run.StimMat_str(:,k)) = k;
-% end
-
-failedToLoad = zeros(run.nPC,100,7);
-for stc=1:7
-    for r = 1:100
-        for c = 1:run.nPC
-            failedToLoad(c,r,stc) = isempty(RUNS{1,stc}{c,r});
-        end
-    end
-end
-rurange = find(~any( squeeze(any(failedToLoad,1)),2 ));
-run.nruns = length(rurange);
-
-for stc=1:7
-        RUNS{1,stc} = RUNS{1,stc}(:,rurange);
-end
-
-% Spike trains for # cluster:
-stc=1;
-st_str_6 = cell(run.nPC,run.nruns);
-for c=1:run.nPC
-    for ru=1:run.nruns
-        st_str_6{c,ru} = RUNS{1,stc}{c,ru}.spikes;
-    end
-end
-
-
-%% Call nice function instead:
-sc_str = run.StimMat_str(:,1);
-nsc_str = find(~ismember(1:700,run.StimMat_str(:,1)));
-sc_rnd = run.StimMat_rnd(:,1);
-nsc_rnd = find(~ismember(1:700,run.StimMat_rnd(:,1)));
-
-%Which cluster is stimulated:
-stc=1;
-% Which configuration:
-configuration = 'str';
-% eval(sprintf('st = st_%s_%d;',lower(configuration),stc-1));
-% st = batch_str;
-
-st = batch_str_spikes(sc_str,1:72);
-
-
+%% Compute relative frequency of network states:
+load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN3.mat'));
+%Which cluster is stimulated in each configuration:
+stc_rnd = 3;
+stc_str = 2;
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs20c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss20c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
+% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb02NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
 run.tstop = 20000;
-run.nruns = 72;
-% Number of states to get/plot:
-nstates = 30;
-% Array of windows A to apply:
-% Qseq = [100,50,40,30,20,10,8,6,4];
-Qseq = [50,40,30,20,10,8,6,4];
+run.nruns = 100;
 
-for Q = Qseq
-    [voteState, U] = getStates(run, Q, st, stc, nstates,0.01, configuration);
-    % figure;plot(sort(sum(voteState,2),'descend'));
-    
-%     Get most frequent states by smooth data (NOT raw relative frequency):
-%     tic;
-%     smoothed_states = zeros(size(voteState));
-%     parfor kk=1:size(voteState,1)
-%         smoothed_states(kk,:) = smooth(voteState(kk,:)',100,'rlowess')'; % SSS changed to moving for speed!
-%     end
-%     fprintf('Generating max of smoothed states took: %fs\n',toc);
-    save(sprintf('tmpNEWERdata\\vote_states_%s_Q%d',configuration,Q),'voteState','U','-v7.3');
-%     save(sprintf('vote_smooth_states_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','-v6');
-end
+% List of stimulated/non-stimulated cells in each configuration:
+sc_rnd = run.stimulatedCells_rnd{stc_rnd};
+nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
+sc_str = run.stimulatedCells_str{stc_str};
+nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
 
 
+%% Array of windows Q to apply:
+Qseq = [100,50,40,30,20,10,8,6,4];
 
-st = batch_rnd_spikes(sc_rnd,1:72);
+% Na e3etazw ono to network, mono to stimulated k mono to recruited 'H ola
+% ta ypolloipa kyttara (ola ane3artita apo to an einai recruited).
+
+% Only stimulated cluster:
+
+Qseq = [100,50,40,30,20,10,8,6,4];
+configuration = 'str';
+eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
+eval( sprintf('stc = stc_%s', configuration) );
+[~, ~, ~] = createVoteState(run, Qseq, st, stc-1, configuration, 'save');
+Qseq = [100,50,40,30,20,10,8,6,4];
 configuration = 'rnd';
-for Q = Qseq
-    [voteState, U] = getStates(run, Q, st, stc, nstates,0.01, configuration);
-    % figure;plot(sort(sum(voteState,2),'descend'));
-    
-%     Get most frequent states by smooth data (NOT raw relative frequency):
-    tic;
-%     smoothed_states = zeros(size(voteState));
-%     parfor kk=1:size(voteState,1)
-%         smoothed_states(kk,:) = smooth(voteState(kk,:)',100,'rlowess')'; % SSS changed to moving for speed!
-%     end
-%     fprintf('Generating max of smoothed states took: %fs\n',toc);
-    save(sprintf('tmpnewdata\\vote_states_%s_Q%d',configuration,Q),'voteState','U','-v6');
-%     save(sprintf('vote_smooth_states_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','-v6');
+eval( sprintf('st = batch_%s_spikes;',configuration) );
+eval( sprintf('stc = stc_%s', configuration) );
+[~, ~, ~] = createVoteState(run, Qseq, st, stc-1, configuration, 'save');
+
+%% Get most active cells in each configuration.
+FFr_rnd = zeros(run.nPC,run.nruns);
+FFr_str = zeros(run.nPC,run.nruns);
+
+for ru=1:size(batch_rnd_spikes,2)
+    for c=1:run.nPC
+        st_rnd = batch_rnd_spikes{c,ru};
+        st_rnd = st_rnd(st_rnd>1500);
+        FFr_rnd(c,ru) = length(st_rnd)/((run.tstop-1500)/1000);
+    end
 end
+for ru=1:size(batch_str_spikes,2)
+    for c=1:run.nPC
+        st_str = batch_str_spikes{c,ru};
+        st_str = st_str(st_str>1500);
+        FFr_str(c,ru) = length(st_str)/((run.tstop-1500)/1000);
+    end
+end
+
+% Sort by mean activity (per cell):
+[MEAN_rnd,IDX_rnd] = sort(mean(FFr_rnd,2),'descend');
+[MEAN_str,IDX_str] = sort(mean(FFr_str,2),'descend');
+
+cmmax = max(max([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
+cmmin = min(min([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
+
+figure;imagesc(FFr_rnd(IDX_rnd,:));
+caxis manual
+caxis([cmmin cmmax]);
+cm = hot(1000);
+cm(1,:) = [0,0,0];
+colormap(cm);title('Random');
+figure;imagesc(FFr_str(IDX_str,:));
+caxis manual
+caxis([cmmin cmmax]);
+colormap(cm);title('Structured');
+
+
+
+%% Compare states across configurations:
+
+close all;
+nProminentStatesCheck = 500;
+figure(1);hold on;
+for Q = 30
+    configuration = 'rnd';
+    eval( sprintf('stc = stc_%s', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN3',...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
+    delayRange = ceil(1500/Q):run.tstop/Q ;
+    prominentStates = zeros(size(voteState,1),1);
+    for kk=1:size(voteState,1)
+        prominentStates(kk) = mean(voteState(kk,delayRange));
+    end
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    figure(1);plot(maxfreqstates(1:nProminentStatesCheck));
+    title(sprintf('Q=%d',Q));
+    ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
+    figure;hold on;
+    for k=2:nProminentStatesCheck
+        plot(smoothed_states(maxfreqidx(k),delayRange))
+    end
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+    
+    configuration = 'str';
+    eval( sprintf('stc = stc_%s', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN3',...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
+    delayRange = ceil(1500/Q):run.tstop/Q ;
+    prominentStates = zeros(size(voteState,1),1);
+    for kk=1:size(voteState,1)
+        prominentStates(kk) = mean(voteState(kk,delayRange));
+    end
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    figure(1);plot(maxfreqstates(1:nProminentStatesCheck));
+    title(sprintf('Q=%d',Q));
+    ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
+    figure;hold on;
+    for k=2:nProminentStatesCheck
+        plot(smoothed_states(maxfreqidx(k),delayRange))
+    end
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+    
+    figure(1);legend({'Rnd','Str'});
+end
+
+%% Parse above data:
+% Na apofasisw ti na kanw me afti tin analysi: Ti apo ola afta pou exw
+% kanei toso kairo a3izei na graftei k na to exw, pou exei ginei poutana o
+% kwdikas.
+configuration = 'str';
+nProminentStatesCheck = 10;
+for Q = Qseq
+    eval( sprintf('stc = stc_%s', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN3',sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
+    %Get most frequent states by smooth data:
+    delayRange = ceil(1500/Q):run.tstop/Q ;
+    prominentStates = zeros(size(voteState,1),1);
+    for kk=1:size(voteState,1)
+        prominentStates(kk) = mean(voteState(kk,delayRange)); % SSS changed!
+    end
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+%     largeFreq = maxfreqstates(maxfreqstates~=0);
+    %plot 
+    figure;plot(maxfreqstates(1:nProminentStatesCheck));
+    title(sprintf('Q=%d',Q));
+    ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
+    figure;hold on;
+    for k=2:nProminentStatesCheck
+        plot(smoothed_states(maxfreqidx(k),delayRange))
+    end
+    title(sprintf('Q=%d',Q));
+    ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+end
+
+
+
+    
+%%
+
 % n=run.tstop;
-% Q = Qseq;
 % Qr = floor(n / Q)
 % maxstates = max(smoothed_states,[],2);
 % [maxfreqstates,maxfreqidx] = sort(maxstates,'descend') ;

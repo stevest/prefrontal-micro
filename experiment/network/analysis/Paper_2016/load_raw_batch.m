@@ -16,7 +16,7 @@ rf = {r(~[r.isdir]).name};
 files = sort(rf(cellfun(@(x) strcmp(x(end-3:end),'.bin'),rf)));
 n = size(files,2);
 
-if (n == 0)
+if (isempty(files))
    warning('No files found in folder!');
    st={};
    return;
