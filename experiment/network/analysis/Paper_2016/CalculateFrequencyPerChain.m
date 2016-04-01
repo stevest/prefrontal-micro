@@ -1,11 +1,11 @@
 %% Compute relative frequency of network states:
+close all;clear all;clc;
 load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN3.mat'));
 %Which cluster is stimulated in each configuration:
 stc_rnd = 3;
 stc_str = 2;
 load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs20c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
 load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss20c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
-% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb02NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
 run.tstop = 20000;
 run.nruns = 100;
 
@@ -24,15 +24,15 @@ Qseq = [100,50,40,30,20,10,8,6,4];
 
 % Only stimulated cluster:
 
-Qseq = [100,50,40,30,20,10,8,6,4];
+% Qseq = [100,50,40,30,20,10,8,6,4];
 configuration = 'str';
 eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
-eval( sprintf('stc = stc_%s', configuration) );
+eval( sprintf('stc = stc_%s;', configuration) );
 [~, ~, ~] = createVoteState(run, Qseq, st, stc-1, configuration, 'save');
-Qseq = [100,50,40,30,20,10,8,6,4];
+% Qseq = [100,50,40,30,20,10,8,6,4];
 configuration = 'rnd';
-eval( sprintf('st = batch_%s_spikes;',configuration) );
-eval( sprintf('stc = stc_%s', configuration) );
+eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
+eval( sprintf('stc = stc_%s;', configuration) );
 [~, ~, ~] = createVoteState(run, Qseq, st, stc-1, configuration, 'save');
 
 %% Get most active cells in each configuration.
@@ -77,9 +77,9 @@ colormap(cm);title('Structured');
 %% Compare states across configurations:
 
 close all;
-nProminentStatesCheck = 500;
+nProminentStatesCheck = 50;
 figure(1);hold on;
-for Q = 30
+for Q = 50
     configuration = 'rnd';
     eval( sprintf('stc = stc_%s', configuration) );
     load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN3',...
@@ -90,6 +90,15 @@ for Q = 30
         prominentStates(kk) = mean(voteState(kk,delayRange));
     end
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    nActivePC_rnd = cellfun(@(x) length(regexp(x,'1','match')), U );
+%     figure;scatter(nActivePC_rnd,prominentStates);
+    frequencyPerActive = {}; gPC={};
+    for k=1:10
+        tmp = find(nActivePC_rnd == k);
+        gPC{k,1} = ones(length(tmp),1)*k;
+        frequencyPerActive{k,1} = prominentStates(tmp);
+    end
+    figure;boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
     figure(1);plot(maxfreqstates(1:nProminentStatesCheck));
     title(sprintf('Q=%d',Q));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
@@ -110,6 +119,15 @@ for Q = 30
         prominentStates(kk) = mean(voteState(kk,delayRange));
     end
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    nActivePC_str = cellfun(@(x) length(regexp(x,'1','match')), U );
+%     figure;scatter(nActivePC_str,prominentStates);
+    frequencyPerActive = {}; gPC={};
+    for k=1:10
+        tmp = find(nActivePC_str == k);
+        gPC{k,1} = ones(length(tmp),1)*k;
+        frequencyPerActive{k,1} = prominentStates(tmp);
+    end
+    figure;boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
     figure(1);plot(maxfreqstates(1:nProminentStatesCheck));
     title(sprintf('Q=%d',Q));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');

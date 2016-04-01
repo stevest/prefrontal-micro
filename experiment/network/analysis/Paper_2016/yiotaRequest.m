@@ -14,7 +14,7 @@ nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
 sc_str = run.stimulatedCells_str{stc_str};
 nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
 
-%% FF and CV:
+%% Overview: FF and CV:
 
 FF_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
 FF_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
@@ -52,6 +52,24 @@ for ru=1:size(batch_str_spikes,2)
         CV_delay_str(c,ru) = std(ISI_delay_str)/mean(ISI_delay_str);
     end
 end
+
+% Overal delay period activity (FF average per cell):
+
+cmmax = max(max([FF_delay_rnd(:);FF_delay_str(:)]));
+cmmin = min(min([FF_delay_rnd(:);FF_delay_str(:)]));
+
+figure;imagesc(FF_delay_rnd);
+caxis manual
+caxis([cmmin cmmax]);
+cm = parula(1000);
+cm(1,:) = [0,0,0];
+colormap(cm);title('Random');
+xlabel('Runs');ylabel('Cell ID');title('FF average per cell (delay period)');
+figure;imagesc(FF_delay_str);
+caxis manual
+caxis([cmmin cmmax]);
+colormap(cm);title('Structured');
+xlabel('Runs');ylabel('Cell ID');title('FF average per cell (delay period)');
 
 % CV for stimulated cluster (delay period):
 edges = 0:0.1:2;

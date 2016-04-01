@@ -15,7 +15,7 @@ function [voteState, U] = getStates(run, Q, st)
 % end
 
 fprintf('Initializing getStates (heavy)...\n');
-m = run.nruns ; %No of chains (m)
+m = size(st,2) ; %No of chains (m)
 n = run.tstop ; %No of itterations (n)
 N = size(st,1);
 % Q is the simple window (ms)

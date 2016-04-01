@@ -1,6 +1,6 @@
 % Built a structured and random network.  
 close all; clear all; clc
-run.sn = 3;
+run.sn = 4;
 rng('default') 
 rng(run.sn)
 
@@ -432,11 +432,13 @@ end
 
 %% Save configuration:
 % With different serial number
-save(sprintf('\\\\139.91.162.90\\cluster\\stefanos\\Documents\\Glia\\NetworkCreation_SN%d.mat',run.sn),'-v7.3');
+save(fullfile(osDrive(),'Documents','Glia',sprintf('NetworkCreation_SN%d.mat',run.sn)),'-v7.3');
+save(fullfile(osDrive(),'Documents','Glia',sprintf('NetworkCreation_SN%d_v7.mat',run.sn)),'-v7');
+save(fullfile(osDrive(),'Documents','Glia',sprintf('NetworkCreation_SN%d_v6.mat',run.sn)),'-v6');
 
 %% Export to NEURON environment:
 
-pathto = '\\\\139.91.162.90\\cluster\\stefanos\\Documents\\Glia\\';
+pathto = fullfile(osDrive(),'Documents','Glia');
 exportNetworkParameters(run, 'str', pathto);
 exportNetworkParameters(run, 'rnd', pathto);
 exportStimulationParameters(run, pathto);
