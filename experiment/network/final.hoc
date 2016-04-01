@@ -38,16 +38,19 @@ proc pprint(){
 {sprint(STDOUT, "NEURON MPIRUN STARTING AT: %s",PPRINT_CMD)}
 {pprint(STDOUT)}
 //JOBID is generated from SGE so get it:
+{sprint(STDOUT, "JOB NAME: %s",JOBNAME)}
+{pprint(STDOUT)}
 {system("echo $JOB_ID", PPRINT_CMD)}
-{sprint(STDOUT, "WITH JOB ID: %s",PPRINT_CMD)}
+{sprint(STDOUT, "JOB ID: %s",PPRINT_CMD)}
+{pprint(STDOUT)}
 //{system("echo $JOB_NAME	", PPRINT_CMD)}
 //{sprint(JOBNAME, "%s",PPRINT_CMD)}
 //JOBNAME: read it from arguments, because of envars bug.
-{pprint(JOBNAME)}
+{pprint("Git sha1: ")}
+{pprint(GITSHA1)}
 //objref strFun
 //{strFun = new StringFunctions()}
 //{strFun.left(JOBNAME,strFun.len(JOBNAME)-1)}
-{pprint(STDOUT)}
 {sprint(STDOUT,"========================================================================================\n")}
 {pprint(STDOUT)}
 if(PARALLEL){
@@ -66,15 +69,15 @@ if(PARALLEL){PC.barrier}
 if(1){pprint("Load NEURON environment.")}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
-strdef NMDA_MECH, EXEC_CMD
+strdef EXEC_CMD
 EXEC_CMD = ""
 if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkParametersSTR.hoc\")}",PATH,ID)}
+	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s.hoc\")}",PATH,SN)}
 } else {
-	sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkParametersRND.hoc\")}",PATH,ID)
+	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s.hoc\")}",PATH,SN)
 }
 if(PARALLEL){PC.barrier}
-tstop = 20000 
+tstop = 10000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -90,24 +93,24 @@ if(1){pprint("Load Network Parameters.")}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Gap Parameters.")}
-
+/*
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkStimulationHeader.hoc\")}",PATH,ID)}
+{sprint(EXEC_CMD,"{xopen(\"%simportNetworkStimulationHeader.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-
+*/
 /*EXEC_CMD = ""
 sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
 execute(EXEC_CMD)*/
 //if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
-
+/*
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importBackgroundStimParamsHeader.hoc\")}",PATH,ID)}
+{sprint(EXEC_CMD,"{xopen(\"%simportBackgroundStimParamsHeader.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
 //if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
-
+*/
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importStimulationParameters.hoc\")}",PATH,ID)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s.hoc\")}",PATH,SN)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Stimulation Parameters.")}
@@ -140,13 +143,15 @@ objref PcellStimList
 {PcellStimList = new Vector(nPCcells,0)}
 
 if(EXPERIMENT){ //if Structured...
-	for i=0,PcellStimListSTR.nrow-1{
-		PcellStimList.x[PcellStimListSTR.x[i][CLUSTER_ID]]=1
+	for i=0,PcellStimListSTR[CLUSTER_ID].size()-1{
+		PcellStimList.x[PcellStimListSTR[CLUSTER_ID].x[i]]=1
+		 {sprint(PPRINT_CMD,"Stimulating cell: %d",PcellStimListSTR[CLUSTER_ID].x[i])}
+		pprint(PPRINT_CMD)
 
 	}
 } else {
-	for i=0,PcellStimListRND.nrow-1{
-		PcellStimList.x[PcellStimListRND.x[i][CLUSTER_ID]] = 1
+	for i=0,PcellStimListRND[CLUSTER_ID].size()-1{
+		PcellStimList.x[PcellStimListRND[CLUSTER_ID].x[i]] = 1
 
 	}
 }
@@ -154,10 +159,7 @@ if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Parse Stimulation Parameters.")}
 
 objref PcellIDlist
-PcellIDlist = new Vector(nPCcells)
-for n=0,(nPCcells-1){
-	PcellIDlist.x[n] = 1
-}
+PcellIDlist = new Vector(nPCcells,1)
 
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Choose morphologies.")}
@@ -206,12 +208,12 @@ synapses_backinh=500
 synapses_inh=1
 
 //override complex background spiketrains:
-BG_dendSyn = synapses_backb
-BG_apicSyn = synapses_backa
-BG_apicprSyn = synapses_backpr
-BG_PVSyn = synapses_backinh
+BG_dendSyn = 2//synapses_backb
+BG_apicSyn = 2//synapses_backa
+BG_apicprSyn = 2//synapses_backpr
+BG_PVSyn = 2//synapses_backinh
 
-Stim_MaxSyn_apic = 150//90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
+Stim_MaxSyn_apic = 90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 Stim_MaxSyn_basal=0//120	//initial stimulation
 
 /*
@@ -223,7 +225,7 @@ gababweights.x[3]=4.65e-4		//0.8
 //gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-gabaweight_pv2pc_b = gabaweightb   *0.15//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = gabaweightb   *0.2//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 /*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
 nmdaweights.x[1]=0.35		//1.5
@@ -425,6 +427,11 @@ if(PARALLEL){
 	if(save_synaptic_delays){
 		par_save_synaptic_delays(JOBDIR,CLUSTER_ID,ID,ISBINARY)
 		{pprint("par_save_synaptic_delays() is active.")}
+	}
+
+	if(save_inmda){
+		par_save_inmda(JOBDIR,CLUSTER_ID,ID,ISBINARY)
+		{pprint("par_save_inmda() is active.")}
 	}
 
 }else{

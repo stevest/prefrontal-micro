@@ -15,24 +15,18 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^A" | wc -l
 dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -l) ))
 
 
+	gitsha1=`git rev-parse HEAD`
 if [[ $dirtygit > 0 ]]; then
 	echo "Can not continue with run when git repo is dirty. Exiting..."
-	#exit 1
+	echo "Current HEAD is: ${gitsha1}"
+	exit 1
 else
 	echo "Git repo is clean. Continue run with SHA1: "
-	echo `git rev-parse HEAD`
+	gitsha1=`git rev-parse HEAD`
+	echo $gitsha1
 fi
 
 source /opt/gridengine/default/common/settings.csh
-##$ -S /bin/sh
-##$ -V
-###$ -cwd ##Does NOT HAVE the /home/ prefix; causing error
-##$ -N JobStefanos
-##$ -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/flow.out -j y
-##$ -l h=!compute-0-1&!compute-0-3&!compute-0-4&!compute-0-6&!compute-0-7&!compute-0-12&!compute-0-13&!compute-0-14&!compute-0-15
-##$ -pe orte 90
-##$ -R y
-##sge_o_workdir="/home/cluster/stefanos/Documents/Github/prefrontal-micro/experiment/network/"
 
 simhome="/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network"
 storagehome="/home/cluster/stefanos/Documents/Glia"
@@ -45,18 +39,20 @@ parallel="1"
 nodes="288"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="0"
+cluster="1"
 # 0=Random, 1=Structured
-exp="0"
+exp="1"
+sn="3"
 clustbias="0.0"
 startRun="0"
 endRun="99"
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	#jobname="Ss20c${cluster}r"
-	jobname="GABAb015NEWBGST_Ss20c${cluster}r"
+	#jobname="niceCRAP_str"
+	jobname="updatedStimGABAb02NEWBGST_Ss10c${cluster}_SN${sn}_r"
 else
-	jobname="GABAb015NEWBGST_Rs20c${cluster}r"
+	#jobname="niceCRAP_rnd"
+	jobname="updatedStimGABAb01NEWBGST_Rs20c${cluster}_SN${sn}_r"
 fi
 
 mechanisms="mechanism_simple"
@@ -111,7 +107,7 @@ do
 		mkdir -p $outputDir;
 	fi
 	## Submit as Job in Sun Grid Engine:
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 1-$nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN'\\\"\)" -c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" -c "execute1\(\\\"'GITSHA1 = \\\"$gitsha1\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	## Run locally:
 	##/opt/openmpi/bin/mpirun -v -n $nodes /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c 'execute1("strdef JOBNAME, JOBDIR")' -c 'execute1("JOBNAME = \"'$jobname'\"")' -c 'execute1("JOBDIR = \"'$outputDir'\"")' -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	#qsub -b y -S /bin/bash -V -N postjob -pe orte 1 -hold_jid $uniquejobname postjob.sh $outputFile $uniquejobname
