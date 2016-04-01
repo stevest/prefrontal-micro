@@ -225,7 +225,7 @@ gababweights.x[3]=4.65e-4		//0.8
 //gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-gabaweight_pv2pc_b = gabaweightb   *0.2//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = gabaweightb   *0.1//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 /*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
 nmdaweights.x[1]=0.35		//1.5

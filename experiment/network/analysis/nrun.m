@@ -812,6 +812,70 @@ classdef nrun < handle
             fclose(fid);
         end
         
+        function exportNetworkParametersSmall(obj,str,varargin)
+            if nargin >0
+                exportpath = varargin{1};
+            else
+                exportpath = obj.path;
+            end
+            
+            if strcmp(str,'rnd')
+                s=0;
+            elseif strcmp(str,'str')
+                s=1;
+            else
+                error('No network configuration given! Exiting.');
+                return;
+            end
+            % Export Network Connectivity:
+            % Export STRUCTURED parameter matrices in .hoc file:
+            if s
+                fprintf('Exporting importNetworkParametersSTR.hoc...\n');
+                fid = fopen([exportpath,obj.SLASH,'importNetworkParametersSTR.hoc'],'W');
+            else 
+                fprintf('Exporting importNetworkParametersRND.hoc...\n');
+                fid = fopen([exportpath,obj.SLASH,'importNetworkParametersRND.hoc'],'W');
+            end
+            
+            fprintf(fid,'// This HOC file was generated with MATLAB\n');
+            fprintf(fid,sprintf('nPCcells=%d\n',obj.nPC));
+            fprintf(fid,sprintf('nPVcells=%d\n',obj.nPV));
+            fprintf(fid,sprintf('nAllCells=%d\n',obj.nAll));
+            fprintf(fid,sprintf('steps_per_ms=%d\n',obj.dt));            
+            
+            fprintf(fid,'// Object decleration:\n');
+            fprintf(fid,'objref C, W\n');
+            fprintf(fid,'C = new Matrix(nAllCells, nAllCells)\n');
+            fprintf(fid,'W = new Matrix(nAllCells, nAllCells)\n');
+            
+            fprintf(fid,'\n// Import parameters: (long-long text following!)\n');
+            % network connectivity:
+            for i=1:obj.nPC
+                for j=1:obj.nPC
+                    if s
+                        tmp = obj.state_str(i,j);
+                    else
+                        tmp = obj.state_rnd(i,j);
+                    end
+                    fprintf(fid,'C.x[%d][%d]=%d\n',i-1,j-1, tmp);
+                end
+            end
+            % Network synaptic weights
+            for i=1:obj.nPC
+                for j=1:obj.nPC
+                    if s
+                        tmp = obj.weights_str(i,j);
+                    else
+                        tmp = obj.weights_rnd(i,j);
+                    end
+                    fprintf(fid,'W.x[%d][%d]=%f\n',i-1,j-1, tmp);
+                end
+            end
+            fprintf(fid,'//EOF\n');
+            fclose(fid);
+
+        end
+        
         function exportNetworkStimulationHeader(obj,varargin)
             if nargin >0
                 exportpath = varargin{1};

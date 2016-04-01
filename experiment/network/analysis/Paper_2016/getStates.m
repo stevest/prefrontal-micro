@@ -6,7 +6,6 @@ function [voteState, U] = getStates(run, Q, st)
 %     error('Error. \nInput variable Q must be a float, not a %s.',class(Qseq));
 % end
 
-
 % % If missing runs, remove them from the array:
 % if run.nruns ~= length(rurange)
 %     for stc=1:7
@@ -14,8 +13,9 @@ function [voteState, U] = getStates(run, Q, st)
 %     end
 %     run.nruns = length(rurange);
 % end
+
 fprintf('Initializing getStates (heavy)...\n');
-m = run.nruns ; %No of chains (m)
+m = size(st,2) ; %No of chains (m)
 n = run.tstop ; %No of itterations (n)
 N = size(st,1);
 % Q is the simple window (ms)
@@ -80,13 +80,18 @@ fprintf('Generating voteStates...');
 tic;
 parfor qr=1:Qr
     [~,locStates] = ismember(strAcrossQs{qr},U);
-    if any(locStates==0)
-        error('This should never happen.. Location can not be zero.');
-    end
+%     if any(locStates==0)
+%         error('This should never happen.. Location can not be zero.');
+%     end
     voteState{qr} = accumarray([1:size(U,1), locStates']',[voteState{qr}', ones(1,length(locStates))]) ;
 end
 voteState = cell2mat(voteState');
 fprintf('took: %fs\n',toc);
+
+% validate vote state matrix:
+if ~all(sum(voteState) == m)
+    error('voteState validation failed!');
+end
 fprintf('Terminating getStates... (phew!)\n');
 
 return;

@@ -1,3 +1,154 @@
+%% pyramidal CV ONLY FOR STIMULATED CLUSTER AND DELAY PERIOD!
+load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN3.mat'));
+%Which cluster is stimulated in each configuration:
+stc_rnd = 3;
+stc_str = 2;
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs20c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss20c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
+run.tstop = 20000;
+run.nruns = 100;
+
+% List of stimulated/non-stimulated cells in each configuration:
+sc_rnd = run.stimulatedCells_rnd{stc_rnd};
+nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
+sc_str = run.stimulatedCells_str{stc_str};
+nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
+
+%% Overview: FF and CV:
+
+FF_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+FF_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+CV_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+CV_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+FF_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
+FF_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
+CV_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
+CV_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
+for ru=1:size(batch_rnd_spikes,2)
+    for c=1:length(sc_rnd)
+%             [~,st_rnd] = advanced_spike_count(batch_rnd{sc_rnd(c),ru}(1500:end), -10, 0);
+        st_rnd = batch_rnd_spikes{sc_rnd(c),ru};
+        st_stim_rnd = st_rnd(st_rnd<=1500);
+        st_delay_rnd = st_rnd(st_rnd>1500);
+        ISI_stim_rnd = diff(st_stim_rnd);
+        ISI_delay_rnd = diff(st_delay_rnd);
+        FF_stim_rnd(c,ru) = length(st_stim_rnd)/1.5;
+        FF_delay_rnd(c,ru) = length(st_delay_rnd)/((run.tstop-1500)/1000);
+        CV_stim_rnd(c,ru) = std(ISI_stim_rnd)/mean(ISI_stim_rnd);
+        CV_delay_rnd(c,ru) = std(ISI_delay_rnd)/mean(ISI_delay_rnd);
+    end
+end
+for ru=1:size(batch_str_spikes,2)
+    for c=1:length(sc_str)
+%         [~,st_str] = advanced_spike_count(batch_str{sc_str(c),ru}(1500:end), -10, 0);
+        st_str = batch_str_spikes{sc_str(c),ru};
+        st_stim_str = st_str(st_str<=1500);
+        st_delay_str = st_str(st_str>1500);
+        ISI_stim_str= diff(st_stim_str);
+        ISI_delay_str = diff(st_delay_str);
+        FF_stim_str(c,ru) = length(st_stim_str)/1.5;
+        FF_delay_str(c,ru) = length(st_delay_str)/((run.tstop-1500)/1000);
+        CV_stim_str(c,ru) = std(ISI_stim_str)/mean(ISI_stim_str);
+        CV_delay_str(c,ru) = std(ISI_delay_str)/mean(ISI_delay_str);
+    end
+end
+
+% Overal delay period activity (FF average per cell):
+
+cmmax = max(max([FF_delay_rnd(:);FF_delay_str(:)]));
+cmmin = min(min([FF_delay_rnd(:);FF_delay_str(:)]));
+
+figure;imagesc(FF_delay_rnd);
+caxis manual
+caxis([cmmin cmmax]);
+cm = parula(1000);
+cm(1,:) = [0,0,0];
+colormap(cm);title('Random');
+xlabel('Runs');ylabel('Cell ID');title('FF average per cell (delay period)');
+figure;imagesc(FF_delay_str);
+caxis manual
+caxis([cmmin cmmax]);
+colormap(cm);title('Structured');
+xlabel('Runs');ylabel('Cell ID');title('FF average per cell (delay period)');
+
+% CV for stimulated cluster (delay period):
+edges = 0:0.1:2;
+tmp_delay = [histc(CV_delay_rnd(:),edges)'/sum(~isnan(CV_delay_rnd(:)));histc(CV_delay_str(:),edges)'/sum(~isnan(CV_delay_str(:)))];
+figure;hold on;plot(edges(2:end),tmp_delay(:,2:end));
+cm = get(groot,'DefaultAxesColorOrder');
+tmp_stim = [histc(CV_stim_rnd(:),edges)'/sum(~isnan(CV_stim_rnd(:)));histc(CV_stim_str(:),edges)'/sum(~isnan(CV_stim_str(:)))];
+plot(edges(2:end),tmp_stim(1,2:end),'color',cm(1,:));
+plot(edges(2:end),tmp_stim(2,2:end),'color',cm(2,:));
+
+dmax=max([tmp_delay(:);tmp_stim(:)]);dmax=dmax+dmax*0.1;
+scatter(nanmean([CV_delay_rnd(:),CV_delay_str(:)]),[1,1]*dmax,[],cm(1:2,:),'v','fill');
+scatter(nanmean([CV_stim_rnd(:),CV_stim_str(:)]),[1,1]*dmax,[],cm(1:2,:),'v','fill');
+
+legend({'Random','Structured'});xlabel('Coefficient of Variation (CV)');ylabel('Count (#)');title('Histogram of CV (Cluster in delay period)');
+
+% FF for stimulated cluster (delay period):
+edges = 0:2:60;
+tmp = [histc(FF_delay_rnd(:),edges)'/sum(~isnan(FF_delay_rnd(:)));histc(FF_delay_str(:),edges)'/sum(~isnan(FF_delay_str(:)))];
+figure;plot(edges(2:end),tmp(:,2:end));
+legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Count (#)');title('Histogram of FF (Cluster in delay period)');
+set(gca,'XScale','log');
+
+
+%% Recruitement:
+FFr_rnd = zeros(length(nsc_rnd),run.nruns);
+FFr_str = zeros(length(nsc_str),run.nruns);
+
+for ru=1:size(batch_rnd_spikes,2)
+    for c=1:length(nsc_rnd)
+        st_rnd = batch_rnd_spikes{nsc_rnd(c),ru};
+        st_rnd = st_rnd(st_rnd>1500);
+        FFr_rnd(c,ru) = length(st_rnd)/((run.tstop-1500)/1000);
+    end
+end
+for ru=1:size(batch_str_spikes,2)
+    for c=1:length(nsc_str)
+        st_str = batch_str_spikes{nsc_str(c),ru};
+        st_str = st_str(st_str>1500);
+        FFr_str(c,ru) = length(st_str)/((run.tstop-1500)/1000);
+    end
+end
+
+edges = 0:0.2:8;
+tmp = [histc(FFr_rnd(:),edges)'/sum(~isnan(FFr_rnd(:)));histc(FFr_str(:),edges)'/sum(~isnan(FFr_str(:)))];
+% figure;plot(edges,histcounts(FFr_rnd(FFr_rnd~=0),edges))
+% figure;plot(edges,histcounts(FFr_str(FFr_str~=0),edges))
+figure;hold on;plot(edges,tmp)
+legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Relative Frequency');title('Non-Stimulated Cells Firing Rate');
+set(gca,'XScale','log');
+plot([0.4,0.4],[0,0.04])
+
+% Sort by mean activity (per cell):
+[MEAN_rnd,IDX_rnd] = sort(mean(FFr_rnd,2),'descend');
+[MEAN_str,IDX_str] = sort(mean(FFr_str,2),'descend');
+
+% Set limit in background activity (1Hz):
+figure;hold on;
+plot(MEAN_rnd(1:40));
+plot(MEAN_str(1:40),'r');
+xlabel('Cell ID (#)');ylabel('Mean Firing Frequency');
+
+cmmax = max(max([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
+cmmin = min(min([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
+
+figure;imagesc(FFr_rnd(IDX_rnd,:));
+caxis manual
+caxis([cmmin cmmax]);
+cm = hot(1000);
+cm(1,:) = [0,0,0];
+colormap(cm);title('Random');
+figure;imagesc(FFr_str(IDX_str,:));
+caxis manual
+caxis([cmmin cmmax]);
+colormap(cm);title('Structured');
+
+
+
+%% Load Random
 for k=1:50
     pathto = sprintf('\\\\139.91.162.90\\cluster\\stefanos\\Documents\\Glia\\GABAb02NEWBGST_Rs20c0r%d',k-1);
     if exist(pathto,'dir')
@@ -76,82 +227,8 @@ tmp = [histcounts(NumMat_rnd(:),edges)',histcounts(NumMat_str(:),edges)']/80;
 figure;bar(edges(2:end-1),tmp(2:end,:));
 legend({'Random','Structured'});xlabel('No of Up states ');ylabel('Count (#)');title('Number of UP state');
 
-%% pyramidal CV ONLY FOR STIMULATED CLUSTER AND DELAY PERIOD!
-load('X:\\Documents\\Glia\\NetworkCreation_SN3.mat');
-%Which cluster is stimulated in each configuration:
-stc_rnd = 3;
-stc_str = 2;
-load(sprintf('X:\\Documents\\Glia\\dataParsed2Matlab\\updatedStimGABAb01NEWBGST_Rs20c%d_SN%d_spikes.mat',stc_rnd-1, run.sn));
-load(sprintf('X:\\Documents\\Glia\\dataParsed2Matlab\\updatedStimGABAb01NEWBGST_Ss20c%d_SN%d_spikes.mat',stc_str-1,run.sn));
-run.tstop = 20000;
-run.nruns = 100;
-
-% List of stimulated/non-stimulated cells in each configuration:
-sc_rnd = run.stimulatedCells_rnd{stc_rnd};
-nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
-sc_str = run.stimulatedCells_str{stc_str};
-nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
-%%
-
-FF_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
-FF_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
-CV_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
-CV_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
-FF_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
-FF_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
-CV_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
-CV_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
-for ru=1:size(batch_rnd_spikes,2)
-    for c=1:length(sc_rnd)
-%             [~,st_rnd] = advanced_spike_count(batch_rnd{sc_rnd(c),ru}(1500:end), -10, 0);
-        st_rnd = batch_rnd_spikes{sc_rnd(c),ru};
-        st_stim_rnd = st_rnd(st_rnd<=1500);
-        st_delay_rnd = st_rnd(st_rnd>1500);
-        ISI_stim_rnd = diff(st_stim_rnd);
-        ISI_delay_rnd = diff(st_delay_rnd);
-        FF_stim_rnd(c,ru) = length(st_stim_rnd)/1.5;
-        FF_delay_rnd(c,ru) = length(st_delay_rnd)/((run.tstop-1500)/1000);
-        CV_stim_rnd(c,ru) = std(ISI_stim_rnd)/mean(ISI_stim_rnd);
-        CV_delay_rnd(c,ru) = std(ISI_delay_rnd)/mean(ISI_delay_rnd);
-    end
-end
-for ru=1:size(batch_str_spikes,2)
-    for c=1:length(sc_str)
-%         [~,st_str] = advanced_spike_count(batch_str{sc_str(c),ru}(1500:end), -10, 0);
-        st_str = batch_str_spikes{sc_str(c),ru};
-        st_stim_str = st_str(st_str<=1500);
-        st_delay_str = st_str(st_str>1500);
-        ISI_stim_str= diff(st_stim_str);
-        ISI_delay_str = diff(st_delay_str);
-        FF_stim_str(c,ru) = length(st_stim_str)/1.5;
-        FF_delay_str(c,ru) = length(st_delay_str)/((run.tstop-1500)/1000);
-        CV_stim_str(c,ru) = std(ISI_stim_str)/mean(ISI_stim_str);
-        CV_delay_str(c,ru) = std(ISI_delay_str)/mean(ISI_delay_str);
-    end
-end
 
 
-% CV for stimulated cluster (delay period):
-edges = 0:0.1:2;
-tmp_delay = [histc(CV_delay_rnd(:),edges)'/sum(~isnan(CV_delay_rnd(:)));histc(CV_delay_str(:),edges)'/sum(~isnan(CV_delay_str(:)))];
-figure;hold on;plot(edges(2:end),tmp_delay(:,2:end));
-cm = get(groot,'DefaultAxesColorOrder');
-tmp_stim = [histc(CV_stim_rnd(:),edges)'/sum(~isnan(CV_stim_rnd(:)));histc(CV_stim_str(:),edges)'/sum(~isnan(CV_stim_str(:)))];
-plot(edges(2:end),tmp_stim(1,2:end),'color',cm(1,:));
-plot(edges(2:end),tmp_stim(2,2:end),'color',cm(2,:));
-
-dmax=max([tmp_delay(:);tmp_stim(:)]);dmax=dmax+dmax*0.1;
-scatter(nanmean([CV_delay_rnd(:),CV_delay_str(:)]),[1,1]*dmax,[],cm(1:2,:),'v','fill');
-scatter(nanmean([CV_stim_rnd(:),CV_stim_str(:)]),[1,1]*dmax,[],cm(1:2,:),'v','fill');
-
-legend({'Random','Structured'});xlabel('Coefficient of Variation (CV)');ylabel('Count (#)');title('Histogram of CV (Cluster in delay period)');
-
-% FF for stimulated cluster (delay period):
-edges = 0:2:60;
-tmp = [histc(FF_delay_rnd(:),edges)'/sum(~isnan(FF_delay_rnd(:)));histc(FF_delay_str(:),edges)'/sum(~isnan(FF_delay_str(:)))];
-figure;plot(edges(2:end),tmp(:,2:end));
-legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Count (#)');title('Histogram of FF (Cluster in delay period)');
-set(gca,'XScale','log');
 
 %% Compute Synchronicity (a big issue!):
 % SPIKY_loop_results_cluster_rnd = cell(1,72);
@@ -275,57 +352,6 @@ hs = plot(irange,tmp_mean,'color',cm(2,:));
 
 legend([hr,hs],{'Random','Structured'});xlabel('Time (ms)');ylabel('SPIKE Synchronous metric');title('Cluster synchronicity ');
 
-%% Recruitement:
-FFr_rnd = zeros(length(nsc_rnd),run.nruns);
-FFr_str = zeros(length(nsc_str),run.nruns);
-
-for ru=1:size(batch_rnd_spikes,2)
-    for c=1:length(nsc_rnd)
-        st_rnd = batch_rnd_spikes{nsc_rnd(c),ru};
-        st_rnd = st_rnd(st_rnd>1500);
-        FFr_rnd(c,ru) = length(st_rnd)/((run.tstop-1500)/1000);
-    end
-end
-for ru=1:size(batch_str_spikes,2)
-    for c=1:length(nsc_str)
-        st_str = batch_str_spikes{nsc_str(c),ru};
-        st_str = st_str(st_str>1500);
-        FFr_str(c,ru) = length(st_str)/((run.tstop-1500)/1000);
-    end
-end
-
-edges = 0:0.2:8;
-tmp = [histc(FFr_rnd(:),edges)'/sum(~isnan(FFr_rnd(:)));histc(FFr_str(:),edges)'/sum(~isnan(FFr_str(:)))];
-% figure;plot(edges,histcounts(FFr_rnd(FFr_rnd~=0),edges))
-% figure;plot(edges,histcounts(FFr_str(FFr_str~=0),edges))
-figure;hold on;plot(edges,tmp)
-legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Relative Frequency');title('Non-Stimulated Cells Firing Rate');
-set(gca,'XScale','log');
-plot([0.4,0.4],[0,0.04])
-
-% Sort by mean activity (per cell):
-[MEAN_rnd,IDX_rnd] = sort(mean(FFr_rnd,2),'descend');
-[MEAN_str,IDX_str] = sort(mean(FFr_str,2),'descend');
-
-% Set limit in background activity (1Hz):
-figure;hold on;
-plot(MEAN_rnd(1:40));
-plot(MEAN_str(1:40),'r');
-xlabel('Cell ID (#)');ylabel('Mean Firing Frequency');
-
-cmmax = max(max([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
-cmmin = min(min([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
-
-figure;imagesc(FFr_rnd(IDX_rnd,:));
-caxis manual
-caxis([cmmin cmmax]);
-cm = hot(1000);
-cm(1,:) = [0,0,0];
-colormap(cm);title('Random');
-figure;imagesc(FFr_str(IDX_str,:));
-caxis manual
-caxis([cmmin cmmax]);
-colormap(cm);title('Structured');
 
 %% Differentiate UP states:
 bgvth = {};

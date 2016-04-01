@@ -19,7 +19,7 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -
 if [[ $dirtygit > 0 ]]; then
 	echo "Can not continue with run when git repo is dirty. Exiting..."
 	echo "Current HEAD is: ${gitsha1}"
-	#exit 1
+	exit 1
 else
 	echo "Git repo is clean. Continue run with SHA1: "
 	gitsha1=`git rev-parse HEAD`
@@ -39,10 +39,10 @@ parallel="1"
 nodes="288"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="1"
+cluster="5"
 # 0=Random, 1=Structured
 exp="1"
-sn="3"
+sn="4"
 clustbias="0.0"
 startRun="0"
 endRun="99"
@@ -50,10 +50,10 @@ custom_jobs=(45 46 47 49 50 52 54 55 56 60 62 63 64 65 66 67 68 69 70 71 73 75 7
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="niceCRAP_str"
-	jobname="updatedStimGABAb02NEWBGST_Ss10c${cluster}_SN${sn}_r"
+	jobname="updatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_r"
 else
 	#jobname="niceCRAP_rnd"
-	jobname="updatedStimGABAb01NEWBGST_Rs20c${cluster}_SN${sn}_r"
+	jobname="updatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_r"
 fi
 
 mechanisms="mechanism_simple"
@@ -92,8 +92,8 @@ jobstdout="$jobstdout\\\n=======================================================
 #Working with STDOUT:#qsub -b y -S /bin/bash -V -N $jobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/$outputFile.out -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef STDOUT, JOBNAME'\\\"\)" -c "execute1\(\\\"'STDOUT = \\\"$jobstdout\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$jobname\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 echo $jobstdout
 #POSIXLY_CORRECT=0
-#for run in $(seq $startRun $endRun);
-for run in "${custom_jobs[@]}"
+for run in $(seq $startRun $endRun);
+#for run in "${custom_jobs[@]}"
 do
 	echo $run;
 	uniquejobname="${jobname}${run}"
