@@ -58,64 +58,68 @@ end
 
 
 %% Call nice function instead:
-sc_str = run.StimMat_str(:,1);
-nsc_str = find(~ismember(1:700,run.StimMat_str(:,1)));
-sc_rnd = run.StimMat_rnd(:,1);
-nsc_rnd = find(~ismember(1:700,run.StimMat_rnd(:,1)));
-
-%Which cluster is stimulated:
-stc=1;
-% Which configuration:
-configuration = 'str';
-% eval(sprintf('st = st_%s_%d;',lower(configuration),stc-1));
-% st = batch_str;
-
-st = batch_str_spikes(sc_str,1:72);
-
-
+load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN3_v6.mat'));
+%Which cluster is stimulated in each configuration:
+stc_rnd = 3;
+stc_str = 2;
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs20c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss20c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
 run.tstop = 20000;
-run.nruns = 72;
-% Number of states to get/plot:
-nstates = 30;
-% Array of windows A to apply:
-% Qseq = [100,50,40,30,20,10,8,6,4];
-Qseq = [50,40,30,20,10,8,6,4];
+run.nruns = 100;
 
-for Q = Qseq
-    [voteState, U] = getStates(run, Q, st, stc, nstates,0.01, configuration);
-    % figure;plot(sort(sum(voteState,2),'descend'));
-    
-%     Get most frequent states by smooth data (NOT raw relative frequency):
-%     tic;
-%     smoothed_states = zeros(size(voteState));
-%     parfor kk=1:size(voteState,1)
-%         smoothed_states(kk,:) = smooth(voteState(kk,:)',100,'rlowess')'; % SSS changed to moving for speed!
-%     end
-%     fprintf('Generating max of smoothed states took: %fs\n',toc);
-    save(sprintf('tmpNEWERdata\\vote_states_%s_Q%d',configuration,Q),'voteState','U','-v7.3');
-%     save(sprintf('vote_smooth_states_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','-v6');
-end
+% List of stimulated/non-stimulated cells in each configuration:
+sc_rnd = run.stimulatedCells_rnd{stc_rnd};
+nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
+sc_str = run.stimulatedCells_str{stc_str};
+nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
+% Array of windows Q to apply:
+Qseq = [100,50,40,30,20,10,8,6,4];
 
+% Na e3etazw ono to network, mono to stimulated k mono to recruited 'H ola
+% ta ypolloipa kyttara (ola ane3artita apo to an einai recruited).
 
-
-st = batch_rnd_spikes(sc_rnd,1:72);
+% Only stimulated cluster:
 configuration = 'rnd';
+eval( sprintf('st = batch_%s_spikes;',configuration) );
+eval( sprintf('[~, ~, ~] = createVoteState(run, Qseq, st, stc_%s-1, configuration, ''save'');',configuration) );
+configuration = 'str';
+eval( sprintf('st = batch_%s_spikes;',configuration) );
+eval( sprintf('[~, ~, ~] = createVoteState(run, Qseq, st, stc_%s-1, configuration, ''save'');',configuration) );
+
+
+%% Parse above data:
+% Na apofasisw ti na kanw me afti tin analysi: Ti apo ola afta pou exw
+% kanei toso kairo a3izei na graftei k na to exw, pou exei ginei poutana o
+% kwdikas.
+nProminentStatesCheck = 10;
 for Q = Qseq
-    [voteState, U] = getStates(run, Q, st, stc, nstates,0.01, configuration);
-    % figure;plot(sort(sum(voteState,2),'descend'));
-    
-%     Get most frequent states by smooth data (NOT raw relative frequency):
-    tic;
-%     smoothed_states = zeros(size(voteState));
-%     parfor kk=1:size(voteState,1)
-%         smoothed_states(kk,:) = smooth(voteState(kk,:)',100,'rlowess')'; % SSS changed to moving for speed!
-%     end
-%     fprintf('Generating max of smoothed states took: %fs\n',toc);
-    save(sprintf('tmpnewdata\\vote_states_%s_Q%d',configuration,Q),'voteState','U','-v6');
-%     save(sprintf('vote_smooth_states_%s_Q%d',configuration,Q),'voteState','U','smoothed_states','-v6');
+    load(sprintf('\\\\139.91.162.90\\cluster\\stefanos\\Documents\\Glia\\dataParsed2Matlab\\NewRandomQanalysis\\vote_smooth_states_rnd_sn3_rnd_Q%d.mat',Q));
+    %Get most frequent states by smooth data:
+    delayRange = ceil(1500/Q):run.tstop/Q ;
+    prominentStates = zeros(size(voteState,1),1);
+    for kk=1:size(voteState,1)
+        prominentStates(kk) = mean(voteState(kk,delayRange)); % SSS changed!
+    end
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    largeFreq = maxfreqstates(maxfreqstates~=0);
+    %plot 
+    figure;plot(maxfreqstates(1:nProminentStatesCheck));
+    title(sprintf('Q=%d',Q));
+    ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
+    figure;hold on;
+    for k=2:nProminentStatesCheck
+        plot(smoothed_states(maxfreqidx(k),delayRange))
+    end
+    title(sprintf('Q=%d',Q));
+    ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
 end
+
+
+
+    
+%%
+
 % n=run.tstop;
-% Q = Qseq;
 % Qr = floor(n / Q)
 % maxstates = max(smoothed_states,[],2);
 % [maxfreqstates,maxfreqidx] = sort(maxstates,'descend') ;

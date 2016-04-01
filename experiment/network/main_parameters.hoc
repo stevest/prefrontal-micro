@@ -6,7 +6,7 @@ SHUFFLE_SYNAPSES = 0
 save_synaptic_locations = 0 
 save_stimulation_locations = 0
 save_synaptic_delays = 0 
-save_inmda = 1 
+save_inmda = 0 
 // Experimental setup
 //tstop=10 //defined externaly
 steps_per_ms=10

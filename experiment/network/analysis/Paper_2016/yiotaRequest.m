@@ -20,7 +20,8 @@ for k=1
     end
 end
 %% Find Up States ONLY FOR STIMULATED CLUSTER AND DELAY PERIOD!
-sc_rnd = run.StimMat_rnd(:,1);
+stc = 2;
+sc_rnd = run.stimulatedCells_rnd{stc};
 NumMat_rnd = zeros(100,1);
 UPFFMat_rnd = cell(100,1);
 DurMat_rnd = cell(100,1);
@@ -76,47 +77,68 @@ figure;bar(edges(2:end-1),tmp(2:end,:));
 legend({'Random','Structured'});xlabel('No of Up states ');ylabel('Count (#)');title('Number of UP state');
 
 %% pyramidal CV ONLY FOR STIMULATED CLUSTER AND DELAY PERIOD!
-FF_stim_rnd = zeros(100,80);
-FF_delay_rnd = zeros(100,80);
-CV_stim_rnd = zeros(100,80);
-CV_delay_rnd = zeros(100,80);
-FF_stim_str = zeros(100,80);
-FF_delay_str = zeros(100,80);
-CV_stim_str = zeros(100,80);
-CV_delay_str = zeros(100,80);
-for ru=1:72
-    for c=1:100
+load('X:\\Documents\\Glia\\NetworkCreation_SN3.mat');
+%Which cluster is stimulated in each configuration:
+stc_rnd = 3;
+stc_str = 2;
+load(sprintf('X:\\Documents\\Glia\\dataParsed2Matlab\\updatedStimGABAb01NEWBGST_Rs20c%d_SN%d_spikes.mat',stc_rnd-1, run.sn));
+load(sprintf('X:\\Documents\\Glia\\dataParsed2Matlab\\updatedStimGABAb01NEWBGST_Ss20c%d_SN%d_spikes.mat',stc_str-1,run.sn));
+run.tstop = 20000;
+run.nruns = 100;
+
+% List of stimulated/non-stimulated cells in each configuration:
+sc_rnd = run.stimulatedCells_rnd{stc_rnd};
+nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
+sc_str = run.stimulatedCells_str{stc_str};
+nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
+%%
+
+FF_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+FF_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+CV_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+CV_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+FF_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
+FF_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
+CV_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
+CV_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
+for ru=1:size(batch_rnd_spikes,2)
+    for c=1:length(sc_rnd)
 %             [~,st_rnd] = advanced_spike_count(batch_rnd{sc_rnd(c),ru}(1500:end), -10, 0);
         st_rnd = batch_rnd_spikes{sc_rnd(c),ru};
         st_stim_rnd = st_rnd(st_rnd<=1500);
         st_delay_rnd = st_rnd(st_rnd>1500);
         ISI_stim_rnd = diff(st_stim_rnd);
         ISI_delay_rnd = diff(st_delay_rnd);
-        FF_stim_rnd(c,ru) = length(st_stim_rnd)/18.5;
-        FF_delay_rnd(c,ru) = length(st_delay_rnd)/18.5;
+        FF_stim_rnd(c,ru) = length(st_stim_rnd)/1.5;
+        FF_delay_rnd(c,ru) = length(st_delay_rnd)/((run.tstop-1500)/1000);
         CV_stim_rnd(c,ru) = std(ISI_stim_rnd)/mean(ISI_stim_rnd);
         CV_delay_rnd(c,ru) = std(ISI_delay_rnd)/mean(ISI_delay_rnd);
+    end
+end
+for ru=1:size(batch_str_spikes,2)
+    for c=1:length(sc_str)
 %         [~,st_str] = advanced_spike_count(batch_str{sc_str(c),ru}(1500:end), -10, 0);
         st_str = batch_str_spikes{sc_str(c),ru};
         st_stim_str = st_str(st_str<=1500);
         st_delay_str = st_str(st_str>1500);
         ISI_stim_str= diff(st_stim_str);
         ISI_delay_str = diff(st_delay_str);
-        FF_stim_str(c,ru) = length(st_stim_str)/18.5;
-        FF_delay_str(c,ru) = length(st_delay_str)/18.5;
+        FF_stim_str(c,ru) = length(st_stim_str)/1.5;
+        FF_delay_str(c,ru) = length(st_delay_str)/((run.tstop-1500)/1000);
         CV_stim_str(c,ru) = std(ISI_stim_str)/mean(ISI_stim_str);
         CV_delay_str(c,ru) = std(ISI_delay_str)/mean(ISI_delay_str);
     end
 end
 
+
 % CV for stimulated cluster (delay period):
 edges = 0:0.1:2;
-tmp_delay = [histcounts(CV_delay_rnd(:),edges)',histcounts(CV_delay_str(:),edges)']/80;
-figure;hold on;plot(edges(2:end-1),tmp_delay(2:end,:));
+tmp_delay = [histc(CV_delay_rnd(:),edges)'/sum(~isnan(CV_delay_rnd(:)));histc(CV_delay_str(:),edges)'/sum(~isnan(CV_delay_str(:)))];
+figure;hold on;plot(edges(2:end),tmp_delay(:,2:end));
 cm = get(groot,'DefaultAxesColorOrder');
-tmp_stim = [histcounts(CV_stim_rnd(:),edges)',histcounts(CV_stim_str(:),edges)']/80;
-plot(edges(2:end-1),tmp_stim(2:end,1),'color',cm(1,:));
-plot(edges(2:end-1),tmp_stim(2:end,2),'color',cm(2,:));
+tmp_stim = [histc(CV_stim_rnd(:),edges)'/sum(~isnan(CV_stim_rnd(:)));histc(CV_stim_str(:),edges)'/sum(~isnan(CV_stim_str(:)))];
+plot(edges(2:end),tmp_stim(1,2:end),'color',cm(1,:));
+plot(edges(2:end),tmp_stim(2,2:end),'color',cm(2,:));
 
 dmax=max([tmp_delay(:);tmp_stim(:)]);dmax=dmax+dmax*0.1;
 scatter(nanmean([CV_delay_rnd(:),CV_delay_str(:)]),[1,1]*dmax,[],cm(1:2,:),'v','fill');
@@ -126,12 +148,12 @@ legend({'Random','Structured'});xlabel('Coefficient of Variation (CV)');ylabel('
 
 % FF for stimulated cluster (delay period):
 edges = 0:2:60;
-tmp = [histcounts(FF_delay_rnd(:),edges)',histcounts(FF_delay_str(:),edges)']/80;
-figure;plot(edges(2:end-1),tmp(2:end,:));
+tmp = [histc(FF_delay_rnd(:),edges)'/sum(~isnan(FF_delay_rnd(:)));histc(FF_delay_str(:),edges)'/sum(~isnan(FF_delay_str(:)))];
+figure;plot(edges(2:end),tmp(:,2:end));
 legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Count (#)');title('Histogram of FF (Cluster in delay period)');
 set(gca,'XScale','log');
 
-%% Compute Synchronicity:
+%% Compute Synchronicity (a big issue!):
 % SPIKY_loop_results_cluster_rnd = cell(1,72);
 % SPIKY_loop_results_cluster_str = cell(1,72);
 % SPIKY_loop_results_network_rnd = cell(1,72);
@@ -254,34 +276,36 @@ hs = plot(irange,tmp_mean,'color',cm(2,:));
 legend([hr,hs],{'Random','Structured'});xlabel('Time (ms)');ylabel('SPIKE Synchronous metric');title('Cluster synchronicity ');
 
 %% Recruitement:
-FFr_rnd = zeros(100,72);
-FFr_str = zeros(100,72);
+FFr_rnd = zeros(length(nsc_rnd),run.nruns);
+FFr_str = zeros(length(nsc_str),run.nruns);
 
-for ru=1:72
-    for c=1:600
+for ru=1:size(batch_rnd_spikes,2)
+    for c=1:length(nsc_rnd)
         st_rnd = batch_rnd_spikes{nsc_rnd(c),ru};
         st_rnd = st_rnd(st_rnd>1500);
-        FFr_rnd(c,ru) = length(st_rnd)/18.5;
-
+        FFr_rnd(c,ru) = length(st_rnd)/((run.tstop-1500)/1000);
+    end
+end
+for ru=1:size(batch_str_spikes,2)
+    for c=1:length(nsc_str)
         st_str = batch_str_spikes{nsc_str(c),ru};
         st_str = st_str(st_str>1500);
-        FFr_str(c,ru) = length(st_str)/18.5;
+        FFr_str(c,ru) = length(st_str)/((run.tstop-1500)/1000);
     end
 end
 
-
 edges = 0:0.2:8;
-tmp = [histcounts(FFr_rnd(FFr_rnd~=0),edges)',histcounts(FFr_str(FFr_str~=0),edges)']/(72*600);
+tmp = [histc(FFr_rnd(:),edges)'/sum(~isnan(FFr_rnd(:)));histc(FFr_str(:),edges)'/sum(~isnan(FFr_str(:)))];
 % figure;plot(edges,histcounts(FFr_rnd(FFr_rnd~=0),edges))
 % figure;plot(edges,histcounts(FFr_str(FFr_str~=0),edges))
-figure;hold on;plot(edges(1:end-1),tmp)
+figure;hold on;plot(edges,tmp)
 legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Relative Frequency');title('Non-Stimulated Cells Firing Rate');
 set(gca,'XScale','log');
 plot([0.4,0.4],[0,0.04])
 
 % Sort by mean activity (per cell):
 [MEAN_rnd,IDX_rnd] = sort(mean(FFr_rnd,2),'descend');
-[MEAN_str,IDX_str] = sort(mean(FFr_str(:,[1:5,7:19,21:73,75:80]),2),'descend');
+[MEAN_str,IDX_str] = sort(mean(FFr_str,2),'descend');
 
 % Set limit in background activity (1Hz):
 figure;hold on;
@@ -289,8 +313,8 @@ plot(MEAN_rnd(1:40));
 plot(MEAN_str(1:40),'r');
 xlabel('Cell ID (#)');ylabel('Mean Firing Frequency');
 
-cmmax = max(max([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,[1:5,7:19,21:73,75:80])]));
-cmmin = min(min([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,[1:5,7:19,21:73,75:80])]));
+cmmax = max(max([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
+cmmin = min(min([FFr_rnd(IDX_rnd,:),FFr_str(IDX_str,:)]));
 
 figure;imagesc(FFr_rnd(IDX_rnd,:));
 caxis manual
@@ -298,7 +322,7 @@ caxis([cmmin cmmax]);
 cm = hot(1000);
 cm(1,:) = [0,0,0];
 colormap(cm);title('Random');
-figure;imagesc(FFr_str(IDX_str,[1:5,7:19,21:73,75:80]));
+figure;imagesc(FFr_str(IDX_str,:));
 caxis manual
 caxis([cmmin cmmax]);
 colormap(cm);title('Structured');
@@ -352,186 +376,144 @@ title('Structured');
 % title('Structured');
 %% Calculate Voltage trace distributions:
 % These are correct after all!!
-% sc_str = stimdata_str(:,1);
-% sc_rnd = stimdata_rnd(:,1);
-sc_str = run.StimMat_str(:,1);
-nsc_str = find(~ismember(1:700,run.StimMat_str(:,1)));
-sc_rnd = run.StimMat_rnd(:,1);
-nsc_rnd = find(~ismember(1:700,run.StimMat_rnd(:,1)));
 
-% n=18502;
-% edgesint = 0.5;
-% edges = -80:edgesint:-40;
-% vth = {};
-% vtsh = {};
+f_delay_str = cell(700,run.nruns);
+gof_delay_str = cell(700,run.nruns);
+histo_str = cell(700,run.nruns);
+edges_str = cell(700,run.nruns);
 
-% fcell{1} = @(mu,sigma,x) exp(-0.5 * ((x - mu)./sigma).^2) ./ (sqrt(2*pi) .* sigma); %gauss
-% fcell{2} = @(a1,mu1,sigma1,a2,mu2,sigma2,x) a1*fcell{1}(mu1,sigma1,x) + a2*fcell{1}(mu2,sigma2,x); %gauss2
-% fcell{3} = @(mu,a,sigma,x) ((1+erf((a.*x)/sqrt(2)))/2) .* normpdf(x,mu,sigma);
-clear fcell fparams;
-mygauss = @(mu,sigma,x) exp(-0.5 * ((x - mu)./sigma).^2) ./ (sqrt(2*pi) .* sigma); %gauss
-fcell{1} = @(a1,mu1,sigma1,a2,mu2,sigma2,x) a1*mygauss(mu1,sigma1,x) + a2*mygauss(mu2,sigma2,x); %gauss2
-
-fparams{1,1} = [0.01, -80, 0.001, 0.01, -80, 0.001];
-fparams{1,2} = [0.99, -30, 10, 0.99, -30, 10];
-% Change fparams to give min max bounds to randomly select startpoint:
-% fparams{1,1} = [-66, 2];
-% fparams{1,2} = [-80, 0.001];
-% fparams{1,3} = [-30, 10];
-% fparams{2,1} = [0.5, -76, 2, 0.5, -36, 2];
-% fparams{2,2} = [0.01, -80, 0.001, 0.01, -80, 0.001];
-% fparams{2,3} = [0.99, -30, 10, 0.99, -30, 10];
-% fparams{3,1} = [-66, 0, 2];
-% fparams{3,2} = [-80, -20, 0.001];
-% fparams{3,3} = [-30, 20, 10];
-
-% fparams{1,1} = [-80, 0.001];
-% fparams{1,2} = [-30, 10];
-% fparams{2,1} = [0.01, -80, 0.001, 0.01, -80, 0.001];
-% fparams{2,2} = [0.99, -30, 10, 0.99, -30, 10];
-% fparams{3,1} = [-80, -20, 0.001];
-% fparams{3,2} = [-30, 20, 10];
-
-parpool(8);
-
-
-
-f_delay_str = cell(700,72);
-gof_delay_str = cell(700,72);
-% histo_str = cell(700,72);
-% edges_str = cell(700,72);
-
-% f_delay_rnd = cell(700,72);
-% gof_delay_rnd = cell(700,72);
-% histo_rnd = cell(700,72);
-% edges_rnd = cell(700,72);
+f_delay_rnd = cell(700,run.nruns);
+gof_delay_rnd = cell(700,run.nruns);
+histo_rnd = cell(700,run.nruns);
+edges_rnd = cell(700,run.nruns);
 
 edgesint = 0.5;
-for ru=1:72
+for ru=1:run.nruns
     [ru]
-    parfor c=1:700%sc_rnd'
-%         [ru,c]
-%         vth{c,ru} = histcounts(batch_str{sc_str(c),ru}(1500:end),edges)/(n*edgesint);
-%         vtsh{c,ru} = histcounts(smooth(batch_str{sc_str(c),ru}(1500:end),100,'moving'),edges)/(n*edgesint);
+    parfor c=1:700
 %         % For Delay period:
-%         data = smooth(batch_str{c,ru}(1500:end),100,'moving');
-%         minr = floor(min(data));
-%         maxr = ceil(max(data));
-%         n = length(data);
-%         edges_str{c,ru} = minr:edgesint:maxr;
-%         histo_str{c,ru} = histcounts(data,edges_str{c,ru})/(n*edgesint);histo_str{c,ru} = histo_str{c,ru}';
-        
-%             [f_delay_str{c,ru}, gof_delay_str{c,ru}] = best_fitting_function(smooth(batch_str{c,ru}(1500:end),100,'moving'), fcell, fparams);
-%         [f_delay_str{c,ru}, gof_delay_str{c,ru}] = fast_fitting_function(histo_str{c,ru}, fcell, fparams, edges_str{c,ru});
-%         [f_delay_rnd{c,ru}, gof_delay_rnd{c,ru}] = fast_fitting_function(histo_rnd{c,ru}, fcell, fparams, edges_rnd{c,ru},10);
+        data = smooth(batch_rnd{c,ru}(1500:end),100,'moving');
+        minr = floor(min(data));
+        maxr = ceil(max(data));
+        n = length(data);
+        edges_rnd{c,ru} = minr:edgesint:maxr;
+        histo_rnd{c,ru} = histc(data,edges_rnd{c,ru})/(n*edgesint);histo_rnd{c,ru} = histo_rnd{c,ru}';
 
-%         [f_delay_rnd{c,ru}, gof_delay_rnd{c,ru}] = fit(edges_rnd{c,ru}(1:end-1)',histo_rnd{c,ru},'gauss2');
-        [f_delay_str{c,ru}, gof_delay_str{c,ru}] = fit(edges_str{c,ru}(1:end-1)',histo_str{c,ru},'gauss2');
+        [f_delay_rnd{c,ru}, gof_delay_rnd{c,ru}] = fit(edges_rnd{c,ru}',histo_rnd{c,ru}','gauss2');
+    end
+end
+for ru=1:run.nruns
+    [ru]
+    parfor c=1:700
+%         % For Delay period:
+        data = smooth(batch_str{c,ru}(1500:end),100,'moving');
+        minr = floor(min(data));
+        maxr = ceil(max(data));
+        n = length(data);
+        edges_str{c,ru} = minr:edgesint:maxr;
+        histo_str{c,ru} = histc(data,edges_str{c,ru})/(n*edgesint);histo_str{c,ru} = histo_str{c,ru}';
 
-%         % For Stimulation period:
-%         [f_stim{c,ru}, gof_stim{c,ru}] = best_fitting_function(smooth(batch_str{c,ru}(500:1500),100,'moving'), fcell, fparams);
-
-%         % For Baseline period:
-%         [f_base{c,ru}, gof_base{c,ru}] = best_fitting_function(smooth(batch_bg{c,ru},100,'moving'), fcell, fparams);
+        [f_delay_str{c,ru}, gof_delay_str{c,ru}] = fit(edges_str{c,ru}',histo_str{c,ru}','gauss2');
     end
 end
 
 
-MU_delay_rnd = zeros(700,72);
-SIGMA_delay_rnd = zeros(700,72);
-MU_delay_str = zeros(700,72);
-SIGMA_delay_str = zeros(700,72);
-% MU_base = zeros(700,1);
-% SIGMA_base = zeros(700,1);
-% MU_stim = zeros(700,1);
-% SIGMA_stim = zeros(700,1);
-for ru=1:72
-    for c=1:700
-%         % Baseline period:
-%         if f_base{c,ru}{1}.mu1 < f_base{c,ru}{1}.mu2
-%             MU_base(c,ru) = f_base{c,ru}{1}.mu1;
-%             SIGMA_base(c,ru) = f_base{c,ru}{1}.sigma1;
-%         else
-%             MU_base(c,ru) = f_base{c,ru}{1}.mu2;
-%             SIGMA_base(c,ru) = f_base{c,ru}{1}.sigma2;
-%         end
+%% Cluster Vm to detect UP states.
 
-%         % Stimulation period:
-%         if f_stim{c,ru}{1}.mu1 < f_stim{c,ru}{1}.mu2
-%             MU_stim(c,ru) = f_stim{c,ru}{1}.mu1;
-%             SIGMA_stim(c,ru) = f_stim{c,ru}{1}.sigma1;
-%         else
-%             MU_stim(c,ru) = f_stim{c,ru}{1}.mu2;
-%             SIGMA_stim(c,ru) = f_stim{c,ru}{1}.sigma2;
-%         end
+MU_delay_rnd = zeros(700,run.nruns);
+SIGMA_delay_rnd = zeros(700,run.nruns);
+MU_delay_str = zeros(700,run.nruns);
+SIGMA_delay_str = zeros(700,run.nruns);
 
+for ru=1:run.nruns
+    for c=1:run.nPC
         % Delay period:
-%         if f_delay_rnd{c,ru}{1}.mu1 < f_delay_rnd{c,ru}{1}.mu2
-%             MU_delay(c,ru) = f_delay_rnd{c,ru}{1}.mu1;
-%             SIGMA_delay(c,ru) = f_delay_rnd{c,ru}{1}.sigma1;
-%         else
-%             MU_delay(c,ru) = f_delay_rnd{c,ru}{1}.mu2;
-%             SIGMA_delay(c,ru) = f_delay_rnd{c,ru}{1}.sigma2;
-%         end
-        if f_delay_rnd{c,ru}.b1 < f_delay_rnd{c,ru}.b2
-            MU_delay_rnd(c,ru) = f_delay_rnd{c,ru}.b1;
-            SIGMA_delay_rnd(c,ru) = f_delay_rnd{c,ru}.c1;
+        MU_1 = f_delay_rnd{c,ru}.b1;
+        MU_2 = f_delay_rnd{c,ru}.b2;
+        SIGMA_1 = f_delay_rnd{c,ru}.c1 / sqrt(2);
+        SIGMA_2 = f_delay_rnd{c,ru}.c2 / sqrt(2);
+        if MU_1 < MU_2
+            MU_delay_rnd(c,ru) = MU_1;
+            SIGMA_delay_rnd(c,ru) = SIGMA_1;
         else
-            MU_delay_rnd(c,ru) = f_delay_rnd{c,ru}.b2;
-            SIGMA_delay_rnd(c,ru) = f_delay_rnd{c,ru}.c2;
+            MU_delay_rnd(c,ru) = MU_2;
+            SIGMA_delay_rnd(c,ru) = SIGMA_2;
         end
-        if f_delay_str{c,ru}.b1 < f_delay_str{c,ru}.b2
-            MU_delay_str(c,ru) = f_delay_str{c,ru}.b1;
-            SIGMA_delay_str(c,ru) = f_delay_str{c,ru}.c1;
+        MU_1 = f_delay_str{c,ru}.b1;
+        MU_2 = f_delay_str{c,ru}.b2;
+        SIGMA_1 = f_delay_str{c,ru}.c1 / sqrt(2);
+        SIGMA_2 = f_delay_str{c,ru}.c2 / sqrt(2);
+        if MU_1 < MU_2
+            MU_delay_str(c,ru) = MU_1;
+            SIGMA_delay_str(c,ru) = SIGMA_1;
         else
-            MU_delay_str(c,ru) = f_delay_str{c,ru}.b2;
-            SIGMA_delay_str(c,ru) = f_delay_str{c,ru}.c2;
+            MU_delay_str(c,ru) = MU_2;
+            SIGMA_delay_str(c,ru) = SIGMA_2;
         end
     end
 end
 
-sc_str = run.StimMat_str(:,1);
-nsc_str = find(~ismember(1:700,run.StimMat_str(:,1)));
-sc_rnd = run.StimMat_rnd(:,1);
-nsc_rnd = find(~ismember(1:700,run.StimMat_rnd(:,1)));
+rmse_rnd = zeros(700,run.nruns);
+rmse_str = zeros(700,run.nruns);
+for ru=1:run.nruns
+    for c=1:run.nPC
+        rmse_rnd(c,ru) = gof_delay_rnd{c,ru}.rmse;
+        rmse_str(c,ru) = gof_delay_str{c,ru}.rmse;
+    end
+end
 
+% save(sprintf('X:\\Documents\\Glia\\dataParsed2Matlab\\updatedStimGABAb01NEWBGST_mVfits20_SN%d_matrices.mat',run.sn),'MU_delay_rnd','SIGMA_delay_rnd','MU_delay_str','SIGMA_delay_str','rmse_rnd','rmse_str','-v7.3');
 
-tmp_MU_IDX_rnd = MU_delay_rnd(:)>-80 ;
-tmp_MU_IDX_str = MU_delay_str(:)>-80 ;
+% % ONLY FOR THIS RUN:
+% MU_delay_rnd = MU_delay_rnd(:,1:66);
+% SIGMA_delay_rnd = SIGMA_delay_rnd(:,1:66);
+% rmse_rnd = rmse_rnd(:,1:66);
 
-figure;
-scatter(reshape(SIGMA_delay_rnd(sc_rnd,:),1,[]),reshape(MU_delay_rnd(sc_rnd,:),1,[]),'g.');
-axis([0, 4, -80, -40]);
-X =[reshape(SIGMA_delay_rnd(sc_rnd,:),1,[])',reshape(MU_delay_rnd(sc_rnd,:),1,[])'];
-gmfit_rnd = fitgmdist(X,3);
-clusterX_rnd = cluster(gmfit_rnd,X);
+% Plot GoF:
 figure;hold on;
-h = gscatter(X(:,1),X(:,2),clusterX_rnd);
+mr = 0:0.001:0.02;
+plot(mr(2:end),histcounts(rmse_rnd,mr)/numel(rmse_rnd))
+plot(mr(2:end),histcounts(rmse_str,mr)/numel(rmse_str),'r')
+% I need a better criterion:
+rm_GoF_rnd = rmse_rnd(:) > 0.014 ;
+rm_GoF_str = rmse_str(:) > 0.014 ;
+
+
+% Cluster by mixture of gaussians:
+nG = 4; % Number of gaussians
+X_rnd =[reshape(SIGMA_delay_rnd,1,[])',reshape(MU_delay_rnd,1,[])'];
+% % remove spurious points (fitting errors; to check them either way): 
+% rm_MU = X_rnd(:,2) < -100 ;
+% rm_SI = X_rnd(:,1) > 6 ;
+% X_rnd( rm_MU | rm_SI ,: )  = [];
+% Can I also do it with GoF criterion?
+X_rnd(rm_GoF_rnd,:) = [];
+
+gmfit_rnd = fitgmdist(X_rnd,nG);
+clusterX_rnd = cluster(gmfit_rnd,X_rnd);
+figure;hold on;
+gscatter(X_rnd(:,1),X_rnd(:,2),clusterX_rnd);
 scatter(gmfit_rnd.mu(:,1),gmfit_rnd.mu(:,2),'ko');
 axis([0, 4, -80, -40]);
+title(sprintf('Random:SN%d (All cells/runs)',run.sn));
+xlabel('G1 ?');ylabel('G1 ?');
 
-figure;
-scatter(reshape(SIGMA_delay_str(sc_str,:),1,[]),reshape(MU_delay_str(sc_str,:),1,[]),'r.');
-axis([0, 4, -80, -40]);
-% X =[reshape(SIGMA_delay_str(sc_str,:),1,[])',reshape(MU_delay_str(sc_str,:),1,[])'];
-% gmfit_str = fitgmdist(X,4);
-% clusterX_str = cluster(gmfit_str,X);
+X_str =[reshape(SIGMA_delay_str,1,[])',reshape(MU_delay_str,1,[])'];
+% % remove spurious points (fitting errors; to check them either way): 
+% rm_MU = X_str(:,2) < -100 ;
+% rm_SI = X_str(:,1) > 6 ;
+% X_str( rm_MU | rm_SI ,: )  = [];
+% Can I also do it with GoF criterion?
+X_str(rm_GoF_str,:) = [];
+gmfit_str = fitgmdist(X_str,nG);
+clusterX_str = cluster(gmfit_str,X_str);
 figure;hold on;
-h = gscatter(X(:,1),X(:,2),clusterX_str);
+gscatter(X_str(:,1),X_str(:,2),clusterX_str);
 scatter(gmfit_str.mu(:,1),gmfit_str.mu(:,2),'ko');
 axis([0, 4, -80, -40]);
+title(sprintf('Structured:SN%d (All cells/runs)',run.sn));
+xlabel('G1 ?');ylabel('G1 ?');
 
-
-h4=scatter(reshape(SIGMA_delay(sc_str,:),1,[]),reshape(MU_delay(sc_str,:),1,[]),'ko');
-h1=scatter(SIGMA_base(:),MU_base(:),'c.');
-% h2=scatter(SIGMA_stim(:),MU_stim(:),'g');
-legend([h1,h4,h3],{'baseline','stim','delay'});
-
-X =[SIGMA_delay(:),MU_delay(:)];
-gmfit = fitgmdist(X,3);
-clusterX = cluster(gmfit,X);
-figure;hold on;
-h = gscatter(X(:,1),X(:,2),clusterX);
 %% Visualize (inspect) fitting:
 % UPNum_str = zeros(100,1);
 % UPFF_str = cell(100,1);
