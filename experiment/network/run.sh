@@ -41,7 +41,7 @@ nodes="288"
 jobstdout=""
 cluster="5"
 # 0=Random, 1=Structured
-exp="0"
+exp="1"
 sn="4"
 clustbias="0.0"
 startRun="0"
