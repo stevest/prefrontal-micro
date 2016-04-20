@@ -1,6 +1,6 @@
 % Built a structured and random network.  
 close all; clear all; clc
-run.sn = 4;
+run.sn = 5;
 rng('default') 
 rng(run.sn)
 

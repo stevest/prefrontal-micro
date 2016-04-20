@@ -1,11 +1,7 @@
 function [voteState, U, smoothed_states] = createVoteState(run, Qseq, st, stc, configuration, varargin)
 
 sf = false;
-<<<<<<< HEAD
-pathto = fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','newQanalysis');
-=======
 pathto = fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','DefaultQanalysis');
->>>>>>> FETCH_HEAD
 
 %check if need to save:
 for a=1:length(varargin)

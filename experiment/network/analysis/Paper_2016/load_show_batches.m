@@ -33,12 +33,19 @@ figure;plot(batch_str{152,2})
 advanced_spike_count(batch_str{152,2},-10,0,'plot');
 
 %%
+configuration = 'rnd';
+ru = 20;
+
+eval( sprintf('nc = run.nClusters_%s;',configuration) );
+eval( sprintf('cl = clusterLabels_%s;',configuration) );
+eval( sprintf('st = batch_%s_spikes;',configuration) );
 clusterOrdered = [];
-for k=1:run.nClusters_rnd
-    clusterOrdered = [clusterOrdered find(clusterLabels_str==k)'];
+for k=1:nc
+    clusterOrdered = [clusterOrdered find(cl==k)'];
 end
 figure;hold on;
 for k=1:700
-    [~,spikes] = advanced_spike_count(batch_str{k,2},-10,0);
+%     [~,spikes] = advanced_spike_count(batch_str{k,2},-10,0);
+    spikes = st{clusterOrdered(k),ru};
     scatter(spikes, ones(1,length(spikes))*k,'.');
 end

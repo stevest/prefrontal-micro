@@ -1,12 +1,13 @@
 %% Compute relative frequency of network states:
 close all;clear all;clc;
-load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN3.mat'));
+% load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN4.mat'));
+load(fullfile('C:','Users','user','Documents','NetworkCreation_SN4.mat'));
 %Which cluster is stimulated in each configuration:
-stc_rnd = 3;
-stc_str = 2;
-load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs20c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
-load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss20c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
-run.tstop = 20000;
+stc_rnd = 5;
+stc_str = 5;
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
+run.tstop = 10000;
 run.nruns = 100;
 
 % List of stimulated/non-stimulated cells in each configuration:
@@ -26,7 +27,8 @@ Qseq = [100,50,40,30,20,10,8,6,4];
 
 % Qseq = [100,50,40,30,20,10,8,6,4];
 configuration = 'str';
-eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
+% eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
+eval( sprintf('st = batch_%s_spikes;',configuration) );
 eval( sprintf('stc = stc_%s;', configuration) );
 [~, ~, ~] = createVoteState(run, Qseq, st, stc-1, configuration, 'save');
 % Qseq = [100,50,40,30,20,10,8,6,4];
@@ -77,12 +79,12 @@ colormap(cm);title('Structured');
 %% Compare states across configurations:
 
 close all;
-nProminentStatesCheck = 50;
-figure(1);hold on;
-for Q = 50
+nProminentStatesCheck = 20;
+figure(5);hold on;
+for Q = 100
     configuration = 'rnd';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN3',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
     delayRange = ceil(1500/Q):run.tstop/Q ;
     prominentStates = zeros(size(voteState,1),1);
@@ -93,25 +95,30 @@ for Q = 50
     nActivePC_rnd = cellfun(@(x) length(regexp(x,'1','match')), U );
 %     figure;scatter(nActivePC_rnd,prominentStates);
     frequencyPerActive = {}; gPC={};
-    for k=1:10
+    for k=1:10 % up to 10 coactive cells.
         tmp = find(nActivePC_rnd == k);
         gPC{k,1} = ones(length(tmp),1)*k;
         frequencyPerActive{k,1} = prominentStates(tmp);
     end
-    figure;boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
-    figure(1);plot(maxfreqstates(1:nProminentStatesCheck));
+    figure(2);boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
+    ylim2_rnd = get(gca,'YLim');
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
+    figure(5);plot(maxfreqstates(1:nProminentStatesCheck));
+    
     title(sprintf('Q=%d',Q));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
-    figure;hold on;
+    figure(1);hold on;
     for k=2:nProminentStatesCheck
-        plot(smoothed_states(maxfreqidx(k),delayRange))
+        plot(smoothed_states(maxfreqidx(k),delayRange),'linewidth',2)
     end
+    ylim_rnd = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
-
+    
     configuration = 'str';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN3',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
     delayRange = ceil(1500/Q):run.tstop/Q ;
     prominentStates = zeros(size(voteState,1),1);
@@ -127,20 +134,65 @@ for Q = 50
         gPC{k,1} = ones(length(tmp),1)*k;
         frequencyPerActive{k,1} = prominentStates(tmp);
     end
-    figure;boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
-    figure(1);plot(maxfreqstates(1:nProminentStatesCheck));
+    figure(4);boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
+    ylim2_str = get(gca,'YLim');
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
+    figure(5);plot(maxfreqstates(1:nProminentStatesCheck));
+    
     title(sprintf('Q=%d',Q));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
-    figure;hold on;
+    figure(3);hold on;
     for k=2:nProminentStatesCheck
-        plot(smoothed_states(maxfreqidx(k),delayRange))
+        plot(smoothed_states(maxfreqidx(k),delayRange),'linewidth',2)
     end
+    ylim_str = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
-
-    figure(1);legend({'Rnd','Str'});
+    
+    figure(5);legend({'Rnd','Str'});
+    ylim_max = max([ylim_str(2),ylim_rnd(2)]);
+    figure(1);set(gca,'YLim',[0, ylim_max]);
+    figure(3);set(gca,'YLim',[0, ylim_max]);
+    ylim2_max = max([ylim2_str(2),ylim2_rnd(2)]);
+    figure(2);set(gca,'YLim',[0, ylim2_max]);
+    figure(4);set(gca,'YLim',[0, ylim2_max]);
+    
+%     % Plot active cluster's activity in each configuration:
+%     batch_rnd_spikes
+%     m = size(st,2) ; %No of chains (m)
+%     n = run.tstop ; %No of itterations (n)
+%     N = size(st,1);
+%     Qr = floor(n / Q) ; % length of reshaped spiketrain array
+%     wst = reshape(st,1,[])';
+%     winst = cell(m*N,1);
+%     parfor c = 1:m*N
+%         if ~isempty(wst{c})
+%             tmpst = zeros(1,n);
+%             tmpwinst = zeros(1,Qr);
+%             tmpst(round(wst{c})) = 1;
+%             for k=1:Qr
+%                 tmpwinst(k) = any( tmpst( ((((k)-1)*Q)+1):((k) * Q) ) ,2) ;
+%             end
+%            winst{c} =  tmpwinst;
+%         else
+%             winst{c} = zeros(1,Qr);
+%         end
+%     end
+%     wspktrain =  cell2mat( cellfun(@(x) reshape(x,1,1,[]),reshape(winst,N,[]),'uniformoutput',false) );
+%     clear wst winst;
+% 
+%     figure(6);hold on;
+%     for kk=1:length(sc_rnd)
+%         spikes = batch_rnd_spikes{sc_rnd(kk),20};
+%         scatter(spikes,ones(length(spikes),1)*kk);
+%     end
+%     figure(7);hold on;
+%     for kk=1:length(sc_str)
+%         spikes = batch_str_spikes{sc_str(kk),20};
+%         scatter(spikes,ones(length(spikes),1)*kk);
+%     end
 end
-
 %% Parse above data:
 % Na apofasisw ti na kanw me afti tin analysi: Ti apo ola afta pou exw
 % kanei toso kairo a3izei na graftei k na to exw, pou exei ginei poutana o
