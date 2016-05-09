@@ -19,7 +19,7 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -
 if [[ $dirtygit > 0 ]]; then
 	echo "Can not continue with run when git repo is dirty. Exiting..."
 	echo "Current HEAD is: ${gitsha1}"
-	#exit 1
+	exit 1
 else
 	echo "Git repo is clean. Continue run with SHA1: "
 	gitsha1=`git rev-parse HEAD`
@@ -39,10 +39,10 @@ parallel="1"
 nodes="288"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="2"
+cluster="3"
 # 0=Random, 1=Structured
 exp="1"
-sn="5"
+sn="6"
 clustbias="0.0"
 startRun="0"
 endRun="99"
