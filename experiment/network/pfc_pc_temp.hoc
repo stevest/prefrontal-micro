@@ -20,11 +20,11 @@ proc init() {
 ApicNo=0
 DendNo=0
 
-create 	soma,dend[1], axon, apic[2]
+create 	soma,dend
 
 gCAN=0//0.001
 soma{
-	nseg=3
+	nseg=1
 	L=75//80
 	diam=10.14  /* L and diam chosen to match surface area and internal*/
 		    /*  resistance with a sphere of diam 23 microns */
@@ -79,9 +79,9 @@ soma{
 
 //Dendritic_factors
 
-dend[0]{
+dend{
 	//basal dendrites
-	nseg=5//9 //changed to 5 segments to accommodate uniformly spreaded synapses
+	nseg=1//9 //changed to 5 segments to accommodate uniformly spreaded synapses
 	L=150
 	diam=1 
 	insert pas
@@ -117,132 +117,7 @@ dend[0]{
 	insert cadyn
 }
 
-apic[0]{
-//proximal dendrites
-	nseg=17   
-	L=400.0
-        diam=3.4
-	insert pas
-      	cm = 2//1.2       /* microF/cm2 */
-	g_pas = 8.5e-5*2  /* mho/cm2 */  
-	e_pas = -66
-	Ra = 150          /* ohm-cm */
-
-	insert Naf
-	gnafbar_Naf =  5e-3
-
-	insert nap
-	gnabar_nap =  5.4e-05 
-
-	insert cal
-	gcalbar_cal = 1.9e-4  
-
-	insert can
-	gcabar_can =  6e-05   
-
-	insert car
-	gcabar_car =  9e-08  *1000
-
-	insert cat
-	gcatbar_cat =   6e-05  
-
-	insert kdr
-	gkdrbar_kdr = 2.16e-05 
-
-	insert IKs
-	gKsbar_IKs = 0.0012		//*0.01 //SS 
-
-	insert kad
-	gkabar_kad =  0.0007
-
-	insert iC
-	gkcbar_iC =  2.2e-05
-
-	insert kca
-	gbar_kca =  0.0025 *1.1
-
-	insert h
-	gbar_h =1.4e-5		
-
-	insert ican
-	gbar_ican=gCAN*0.1
-
-	insert cadyn
-}
-
-apic[1]{
-	nseg=5
-	L=400
-	diam=2.6
-	insert pas
-      	cm = 2//1.2         /* microF/cm2 */
-	g_pas = 8.5e-5*2   /* mho/cm2 */    
-	e_pas = -66
-	Ra = 150           /* ohm-cm */
- 
-	insert Naf	
-	gnafbar_Naf =  3.6e-3
-
-        insert nap
-        gnabar_nap = 1.8e-4  
-
-	insert cal
-	gcalbar_cal = 3.6e-6
-
-	insert can
-	gcabar_can =  0.001  
-
-	insert car
-	gcabar_car = 1.5e-06  *1000
-
-	insert cat
-	gcatbar_cat = 6e-06
-
-	insert kdr	
-	gkdrbar_kdr =  5.4e-06    
-
-	insert IKs	
-	gKsbar_IKs = 0.0012  	//*0.01//SSS 
-
-	insert kad
-	gkabar_kad = 7e-05 
-
-	insert iC	
-	gkcbar_iC =  2.2e-06 
-	
-	insert kca
-	gbar_kca =  0.0025 *1.1*0.01
-
-	insert h
-	gbar_h =9e-05 
-
-	insert ican
-	gbar_ican=gCAN*0.1
-
-	insert cadyn
-}
-	
-axon {
-	nseg=1
-	L=113.22
-	diam=1.1
-	insert pas
-      	cm = 1.2         /* microF/cm2 */
-	g_pas = 8.5e-5   /* mho/cm2 */    
-	e_pas = -66
-	Ra = 150         /* ohm-cm */
-
-	insert Naf
-	gnafbar_Naf=0.18
-
-	insert kdr
-	gkdrbar_kdr=0.0054
-}
-
-connect dend[0](0), soma(0)
-connect apic[0](0), soma(1)
-connect apic[1](0), apic[0](1)
-connect axon(0), soma(0.5)
+connect dend(0), soma(0)
 
 cao0_ca_ion = 2 	/* mM */
 cai0_ca_ion = 50e-6  	/* mM */
@@ -254,19 +129,13 @@ celsius   = 34
 
 all = new SectionList()
 somatic = new SectionList()
-axonal = new SectionList()
 basal = new SectionList()
-apical = new SectionList()
 
 soma all.append()
-dend[0] all.append()
-for i=0, 1 apic[i] all.append()
-axon all.append()
+dend all.append()
 
 soma somatic.append()
-axon axonal.append()
-dend[0] basal.append()
-for i=0,1 apic[i] apical.append()
+dend basal.append()
 
 } //End proc init()
 
@@ -287,7 +156,7 @@ proc createPyrs(){ local i,host,gid localobj cell,mynil
 				PCgids.append(gid)
 				cell = new PCcell()
 				PC.set_gid2node(gid,PC.id)
-				cell.axon {//synapse_source(gid)//,&v(1))
+				cell.soma {//synapse_source(gid)//,&v(1))
 					PC.cell(gid,new NetCon(&v(1), mynil),1)
 				}  
 				PC.threshold(gid,-20)          
@@ -313,7 +182,6 @@ objref proxi_list[nPCcells], dist_list[nPCcells]
 
 PCsoma_list = new SectionList()
 PCbasal_list = new SectionList()
-PCapical_list = new SectionList()
 PCdend_list = new SectionList()
 PCcell_list = new SectionList()
 cell0_list=new SectionList()
@@ -326,27 +194,9 @@ for i=0, PCcells.count()-1 {
 	PCbasal_list.append()  
 	PCdend_list.append()
 
-	PCcells.o(i).ApicNo=0
-	PCcells.o(i).apical
 
-	forsec PCcells.o(i).apical {
-		PCapical_list.append()  
-		PCdend_list.append()
-		PCcells.o(i).ApicNo+=1 
-	}
 	forsec PCcells.o(i).all {
 		PCcell_list.append()
-	}
-	
-	proxi_list[i] = new SectionList()
-	dist_list[i] = new SectionList()
-	ctr = 1
-	forsec PCcells.o(i).apical {
-		if(ctr<=1) {proxi_list[i].append()
-		} else {
-		dist_list[i].append()
-		}
-		ctr = ctr+1
 	}
 }
 
@@ -360,63 +210,3 @@ assert(execute1(EXEC_CMD))
 //}
 {current_balance(v_init)}
 
-
-
-/*
-//Creating new neurons
-nPcells = 75//7//200
-
-objref Pcells[nPcells]
-
-for i = 0, (nPcells-1) {
-Pcells[i] = new Pcell()
-}
-
-//Create a list with segments
-objref soma_list, dend0_list, dend1_list, dend2_list, axon_list, dend_list, pcell_list, cell0_list
-
-soma_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].soma soma_list.append()
-}
-
-dend0_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[0] dend0_list.append()
-}
-
-dend1_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[1] dend1_list.append()
-}
-
-dend2_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[2] dend2_list.append()
-}
-
-axon_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].axon axon_list.append()
-}
-
-dend_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].dend[0] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] dend_list.append()}
-
-pcell_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].soma pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[0] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] pcell_list.append()}
-
-cell0_list=new SectionList()
-Pcells[0].soma cell0_list.append()
-Pcells[0].dend[0] cell0_list.append()
-Pcells[0].dend[1] cell0_list.append()
-Pcells[0].dend[2] cell0_list.append()
-
-xopen("../bash_templates/current-balance.hoc")
-
-current_balance(-66)*/

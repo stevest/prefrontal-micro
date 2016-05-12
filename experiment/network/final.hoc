@@ -247,7 +247,7 @@ if(DEBUG){pprint("Load network parameters.")}
 
 sadp_soma()
 sadp_dend()
-sadp_apical()  //mplokara kai stous apical
+//sadp_apical()  //mplokara kai stous apical
 {sprint(EXEC_CMD,"{xopen(\"%srecord_par.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
 //assert(xopen ("record_par.hoc"))

@@ -19,7 +19,7 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -
 if [[ $dirtygit > 0 ]]; then
 	echo "Can not continue with run when git repo is dirty. Exiting..."
 	echo "Current HEAD is: ${gitsha1}"
-	exit 1
+#	exit 1
 else
 	echo "Git repo is clean. Continue run with SHA1: "
 	gitsha1=`git rev-parse HEAD`
@@ -36,7 +36,7 @@ echo `pwd`
 
 parallel="1"
 #All nodes are: 288
-nodes="288"
+nodes="24"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
 cluster="3"
@@ -45,7 +45,7 @@ exp="1"
 sn="6"
 clustbias="0.0"
 startRun="0"
-endRun="99"
+endRun="0"
 custom_jobs=(45 46 47 49 50 52 54 55 56 60 62 63 64 65 66 67 68 69 70 71 73 75 77 79 81 83 85 88 90 92 94 96 99)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then

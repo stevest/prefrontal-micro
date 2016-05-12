@@ -213,8 +213,8 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 						{assert(execute1(EXEC_CMD))}
 					}
 					rApicIdx = 0 //PROXIMAL!
-					PCcells.o(localID).apic[rApicIdx] {ampapr[i][j] = new GLU(PID)}
-					PCcells.o(localID).apic[rApicIdx] {nmdapr[i][j] = new nmda_segev(PID)}
+					PCcells.o(localID).dend {ampapr[i][j] = new GLU(PID)}
+					PCcells.o(localID).dend {nmdapr[i][j] = new nmda_segev(PID)}
 
 					ncAMPA[i][j] = new NetCon(sns, ampapr[i][j]) //vstim_stim[i][j]
 					ncAMPA[i][j].delay=500
@@ -282,8 +282,8 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				//RLB = 0
 				//PID = (j+1)/(BG_dendSyn+1)// ?!?!? Why is that?
 				RLB = 0 // Basals!!
-				PCcells.o(localID).dend[RLB] {ampaBGd[i][j]=new GLU(PID)}
-				PCcells.o(localID).dend[RLB] {nmdaBGd[i][j]=new nmda_segev(PID)}
+				PCcells.o(localID).dend {ampaBGd[i][j]=new GLU(PID)}
+				PCcells.o(localID).dend {nmdaBGd[i][j]=new nmda_segev(PID)}
 
 				PID = r.repick()
 				RLB = rlb.repick()
@@ -309,8 +309,8 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				//RLA = 0
 				//PID = (j+1)/(BG_apicSyn+1)
 				RLA = 1 //distal!!
-				PCcells.o(localID).apic[RLA] ampaBGa[i][j]=new GLU(PID)
-				PCcells.o(localID).apic[RLA] nmdaBGa[i][j]=new nmda_segev(PID)
+				PCcells.o(localID).dend ampaBGa[i][j]=new GLU(PID)
+				PCcells.o(localID).dend nmdaBGa[i][j]=new nmda_segev(PID)
 
 				PID = r.repick()
 				RLA = rla.repick()
@@ -335,8 +335,8 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				//RLA = 0
 				//PID = (j+1)/(BG_apicprSyn+1)
 				RLA = 0 //proximal!!
-				PCcells.o(localID).apic[RLA] ampaBGp[i][j]=new GLU(PID)
-				PCcells.o(localID).apic[RLA] nmdaBGp[i][j]=new nmda_segev(PID)
+				PCcells.o(localID).dend ampaBGp[i][j]=new GLU(PID)
+				PCcells.o(localID).dend nmdaBGp[i][j]=new nmda_segev(PID)
 
 				//PID = r.repick()
 				//RLA = rla.repick()
@@ -550,8 +550,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 								{sprint(EXEC_CMD,"{pidPC2PC[%d][%d].append(%f)}",src,trg,PID)}
 								{assert(execute1(EXEC_CMD))}
 							}
-							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
-							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+							PCcells.o(localID).dend {ampaOnPC[src][trg][syn] = new GLU(PID)}					
+							PCcells.o(localID).dend {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
 							if(save_inmda){
 								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
 								{assert(execute1(EXEC_CMD))}
@@ -600,8 +600,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 					{assert(execute1(EXEC_CMD))}
 				}
 				rDendidx = 0
-				PCcells.o(i).dend[rDendidx] autoampaOnPC[i][j] = new GLU(PID) 
-				PCcells.o(i).dend[rDendidx] {autonmdaOnPC[i][j] = new nmda_segev(PID)}
+				PCcells.o(i).dend autoampaOnPC[i][j] = new GLU(PID) 
+				PCcells.o(i).dend {autonmdaOnPC[i][j] = new nmda_segev(PID)}
 		//----------------------Connect autapses
 				conautoampaPC2PC[i][j] = makeSynapse(PCcells,i,PCgids.x(i),autoampaOnPC[i][j], -20, FIDp,ampaweight)
 				if( PcellStimList.x(PCgids.x(i))  ){ //proxeirotita, na psaxnw sto cluster; ta stimulated einai ligotera!			
@@ -767,8 +767,8 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 						//PID = r.repick()
 						//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 						rDendidx = 0 //dendrites!
-						PCcells.o(localID).dend[rDendidx] gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
-						PCcells.o(localID).dend[rDendidx] gabaOnPC_B[src][trg][syn] = new GABAb(PID)
+						PCcells.o(localID).dend gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
+						PCcells.o(localID).dend gabaOnPC_B[src][trg][syn] = new GABAb(PID)
 						//if(PLOT){splot.point_mark(gabaOnPC_A[src][trg][syn],5)} //colorize
 					}
 					//----------------------------Insert synapses at proximal apicals
@@ -779,8 +779,8 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 						//PID = r.repick()
 						//rApicidx = int(rDend.uniform(0,PCcells.o(localID).ApicNo-1) )
 						rApicidx = 0 //proximal!
-						PCcells.o(localID).apic[rApicidx] gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
-						PCcells.o(localID).apic[rApicidx] gabaOnPC_B[src][trg][syn] = new GABAb(PID)
+						PCcells.o(localID).dend gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
+						PCcells.o(localID).dend gabaOnPC_B[src][trg][syn] = new GABAb(PID)
 					}
 					//----------------------------Insert synapses at soma
 					for syn=0,(NoSynapsesSoma-1) { 
@@ -835,13 +835,6 @@ proc sadp_dend() {
 	}
 }
 
-proc sadp_apical() {
-	forsec PCapical_list {
-		for(x) {
-			if(ismembrane("ican"))  for(x) { gbar_ican(x)= gbar_ican(x)*fadp} //0.0001*0.1
-		}
-	}
-}
 
 
 
