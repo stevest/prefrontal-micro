@@ -124,7 +124,7 @@ proc par_save_inmda(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
 		}
 	}
 }
-
+*/
 proc par_save_synaptic_locations_PCrec(){ local fh, fctr localobj vfilePC 
 
 	{ PC.barrier() } 
@@ -185,4 +185,3 @@ proc par_save_synaptic_delays(){
 	}
 	}
 }
-*/

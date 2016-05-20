@@ -15,11 +15,6 @@ create 	soma,dend[1], axon, apic[2]  //dend[0]=basal, dend[1]=proximal, dend[2]=
 proc init() {
 
 
-//OBJECT: properties of the cell
-//MUST BE INITIALIZED !!!
-ApicNo=0
-DendNo=0
-
 create 	soma,dend[1], axon, apic[2]
 
 gCAN=0//0.001
@@ -250,8 +245,6 @@ ko0_k_ion = 3.82 	/* mM */
 ki0_k_ion = 140   	/* mM */
 celsius   = 34
 
-//proc subsets:
-
 all = new SectionList()
 somatic = new SectionList()
 axonal = new SectionList()
@@ -263,160 +256,39 @@ dend[0] all.append()
 for i=0, 1 apic[i] all.append()
 axon all.append()
 
-soma somatic.append()
-axon axonal.append()
-dend[0] basal.append()
-for i=0,1 apic[i] apical.append()
-
 } //End proc init()
 
 endtemplate PCcell
 
-objref PCcells, PCgids
-PCcells=new List()
-PCgids=new Vector()
+objref pyramidal
+pyramidal = new PCcell()
 
-proc createPyrs(){ local i,host,gid localobj cell,mynil
-	if(PARALLEL){
-		{PC.barrier()}
-		if(PC.id==0) {printf("initializing PCs...\n") }     
-		for i=0, nPCcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
-			host=i%PC.nhost
-			gid=ind2gid(i,0)
-			if(host==PC.id){
-				PCgids.append(gid)
-				cell = new PCcell()
-				PC.set_gid2node(gid,PC.id)
-				cell.axon {//synapse_source(gid)//,&v(1))
-					PC.cell(gid,new NetCon(&v(1), mynil),1)
-				}  
-				PC.threshold(gid,-20)          
-				PCcells.append(cell)  
-			}    
+proc current_balance() {
+	  finitialize($1)
+	  fcurrent()	
+	  //printf("Balancing each PYRAMIDAL compartment to %d mV\n", $1)
+	  forsec pyramidal.all {
+	    	for (x) {
+	    		if (ismembrane("na_ion")) {e_pas(x)=v(x)+ina(x)/g_pas(x)} 
+	   		if (ismembrane("k_ion")) {e_pas(x)=e_pas(x)+ik(x)/g_pas(x)} 
+	    		if (ismembrane("ca_ion")) {e_pas(x)=e_pas(x)+ica(x)/g_pas(x)}
+	      	        if (ismembrane("in_ion")) {e_pas(x)=e_pas(x)+in(x)/g_pas(x)} //ican
+	       		if (ismembrane("h")) {e_pas(x)=e_pas(x)+ihi(x)/g_pas(x)}
+	      	
+			fcurrent()
+	   		}
 		}
-	}else{
-		for i = 0, (nPCcells-1) {
-			cell = new PCcell()
-			PCcells.append(cell) 
-			PCgids.append(i)
-		}
-	}
-
+	/*finitialize(v_init)*/
+	fcurrent()
+	      	if (cv.active()) {
+	        	cv.re_init()
+	        }       else {
+	        	fcurrent()
+	        }
+	frecord_init()
 }
-
-createPyrs()
-
-
-//Create a list with segments for all neurons
-objref PCsoma_list, PCbasal_list, PCapical_list, PCdend_list, PCcell_list, cell0_list
-objref proxi_list[nPCcells], dist_list[nPCcells]
-
-PCsoma_list = new SectionList()
-PCbasal_list = new SectionList()
-PCapical_list = new SectionList()
-PCdend_list = new SectionList()
-PCcell_list = new SectionList()
-cell0_list=new SectionList()
-
-for i=0, PCcells.count()-1 {
-
-	PCcells.o(i).soma PCsoma_list.append()
-	PCcells.o(i).DendNo=1
-	PCcells.o(i).basal
-	PCbasal_list.append()  
-	PCdend_list.append()
-
-	PCcells.o(i).ApicNo=0
-	PCcells.o(i).apical
-
-	forsec PCcells.o(i).apical {
-		PCapical_list.append()  
-		PCdend_list.append()
-		PCcells.o(i).ApicNo+=1 
-	}
-	forsec PCcells.o(i).all {
-		PCcell_list.append()
-	}
-	
-	proxi_list[i] = new SectionList()
-	dist_list[i] = new SectionList()
-	ctr = 1
-	forsec PCcells.o(i).apical {
-		if(ctr<=1) {proxi_list[i].append()
-		} else {
-		dist_list[i].append()
-		}
-		ctr = ctr+1
-	}
-}
-
-//printf("Applying PC current balance\n")
-//if(SIMPLIFIED){
-	//xopen("../simplified/current-balance.hoc")
-//} else {
-{sprint(EXEC_CMD,"{xopen(\"%s../../lib/current-balance.hoc\")}",PATH)}
-assert(execute1(EXEC_CMD))
-//	assert(xopen ("../../lib/current-balance.hoc"))
-//}
-{current_balance(v_init)}
+//xopen("../../lib/current-balance.hoc")
+//{current_balance(v_init)}
 
 
 
-/*
-//Creating new neurons
-nPcells = 75//7//200
-
-objref Pcells[nPcells]
-
-for i = 0, (nPcells-1) {
-Pcells[i] = new Pcell()
-}
-
-//Create a list with segments
-objref soma_list, dend0_list, dend1_list, dend2_list, axon_list, dend_list, pcell_list, cell0_list
-
-soma_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].soma soma_list.append()
-}
-
-dend0_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[0] dend0_list.append()
-}
-
-dend1_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[1] dend1_list.append()
-}
-
-dend2_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[2] dend2_list.append()
-}
-
-axon_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].axon axon_list.append()
-}
-
-dend_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].dend[0] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] dend_list.append()}
-
-pcell_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].soma pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[0] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] pcell_list.append()}
-
-cell0_list=new SectionList()
-Pcells[0].soma cell0_list.append()
-Pcells[0].dend[0] cell0_list.append()
-Pcells[0].dend[1] cell0_list.append()
-Pcells[0].dend[2] cell0_list.append()
-
-xopen("../bash_templates/current-balance.hoc")
-
-current_balance(-66)*/
