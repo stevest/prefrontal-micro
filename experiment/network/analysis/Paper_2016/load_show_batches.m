@@ -1,19 +1,26 @@
 %% Load raw batches:
+close all;clear all;clc;
+SN = 6
 for stc=5
 %     batch = cell(933,100);
     for ru = 1:100
-        pathto = sprintf('/home/cluster/stefanos/Documents/Glia/updatedStimGABAb01NEWBGST_Rs10c5_SN4_r%d',ru-1);
-        tmp = load_raw_batch(pathto);
-        if ~isempty(tmp)
-            batch(:,ru) = tmp(1:933,:);
+        pathto = sprintf('/home/cluster/stefanos/Documents/Glia/updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_r%d',stc-1,SN,ru-1);
+        batch = load_raw_batch(pathto);
+        save(sprintf('/home/cluster/stefanos/Documents/Glia/dataParsed2Matlab/updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_mV_r%d.mat',stc-1,SN,ru-1),'batch','-v7.3');
+        if ~isempty(batch)
+            batch_rnd(:,ru) = batch(1:933,:);
         end
     end
-%     save(sprintf('/home/cluster/stefanos/Documents/Glia/updatedStimGABAb01NEWBGST_Rs10c5_SN4_mV.mat',stc-1),'batch_rnd','-v7.3');
+
 end
 
+[~,batch_rnd_spikes] = cellfun(@(x) advanced_spike_count(x,-10,0), batch_rnd, 'uniformoutput', false);
+save(sprintf('/home/cluster/stefanos/Documents/Glia/dataParsed2Matlab/updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_spikes.mat',stc-1,SN),'batch_rnd_spikes','-v7.3');
+
+
 for ru=1:100
-    ru
-    batch_rnd = batch(:,ru);
+%     ru
+%     batch_rnd = batch(:,ru);
         save(sprintf('/home/cluster/stefanos/Documents/Glia/dataParsed2Matlab/updatedStimGABAb01NEWBGST_Rs10c5_SN4_r%d_mV.mat',ru-1),'batch_rnd','-v7.3');
 
 end
