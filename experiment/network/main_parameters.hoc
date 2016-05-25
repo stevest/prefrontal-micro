@@ -3,10 +3,10 @@ PLOT = 0
 DEBUG = 1
 DUMMY_RUN = 0
 SHUFFLE_SYNAPSES = 0
-save_synaptic_locations = 0 
-save_stimulation_locations = 0 
-save_synaptic_delays = 0 
-save_inmda = 0 
+save_synaptic_locations = 1 
+save_stimulation_locations = 1 
+save_synaptic_delays = 1 
+save_inmda = 1 
 // Experimental setup
 //tstop=10 //defined externaly
 steps_per_ms=10
