@@ -92,13 +92,13 @@ jobstdout="$jobstdout\\\n=======================================================
 #Working with STDOUT:#qsub -b y -S /bin/bash -V -N $jobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/$outputFile.out -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef STDOUT, JOBNAME'\\\"\)" -c "execute1\(\\\"'STDOUT = \\\"$jobstdout\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$jobname\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 echo $jobstdout
 #POSIXLY_CORRECT=0
-#for run in $(seq $startRun $endRun);
-for run in "${custom_jobs[@]}"
+for run in $(seq $startRun $endRun);
+#for run in "${custom_jobs[@]}"
 do
 	echo $run;
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
-	outputDir="${storagehome}/${uniquejobname}"
+	outputDir="${storagehome}/${uniquejobname}_PID50"
 	echo "Output Job directory is:"
 	echo $outputDir
 	if [ -d $outputDir ]; then

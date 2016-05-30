@@ -488,7 +488,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 		//i=0
 		for syn=0, (PC2PC_MaxSyn-1) {
 			PID = r_PC2PC[PCgids.x[i]].repick()
-			PID = 0.25 //bias MCMC
+			PID = 0.50 //bias MCMC
 			rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 			clusterDend[PCgids.x[i]].append(rDendidx)
 			//uniformly distribute synapses along basals:
@@ -541,7 +541,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 							clusterDend[trgGID].x(syn) = 0
 							PID = clustbias(clusterPID[trgGID].x[syn],RN_PC2PC[trg].repick())
-							PID = 0.25 //bias MCMC
+							PID = 0.5 //bias MCMC
 							FIDp = abs(fp_PC2PC[trg].repick())
 							if( FIDp <= dt ){ FIDp = dt + 0.01 }
 							if(save_synaptic_delays){
@@ -596,7 +596,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 			}
 			for j=0, (PC_MaxAutosyn-1) { 
 				PID=r_PC2PC[PCgids.x[i]].repick()
-				PID = 0.25 // bias MCMC
+				PID = 0.5 // bias MCMC
 				FIDp = abs(fp_PC2PC[PCgids.x[i]].repick())
 				rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 				if( FIDp <= dt ){ FIDp = dt + 0.01 }
