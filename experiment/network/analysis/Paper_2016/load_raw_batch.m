@@ -12,8 +12,12 @@ end
 % jungle
 r = dir(pathto);
 rf = {r(~[r.isdir]).name};
+%Get only Vm files:
+isvm = cellfun(@(x) isstrprop(x, 'digit'),rf,'uniformoutput',false);
+isvmlogical = cellfun(@(x) x(1), isvm);
+rfvm = rf(isvmlogical);
 % Get only .bin files:
-files = sort(rf(cellfun(@(x) strcmp(x(end-3:end),'.bin'),rf)));
+files = sort(rfvm(cellfun(@(x) strcmp(x(end-3:end),'.bin'),rfvm)));
 n = size(files,2);
 
 if (isempty(files))
