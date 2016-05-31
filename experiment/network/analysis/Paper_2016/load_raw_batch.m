@@ -5,8 +5,19 @@ function [st,tstop]=load_raw_batch(pathto,varargin)
 
 
 s=false;
-for a=1:length(varargin)
-    if strcmp(varargin{a},'spikes');s=true;end
+requestedvar = '';
+va = varargin;
+for a=1:length(va)
+    if strcmp(va{a},'spikes');
+        s=true;
+        va{a} = [];
+    end
+end
+for a=1:length(va)
+    if isstrprop(va{a}, 'alpha');
+        requestedvar = va{a};
+        va{a} = [];
+    end
 end
 
 % jungle
@@ -15,7 +26,13 @@ rf = {r(~[r.isdir]).name};
 %Get only Vm files:
 isvm = cellfun(@(x) isstrprop(x, 'digit'),rf,'uniformoutput',false);
 isvmlogical = cellfun(@(x) x(1), isvm);
-rfvm = rf(isvmlogical);
+%if we want to load another var (eg current):
+if ~isempty(requestedvar)
+    isrequestedvar = cellfun(@(x) strcmp(x(1:length(requestedvar)),requestedvar),rf);
+    rfvm = rf(isrequestedvar);
+else
+    rfvm = rf(isvmlogical);
+end
 % Get only .bin files:
 files = sort(rfvm(cellfun(@(x) strcmp(x(end-3:end),'.bin'),rfvm)));
 n = size(files,2);
@@ -29,31 +46,53 @@ st = cell(n,1);
 
 textprogressbar('Loading batch: ');
 for fn=1:n
-    %These, tmp, index change according to dataset!
-    tmp = strsplit(files{fn}, {'_','.'});
-    % get cell id:
-    cid = str2double(tmp{1})+1;
-    % get run id
-    rid = str2double(tmp{2})+1;
-    
-    filename = fullfile(pathto,files{fn});
-%     disp(filename);
-    if( exist(filename,'file') )
-        try
-            trace = nrn_vread(filename,'n');
-        catch e
-            warning('Error with nrn_vread() !');
-        end
-        % dt equals 0.1:
-        trace = trace(1:10:end);
-        if s
-            [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
+    if ~isempty(requestedvar)
+        %These, tmp, index change according to dataset!
+        tmp = strsplit(files{fn}, {'inmda_srcPC','_trgPC','.bin'});
+        % get cell id:
+        srcid = str2double(tmp{2})+1;
+        % get run id
+        trgid = str2double(tmp{3})+1;
+        filename = fullfile(pathto,files{fn});
+        if( exist(filename,'file') )
+            try
+                trace = nrn_vread(filename,'n');
+            catch e
+                warning('Error with nrn_vread() !');
+            end
+            % dt equals 0.1:
+            trace = trace(1:10:end);
+            st{srcid,trgid} = trace';
         else
-            st{cid,1} = trace';
+            st{srcid,trgid} = [];
         end
     else
-        st{cid,1} = [];
+        %These, tmp, index change according to dataset!
+        tmp = strsplit(files{fn}, {'_','.'});
+        % get cell id:
+        cid = str2double(tmp{1})+1;
+        % get run id
+%         rid = str2double(tmp{2})+1;
+        filename = fullfile(pathto,files{fn});
+        if( exist(filename,'file') )
+            try
+                trace = nrn_vread(filename,'n');
+            catch e
+                warning('Error with nrn_vread() !');
+            end
+            % dt equals 0.1:
+            trace = trace(1:10:end);
+            if s
+                [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
+            else
+                st{cid,1} = trace';
+            end
+        else
+            st{cid,1} = [];
+        end
     end
+    
+    
     textprogressbar((fn/n)*100);
 end
 textprogressbar('done');
