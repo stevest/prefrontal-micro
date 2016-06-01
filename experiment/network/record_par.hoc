@@ -82,7 +82,7 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 	
 
 } //End save membrane voltage proc
-/*
+
 objref cuminmdaPC2PC[nPCcells][nPCcells]
 proc par_save_inmda(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
 	{ PC.barrier() } 
@@ -185,4 +185,3 @@ proc par_save_synaptic_delays(){
 	}
 	}
 }
-*/

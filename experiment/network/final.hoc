@@ -400,8 +400,14 @@ if(PARALLEL){
 	{pprint("----------------------------------------------------------------------------------------")}
 	{pprint("Commencing Parallel run!")}
 	{pprint("----------------------------------------------------------------------------------------")}
+	inittime = startsw() - inittime
+	{sprint(PPRINT_CMD,"Network Initialization time: %10.4g minutes.\n", inittime/60)}
+	{pprint(PPRINT_CMD)}
+	inittime=startsw()
 	stdinit() //not such function after devel version 7.4
 	inittime = startsw() - inittime
+	{sprint(PPRINT_CMD,"Compartment Initialization (stdinit()) time: %10.4g minutes.\n", inittime/60)}
+	{pprint(PPRINT_CMD)}
 	runtime=startsw()
 	if(1){PC.psolve(tstop)}
 	runtime = startsw() - runtime
@@ -443,8 +449,6 @@ if(PARALLEL){
 	//save_membrane_voltage(JOBDIR,CLUSTER_ID,ID)
 }
 
-{sprint(PPRINT_CMD,"Initialization time: %10.4g minutes.\n", inittime/60)}
-{pprint(PPRINT_CMD)}
 {sprint(PPRINT_CMD,"Runtime: %10.4g minutes.\n", runtime/60)}
 {pprint(PPRINT_CMD)}
 
