@@ -359,31 +359,43 @@ end
 figure;imagesc(cellfun(@median,loccummat_str))
     
 %%
-VARPID = 25;
-stc_rnd = 2;
-inmdaSum = zeros(700,700,50);
-for ru=1:50
-    load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_inmda_r%d_PID%d.mat',stc_rnd-1, run.sn,ru-1,VARPID)));
+% VARPID = 25;
+% stc_rnd = 2;
+% inmdaSum = zeros(700,700,50);
+% for ru=1:50
+%     load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_inmda_r%d_PID%d.mat',stc_rnd-1, run.sn,ru-1,VARPID)));
+% 
+%     blah = cellfun(@length, inmdaBatch);
+%     inmdaIDX = find(blah);
+% 
+%     for k = inmdaIDX'
+%         [y,x] = ind2sub(size(inmdaBatch),k);
+%         inmda = inmdaBatch{y,x}(1500:end);
+%         inmda(inmda>0)=0;
+%         inmdaSum(y,x,ru)=-sum(inmda);
+%     end
+% end
 
-    blah = cellfun(@length, inmdaBatch);
-    inmdaIDX = find(blah);
+% figure;imagesc(std(inmdaSum(sc_rnd,sc_rnd,:),0,3))
+% figure;imagesc(sum(inmdaSum(sc_rnd,sc_rnd,:),3))
 
-    for k = inmdaIDX'
-        [y,x] = ind2sub(size(inmdaBatch),k);
-        inmda = inmdaBatch{y,x}(1500:end);
-        inmda(inmda>0)=0;
-        inmdaSum(y,x,ru)=-sum(inmda);
-    end
-end
+inmdaSTD_R_PID25 = std(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),0,3);
+inmdaSUM_R_PID25 = sum(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),3);
 
-figure;imagesc(std(inmdaSum(sc_rnd,sc_rnd,:),0,3))
-figure;imagesc(sum(inmdaSum(sc_rnd,sc_rnd,:),3))
-
-inmdaSTD = std(inmdaSum(sc_rnd,sc_rnd,:),0,3);
-inmdaSUM = sum(inmdaSum(sc_rnd,sc_rnd,:),3);
+inmdaSTD_S_PID25 = std(inmdaSum_S_PID25(sc_str,sc_str,:),0,3);
+inmdaSUM_S_PID25 = sum(inmdaSum_S_PID25(sc_str,sc_str,:),3);
 
 figure;hold on;
-scatter(inmdaSTD(:),inmdaSUM(:),'.k');
+scatter(inmdaSTD_R_PID25(:),inmdaSUM_R_PID25(:),'.k');
+title('RND');
+ylabel('SUM');xlabel('STD');
+    
+    
+figure;hold on;
+scatter(inmdaSTD_S_PID25(:),inmdaSUM_S_PID25(:),'.k');
+title('STR');
+ylabel('SUM');xlabel('STD');
+    
 
 
 figure;

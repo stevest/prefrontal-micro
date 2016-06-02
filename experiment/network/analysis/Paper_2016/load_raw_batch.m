@@ -44,7 +44,7 @@ if (isempty(files))
 end
 st = cell(n,1);
 
-textprogressbar('Loading batch: ');
+textprogressbar(sprintf('Loading %s: ',pathto));
 for fn=1:n
     if ~isempty(requestedvar)
         %These, tmp, index change according to dataset!
@@ -64,6 +64,7 @@ for fn=1:n
             trace = trace(1:10:end);
             st{srcid,trgid} = trace';
         else
+            warning(sprintf('File: %s appears to have disappeared after initial ls! This is shady...)',filename));
             st{srcid,trgid} = [];
         end
     else
@@ -88,6 +89,7 @@ for fn=1:n
                 st{cid,1} = trace';
             end
         else
+            warning(sprintf('File: %s appears to have disappeared after initial ls! This is shady...)',filename));
             st{cid,1} = [];
         end
     end
