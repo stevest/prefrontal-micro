@@ -1,12 +1,13 @@
 %% Compute relative frequency of network states:
 close all;clear all;clc;
 % load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN4.mat'));
-load(fullfile('C:','Users','user','Documents','NetworkCreation_SN4.mat'));
+load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN2.mat'));
 %Which cluster is stimulated in each configuration:
-stc_rnd = 5;
-stc_str = 5;
-load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
-load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
+stc_rnd = 2;
+stc_str = 4;
+VARPID = 75;
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
 run.tstop = 10000;
 run.nruns = 100;
 
@@ -27,8 +28,8 @@ Qseq = [100,50,40,30,20,10,8,6,4];
 
 % Qseq = [100,50,40,30,20,10,8,6,4];
 configuration = 'str';
-% eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
-eval( sprintf('st = batch_%s_spikes;',configuration) );
+eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
+% eval( sprintf('st = batch_%s_spikes;',configuration) );
 eval( sprintf('stc = stc_%s;', configuration) );
 [~, ~, ~] = createVoteState(run, Qseq, st, stc-1, configuration, 'save');
 % Qseq = [100,50,40,30,20,10,8,6,4];
@@ -42,7 +43,7 @@ FFr_rnd = zeros(run.nPC,run.nruns);
 FFr_str = zeros(run.nPC,run.nruns);
 
 for ru=1:size(batch_rnd_spikes,2)
-        for c = 1:run.nPC
+    for c = 1:run.nPC
         st_rnd = batch_rnd_spikes{c,ru};
         st_rnd = st_rnd(st_rnd>1500);
         FFr_rnd(c,ru) = length(st_rnd)/((run.tstop-1500)/1000);
@@ -77,30 +78,35 @@ colormap(cm);title('Structured');
 
 
 %% Compare states across configurations:
-
+VARPID = 75;
 close all;
-nProminentStatesCheck = 20;
+nProminentStatesCheck = 10;
+cm = lines(nProminentStatesCheck);
+rlowessWidth = 40;
+uptocoactive = 10; % plot up to 10 coactive cells.
 figure(5);hold on;
-for Q = 100
+for Q = 50
     configuration = 'rnd';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',VARPID),...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
     delayRange = ceil(1500/Q):run.tstop/Q ;
-    prominentStates = zeros(size(voteState,1),1);
-    for kk=1:size(voteState,1)
-        prominentStates(kk) = mean(voteState(kk,delayRange));
-    end
+    prominentStates = mean(voteState(:,delayRange),2);
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
     nActivePC_rnd = cellfun(@(x) length(regexp(x,'1','match')), U );
-%     figure;scatter(nActivePC_rnd,prominentStates);
+
     frequencyPerActive = {}; gPC={};
-    for k=1:10 % up to 10 coactive cells.
+    for k=1:uptocoactive 
         tmp = find(nActivePC_rnd == k);
         gPC{k,1} = ones(length(tmp),1)*k;
         frequencyPerActive{k,1} = prominentStates(tmp);
     end
-    figure(2);boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
+
+    % get a better visualization for these points:
+    figure(2);scatter(cell2mat(gPC),cell2mat(frequencyPerActive),'.');hold on;
+    % Show points only for state traces:
+    figure(2);scatter(nActivePC_rnd(maxfreqidx(2:nProminentStatesCheck)),prominentStates(maxfreqidx(2:nProminentStatesCheck)),'o');
+    
     ylim2_rnd = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
@@ -110,31 +116,95 @@ for Q = 100
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
     figure(1);hold on;
     for k=2:nProminentStatesCheck
-        plot(smoothed_states(maxfreqidx(k),delayRange),'linewidth',2)
+        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
     end
     ylim_rnd = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
     
+    % plot state intra weight:
+    stateMeanW_rnd = [];
+    eval( sprintf('stimulatedCells = sc_%s;',configuration) );
+    for k=2:nProminentStatesCheck
+        [~, S] = regexp(U{maxfreqidx(k)},'1','match');
+        stateCells = stimulatedCells(S)';
+        if length(stateCells) > 1
+            eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
+            stateMeanW_rnd(k) = mean(tmpW(~eye(length(stateCells))));
+        end
+    end
+    AllStateMeanW_rnd = {};
+    for k=2:uptocoactive
+        tmp = find(nActivePC_rnd == k);
+        for kk = 1:length(tmp)
+            [~, S] = regexp(U{tmp(kk)},'1','match');
+            stateCells = stimulatedCells(S)';
+            if length(stateCells) > 1
+                eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
+                AllStateMeanW_rnd{k,kk} = mean(tmpW(~eye(length(stateCells))));
+            end
+        end
+    end
+    for k=2:uptocoactive
+        tmp2 = cell2mat(AllStateMeanW_rnd(k,:));
+        figure(6);scatter(ones(1,length(tmp2))*k,tmp2,'.');hold on;
+        figure(6);scatter(k,mean(tmp2),'r+');
+    end
+    title(sprintf('%s Q=%d',configuration,Q));
+    ylabel('Synaptic Weight');xlabel('Coactive neurons');
+    
+%     % plot state intra syn location:
+%     PSLoc_rnd=[];
+%     medianLocation_rnd = cellfun(@median,loccummat_rnd);
+%     AllStateMeanLoc_rnd = cell(1,uptocoactive);
+%     for k=2:uptocoactive
+%         tmp = find(nActivePC_rnd == k);
+%         for kk = 1:length(tmp)
+%             [~, S] = regexp(U{tmp(kk)},'1','match');
+%             PSLocTMP = find(ismember(maxfreqidx(2:nProminentStatesCheck),tmp(kk)))+1; % we exclude 1 coactive 
+%             if PSLocTMP
+%                 PSLoc_rnd = [PSLoc_rnd ; [k,kk,PSLocTMP]];
+%             end
+%             stateCells = stimulatedCells(S)';
+%             if length(stateCells) > 1
+%                 tmpL = medianLocation_rnd(stateCells,stateCells);
+%                 AllStateMeanLoc_rnd{k} = [AllStateMeanLoc_rnd{k} nanmedian(tmpL(~eye(length(stateCells))))];
+%             end
+%         end
+%     end
+%     for k=2:uptocoactive
+%         tmp2 = AllStateMeanLoc_rnd{k};
+%         figure(8);scatter(ones(1,length(tmp2))*k,tmp2,'k.');hold on;
+%         figure(8);scatter(k,nanmedian(tmp2),'r+', 'linewidth',2);
+%     end
+%     for k=1:size(PSLoc_rnd,1)
+%         figure(8);scatter(PSLoc_rnd(k,1),AllStateMeanLoc_rnd{PSLoc_rnd(k,1)}(PSLoc_rnd(k,2)),'ro', 'linewidth',2);
+%     end
+%     title(sprintf('%s Q=%d',configuration,Q));
+%     ylabel('Incomming synapse location (normalized)');xlabel('Coactive neurons');
+    
+    
     configuration = 'str';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',VARPID),...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
     delayRange = ceil(1500/Q):run.tstop/Q ;
-    prominentStates = zeros(size(voteState,1),1);
-    for kk=1:size(voteState,1)
-        prominentStates(kk) = mean(voteState(kk,delayRange));
-    end
+    prominentStates = mean(voteState(:,delayRange),2);
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
     nActivePC_str = cellfun(@(x) length(regexp(x,'1','match')), U );
-%     figure;scatter(nActivePC_str,prominentStates);
+    
     frequencyPerActive = {}; gPC={};
-    for k=1:10
+    for k=1:uptocoactive
         tmp = find(nActivePC_str == k);
         gPC{k,1} = ones(length(tmp),1)*k;
         frequencyPerActive{k,1} = prominentStates(tmp);
     end
-    figure(4);boxplot(cell2mat(frequencyPerActive), cell2mat(gPC),'notch','on')
+
+    % get a better visualization for these points:
+    figure(4);scatter(cell2mat(gPC),cell2mat(frequencyPerActive),'.');hold on;
+    % Show points only for state traces:
+    figure(4);scatter(nActivePC_str(maxfreqidx(2:nProminentStatesCheck)),prominentStates(maxfreqidx(2:nProminentStatesCheck)),'o');
+    
     ylim2_str = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
@@ -144,11 +214,77 @@ for Q = 100
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
     figure(3);hold on;
     for k=2:nProminentStatesCheck
-        plot(smoothed_states(maxfreqidx(k),delayRange),'linewidth',2)
+        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
     end
     ylim_str = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+    
+    % plot state intra weight:
+    stateMeanW_str = [];
+    eval( sprintf('stimulatedCells = sc_%s;',configuration) );
+    for k=2:nProminentStatesCheck
+        [~, S] = regexp(U{maxfreqidx(k)},'1','match');
+        stateCells = stimulatedCells(S)';
+        if length(stateCells) > 1
+            eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
+            stateMeanW_str(k) = mean(tmpW(~eye(length(stateCells))));
+        end
+    end
+    AllStateMeanW_str = {};
+    for k=2:uptocoactive
+        tmp = find(nActivePC_str == k);
+        for kk = 1:length(tmp)
+            [~, S] = regexp(U{tmp(kk)},'1','match');
+            stateCells = stimulatedCells(S)';
+            if length(stateCells) > 1
+                eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
+                AllStateMeanW_str{k,kk} = mean(tmpW(~eye(length(stateCells))));
+            end
+        end
+    end
+    for k=2:uptocoactive
+        tmp2 = cell2mat(AllStateMeanW_str(k,:));
+        figure(7);scatter(ones(1,length(tmp2))*k,tmp2,'.');hold on;
+        figure(7);scatter(k,mean(tmp2),'r+');
+    end
+    title(sprintf('%s Q=%d',configuration,Q));
+    ylabel('Synaptic Weight');xlabel('Coactive neurons');
+    
+%     % plot state intra syn location:
+%     PSLoc_str=[];
+%     medianLocation_str = cellfun(@median,loccummat_str);
+%     AllStateMeanLoc_str = cell(1,uptocoactive);
+%     for k=2:uptocoactive
+%         tmp = find(nActivePC_str == k);
+%         for kk = 1:length(tmp)
+%             [~, S] = regexp(U{tmp(kk)},'1','match');
+%             PSLocTMP = find(ismember(maxfreqidx(2:nProminentStatesCheck),tmp(kk)))+1; % we exclude 1 coactive 
+%             if PSLocTMP
+%                 PSLoc_str = [PSLoc_str ; [k,kk,PSLocTMP]];
+% %                 for kkk=1:length(PSLocTMP)
+% %                     PSLoc_str{k} = {PSLoc_str(k) {k kk}};
+% %                 end
+%             end
+%             stateCells = stimulatedCells(S)';
+%             if length(stateCells) > 1
+%                 tmpL = medianLocation_str(stateCells,stateCells);
+% %                 AllStateMeanLoc_str{k,kk} = nanmean(tmpL(~eye(length(stateCells))));
+%                 AllStateMeanLoc_str{k} = [AllStateMeanLoc_str{k} nanmedian(tmpL(~eye(length(stateCells))))];
+%             end
+%         end
+%     end
+%     for k=2:uptocoactive
+%         tmp2 = AllStateMeanLoc_str{k};
+%         figure(9);scatter(ones(1,length(tmp2))*k,tmp2,'k.');hold on;
+%         figure(9);scatter(k,nanmedian(tmp2),'r+', 'linewidth',2);
+%     end
+%     for k=1:size(PSLoc_str,1)
+%         figure(9);scatter(PSLoc_str(k,1),AllStateMeanLoc_str{PSLoc_str(k,1)}(PSLoc_str(k,2)),'ro', 'linewidth',2);
+%     end
+%     title(sprintf('%s Q=%d',configuration,Q));
+%     ylabel('Incomming synapse location (normalized)');xlabel('Coactive neurons');
+
     
     figure(5);legend({'Rnd','Str'});
     ylim_max = max([ylim_str(2),ylim_rnd(2)]);
@@ -193,6 +329,69 @@ for Q = 100
 %         scatter(spikes,ones(length(spikes),1)*kk);
 %     end
 end
+
+%% Check location of synapses across runs:
+loccummat_rnd = cell(700,700);
+for k=1:run.nruns
+    k
+    clear synapticDelays synapticLocations 
+    load(sprintf('synapticLocDel_Rs10c%d_SN%d_r%d.mat',stc_rnd-1,run.sn,k-1));
+    for ii=1:700
+        for jj=1:700
+            loccummat_rnd{ii,jj} = [loccummat_rnd{ii,jj} synapticLocations{ii,jj}];
+        end
+    end
+%     cumMat(:,:,k) = cellfun(@mean,synapticLocations);
+end
+figure;imagesc(cellfun(@median,loccummat_rnd))
+
+loccummat_str = cell(700,700);
+for k=1:run.nruns
+    k
+    clear synapticDelays synapticLocations 
+    load(sprintf('synapticLocDel_Ss10c%d_SN%d_r%d.mat',stc_str-1,run.sn,k-1));
+    for ii=1:700
+        for jj=1:700
+            loccummat_str{ii,jj} = [loccummat_str{ii,jj} synapticLocations{ii,jj}];
+        end
+    end
+end
+figure;imagesc(cellfun(@median,loccummat_str))
+    
+%%
+VARPID = 25;
+stc_rnd = 2;
+inmdaSum = zeros(700,700,50);
+for ru=1:50
+    load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_inmda_r%d_PID%d.mat',stc_rnd-1, run.sn,ru-1,VARPID)));
+
+    blah = cellfun(@length, inmdaBatch);
+    inmdaIDX = find(blah);
+
+    for k = inmdaIDX'
+        [y,x] = ind2sub(size(inmdaBatch),k);
+        inmda = inmdaBatch{y,x}(1500:end);
+        inmda(inmda>0)=0;
+        inmdaSum(y,x,ru)=-sum(inmda);
+    end
+end
+
+figure;imagesc(std(inmdaSum(sc_rnd,sc_rnd,:),0,3))
+figure;imagesc(sum(inmdaSum(sc_rnd,sc_rnd,:),3))
+
+inmdaSTD = std(inmdaSum(sc_rnd,sc_rnd,:),0,3);
+inmdaSUM = sum(inmdaSum(sc_rnd,sc_rnd,:),3);
+
+figure;hold on;
+scatter(inmdaSTD(:),inmdaSUM(:),'.k');
+
+
+figure;
+for ru=1:49
+    imagesc(inmdaSum(sc_rnd,sc_rnd,ru));
+    pause();
+end
+
 %% Parse above data:
 % Na apofasisw ti na kanw me afti tin analysi: Ti apo ola afta pou exw
 % kanei toso kairo a3izei na graftei k na to exw, pou exei ginei poutana o
