@@ -35,19 +35,19 @@ echo "Currently at directory:"
 echo `pwd`
 
 parallel="1"
-#All nodes are: 288
-nodes="288"
+#All nodes are:312 
+nodes="6"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="1"
+cluster="4"
 # 0=Random, 1=Structured
-exp="0"
-sn="2"
+exp="1"
+sn="4"
 clustbias="0.0"
 startRun="0"
 endRun="49"
-VARPID="0.5"
-custom_jobs=(17)
+VARPID="0.25"
+custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="test_nosge"
@@ -93,13 +93,13 @@ jobstdout="$jobstdout\\\n=======================================================
 #Working with STDOUT:#qsub -b y -S /bin/bash -V -N $jobname -o /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/$outputFile.out -j y -pe orte $nodes -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef STDOUT, JOBNAME'\\\"\)" -c "execute1\(\\\"'STDOUT = \\\"$jobstdout\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$jobname\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 echo $jobstdout
 #POSIXLY_CORRECT=0
-#for run in $(seq $startRun $endRun);
-for run in "${custom_jobs[@]}"
+for run in $(seq $startRun $endRun);
+#for run in "${custom_jobs[@]}"
 do
 	echo $run;
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
-	outputDir="${storagehome}/${uniquejobname}_PID50"
+	outputDir="${storagehome}/${uniquejobname}_PID25"
 	echo "Output Job directory is:"
 	echo $outputDir
 	if [ -d $outputDir ]; then

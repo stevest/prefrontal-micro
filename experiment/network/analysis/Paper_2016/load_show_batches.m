@@ -1,20 +1,18 @@
 %% Load raw batches:
-close all;clear all;clc;
+close all;clear all;
 SN = 2;
-PID = 25;
+PID = 75;
 for stc=4
 %     batch = cell(933,100);
     for ru = 1:50
-        pathto = sprintf('/home/cluster/stefanos/Documents/Glia/SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_r%d',stc-1,SN,ru-1);
-%         batch = load_raw_batch(pathto);
-        inmdaBatch = load_raw_batch(pathto,'inmda');
-        save(sprintf('/home/cluster/stefanos/Documents/Glia/SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_inmda_r%d_PID%d.mat',stc-1,SN,ru-1,PID),'inmdaBatch','-v7.3');
+        pathto = sprintf('/home/cluster/stefanos/Documents/Glia/SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_r%d_PID%d',stc-1,SN,ru-1,PID);
+        batch = load_raw_batch(pathto);
+%         inmdaBatch = load_raw_batch(pathto,'inmda');
+        save(sprintf('/home/cluster/stefanos/Documents/Glia/SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_inmda_r%d_PID%d.mat',stc-1,SN,ru-1,PID),'batch','-v7.3');
         if ~isempty(batch)
-%             batch_str(:,ru) = batch(1:933,:);
-            inmdaBatch_str(:,ru) = batch(1:933,:);
+            batch_str(:,ru) = batch(1:933,:);
         end
     end
-
 end
 
 [~,batch_str_spikes] = cellfun(@(x) advanced_spike_count(x,-10,0), batch_str, 'uniformoutput', false);
