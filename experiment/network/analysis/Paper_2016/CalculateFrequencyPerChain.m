@@ -5,11 +5,11 @@ load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN2.mat'));
 %Which cluster is stimulated in each configuration:
 stc_rnd = 2;
 stc_str = 4;
-VARPID = 75;
+VARPID = 25;
 load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
 load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
 run.tstop = 10000;
-run.nruns = 100;
+run.nruns = 50;
 
 % List of stimulated/non-stimulated cells in each configuration:
 sc_rnd = run.stimulatedCells_rnd{stc_rnd};
@@ -75,6 +75,30 @@ caxis manual
 caxis([cmmin cmmax]);
 colormap(cm);title('Structured');
 
+
+%% Firing Frequency per window Q:
+
+Q = 10;
+Qn = length(1500:Q:run.tstop)-1;
+QFFr_rnd = zeros(run.nPC,Qn,run.nruns);
+QFFr_str = zeros(run.nPC,Qn,run.nruns);
+for ru=1:size(batch_rnd_spikes,2)
+    for c = 1:run.nPC
+        st_rnd = batch_rnd_spikes{c,ru};
+        st_rnd = st_rnd(st_rnd>1500);
+        QFFr_rnd(c,:,ru) = histcounts(st_rnd,1500:Q:run.tstop);
+    end
+end
+for ru=1:size(batch_str_spikes,2)
+    for c = 1:run.nPC
+        st_str = batch_str_spikes{c,ru};
+        st_str = st_str(st_str>1500);
+        QFFr_str(c,:,ru) = histcounts(st_str,1500:Q:run.tstop);
+    end
+end
+
+figure;plot(mean(squeeze(sum(QFFr_rnd,1))'));
+figure;plot(mean(squeeze(sum(QFFr_str,1))'));
 
 
 %% Compare states across configurations:
@@ -361,40 +385,204 @@ figure;imagesc(cellfun(@median,loccummat_str))
 %%
 % VARPID = 25;
 % stc_rnd = 2;
-% inmdaSum = zeros(700,700,50);
+% inmdaSum_R_PID25 = zeros(700,700,50);
 % for ru=1:50
+%     ru
 %     load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_inmda_r%d_PID%d.mat',stc_rnd-1, run.sn,ru-1,VARPID)));
 % 
-%     blah = cellfun(@length, inmdaBatch);
+%     blah = cellfun(@length, specificBatch);
 %     inmdaIDX = find(blah);
 % 
 %     for k = inmdaIDX'
-%         [y,x] = ind2sub(size(inmdaBatch),k);
-%         inmda = inmdaBatch{y,x}(1500:end);
+%         [y,x] = ind2sub(size(specificBatch),k);
+%         inmda = specificBatch{y,x}(1500:end);
 %         inmda(inmda>0)=0;
-%         inmdaSum(y,x,ru)=-sum(inmda);
+%         inmdaSum_R_PID75(y,x,ru)=-sum(inmda);
 %     end
 % end
 
 % figure;imagesc(std(inmdaSum(sc_rnd,sc_rnd,:),0,3))
 % figure;imagesc(sum(inmdaSum(sc_rnd,sc_rnd,:),3))
 
-inmdaSTD_R_PID25 = std(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),0,3);
-inmdaSUM_R_PID25 = sum(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),3);
+% inmdaSTD_R_PID25 = std(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),0,3);
+% inmdaSUM_R_PID25 = sum(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),3);
+% 
+% inmdaSTD_S_PID25 = std(inmdaSum_S_PID25(sc_str,sc_str,:),0,3);
+% inmdaSUM_S_PID25 = sum(inmdaSum_S_PID25(sc_str,sc_str,:),3);
 
-inmdaSTD_S_PID25 = std(inmdaSum_S_PID25(sc_str,sc_str,:),0,3);
-inmdaSUM_S_PID25 = sum(inmdaSum_S_PID25(sc_str,sc_str,:),3);
+% get iNMDA distribution; Is it normal?
+% clear phat_rnd;
+% phat_rnd(length(sc_rnd),length(sc_rnd)).m = [];
+% phat_rnd(length(sc_rnd),length(sc_rnd)).s = [];
+inmdaRange = 0:10:70;
+figure;hold on;
+k=1
+for ii=1:length(sc_rnd)
+    for jj=1:length(sc_rnd)
+        if(ii~=jj)
+%             phat = mle(squeeze(inmdaSum_R_PID25(sc_rnd(ii),sc_rnd(jj),:))) ;
+%             phat_rnd(ii,jj).m = phat(1);
+%             phat_rnd(ii,jj).s = phat(2);
+            c = rand(1,3);
+            tmphisto = histcounts(squeeze(inmdaTotal_R{k}(sc_rnd(ii),sc_rnd(jj),:)),inmdaRange) / size(inmdaTotal_R{k},3);
+            phat = mle(squeeze(inmdaTotal_R{k}(sc_rnd(ii),sc_rnd(jj),:))) ;
+            norm = normpdf(inmdaRange(1):inmdaRange(end),phat(1),phat(2))
+%             tmphisto = smooth(tmphisto);
+            plot(inmdaRange(1:end-1),tmphisto,'r');
+            if ~isnan(norm)
+                plot(inmdaRange(1):inmdaRange(end),norm,'g');
+                pause();cla;
+            end
+            cla;
+        end
+    end
+end
+
+
+
+inmdaTotal_R = {inmdaSum_R_PID25,inmdaSum_R_PID50,inmdaSum_R_PID75};
+inmdaTotal_S = {inmdaSum_S_PID25,inmdaSum_S_PID50,inmdaSum_S_PID75};
+
+
+
+
+clear phat_rnd;
+phat_rnd(length(sc_rnd),length(sc_rnd),3).m = [];
+phat_rnd(length(sc_rnd),length(sc_rnd),3).s = [];
+for k=1:3
+    for ii=1:length(sc_rnd)
+        for jj=1:length(sc_rnd)
+            if(ii~=jj)
+                phat = mle(squeeze(inmdaTotal_R{k}(sc_rnd(ii),sc_rnd(jj),:))) ;
+                phat_rnd(ii,jj,k).m = phat(1);
+                phat_rnd(ii,jj,k).s = phat(2);
+            end
+        end
+    end
+end
+
+clear phat_str;
+phat_str(length(sc_str),length(sc_str),3).m = [];
+phat_str(length(sc_str),length(sc_str),3).s = [];
+for k=1:3
+    for ii=1:length(sc_str)
+        for jj=1:length(sc_str)
+            if(ii~=jj)
+                phat = mle(squeeze(inmdaTotal_S{k}(sc_str(ii),sc_str(jj),:))) ;
+                phat_str(ii,jj,k).m = phat(1);
+                phat_str(ii,jj,k).s = phat(2);
+            end
+        end
+    end
+end
+
+% Comparisson plots:
+
+cl = lines(2);
+figure;hold on;
+scatter(cell2mat({phat_rnd(:,:,1).s}),cell2mat({phat_rnd(:,:,1).m}),20,cl(1,:),'marker','.');
+scatter(cell2mat({phat_str(:,:,1).s}),cell2mat({phat_str(:,:,1).m}),20,cl(2,:),'marker','.');
+title('PID 25');
+ylabel('mu');xlabel('sigma');
+legend({'Rnd','Str'});
 
 figure;hold on;
-scatter(inmdaSTD_R_PID25(:),inmdaSUM_R_PID25(:),'.k');
+scatter(cell2mat({phat_rnd(:,:,2).s}),cell2mat({phat_rnd(:,:,2).m}),20,cl(1,:),'marker','.');
+scatter(cell2mat({phat_str(:,:,2).s}),cell2mat({phat_str(:,:,2).m}),20,cl(2,:),'marker','.');
+title('PID 50');
+ylabel('mu');xlabel('sigma');
+legend({'Rnd','Str'});
+
+figure;hold on;
+scatter(cell2mat({phat_rnd(:,:,3).s}),cell2mat({phat_rnd(:,:,3).m}),20,cl(1,:),'marker','.');
+scatter(cell2mat({phat_str(:,:,3).s}),cell2mat({phat_str(:,:,3).m}),20,cl(2,:),'marker','.');
+title('PID 75');
+ylabel('mu');xlabel('sigma');
+legend({'Rnd','Str'});
+
+
+
+% individual plots:
+cl = lines(3);
+sz = [1 1 20];
+figure;hold on;
+for k=1:3
+    scatter(cell2mat({phat_rnd(:,:,k).s}),cell2mat({phat_rnd(:,:,k).m}),sz(k),cl(k,:),'marker','.');
+end
 title('RND');
-ylabel('SUM');xlabel('STD');
-    
-    
+ylabel('mu');xlabel('sigma');
+legend({'0.25','0.50','0.75'});
 figure;hold on;
-scatter(inmdaSTD_S_PID25(:),inmdaSUM_S_PID25(:),'.k');
-title('STR');
-ylabel('SUM');xlabel('STD');
+for k=1:3
+    scatter(cell2mat({phat_str(:,:,k).s}),cell2mat({phat_str(:,:,k).m}),sz(k),cl(k,:),'marker','.');
+end
+title('str');
+ylabel('mu');xlabel('sigma');
+legend({'0.25','0.50','0.75'});
+
+
+% 
+% 
+% clear phat_rnd;
+% phat_rnd(length(sc_rnd),length(sc_rnd)).m = [];
+% phat_rnd(length(sc_rnd),length(sc_rnd)).s = [];
+% inmdaRange = 0:10:70;
+% % figure;hold on;
+% for ii=1:length(sc_rnd)
+%     for jj=1:length(sc_rnd)
+%         if(ii~=jj)
+%             phat = mle(squeeze(inmdaSum_R_PID25(sc_rnd(ii),sc_rnd(jj),:))) ;
+%             phat_rnd(ii,jj).m = phat(1);
+%             phat_rnd(ii,jj).s = phat(2);
+% %             c = rand(1,3);
+% %             tmphisto = histcounts(squeeze(inmdaSum_R_PID25(sc_rnd(ii),sc_rnd(jj),:)),inmdaRange) / size(inmdaSum_R_PID25,3);
+% %             tmphisto = smooth(tmphisto);
+% %             plot(inmdaRange(1:end-1),tmphisto,'color',c);
+%         end
+%     end
+% end
+% 
+% clear phat_str;
+% phat_str(length(sc_str),length(sc_str)).m = [];
+% phat_str(length(sc_str),length(sc_str)).s = [];
+% inmdaRange = 0:100:900;
+% %figure;%hold on;
+% for ii=1:length(sc_str)
+%     for jj=1:length(sc_str)
+%         if(ii~=jj)
+%             phat = mle(squeeze(inmdaSum_S_PID25(sc_str(ii),sc_str(jj),:))) ;
+%             phat_str(ii,jj).m = phat(1);
+%             phat_str(ii,jj).s = phat(2);
+% %             c = rand(1,3);
+% %             tmphisto = histcounts(squeeze(inmdaSum_S_PID25(sc_str(ii),sc_str(jj),:)),inmdaRange) / size(inmdaSum_S_PID25,3);
+% %             tmphisto = smooth(tmphisto);
+% %             plot(inmdaRange(1:end-1),tmphisto,'color',c);
+% %             pause();cla;
+%         end
+%     end
+% end
+% 
+% figure;hold on;
+% scatter(cell2mat({phat_rnd.s}),cell2mat({phat_rnd.m}),'.k');
+% title('RND');
+% ylabel('mu');xlabel('sigma');
+% figure;hold on;
+% scatter(cell2mat({phat_str.s}),cell2mat({phat_str.m}),'.k');
+% title('str');
+% ylabel('mu');xlabel('sigma');
+% 
+% 
+% 
+% figure;hold on;
+% scatter(inmdaSTD_R_PID25(:),inmdaSUM_R_PID25(:),'.k');
+% title('RND');
+% ylabel('Cumulative sum of Inmda');xlabel('STD');
+%     
+%     
+% figure;hold on;
+% scatter(inmdaSTD_S_PID25(:),inmdaSUM_S_PID25(:),'.k');
+% title('STR');
+% ylabel('Cumulative sum of Inmda');xlabel('STD');
     
 
 
@@ -402,6 +590,25 @@ figure;
 for ru=1:49
     imagesc(inmdaSum(sc_rnd,sc_rnd,ru));
     pause();
+end
+
+%% Plot distributions of individual iNMDA traces:
+close all;
+inmdaData = inmdaDetailed_S_PID50;
+figure(1);figure(2);
+for ii=1:length(sc_rnd)
+    for jj=1:length(sc_rnd)
+%         P = inmdaData{sc_rnd(ii),sc_rnd(jj),1};
+%         Q = inmdaData{sc_rnd(ii),sc_rnd(jj),2};
+        if ~isempty(inmdaData{sc_rnd(ii),sc_rnd(jj),1})
+            tmp = squeeze(cell2mat( cellfun(@(x) x',inmdaData(sc_rnd(ii),sc_rnd(jj),:),'uniformoutput',false) ));
+            figure(1);imagesc(tmp(2:80,:));
+            figure(2);plot(tmp(2:80,:));
+            pause();cla;
+%             dist=KLDiv(P,Q)
+        end
+%         dist=KLDiv(P,Q)
+    end
 end
 
 %% Parse above data:

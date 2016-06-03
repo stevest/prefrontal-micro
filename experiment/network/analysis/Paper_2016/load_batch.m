@@ -54,7 +54,7 @@ tic;
 experimentDirStr = runParams.experimentDirStr;
 experimentDirArg = runParams.experimentDirArg;
 if isempty(loadParams)
-    for ru = 1:N
+    parfor ru = 1:N
         pathto = fullfile(osDrive(),'Documents','Glia',sprintf(experimentDirStr, experimentDirArg{ru}{:}));
         batch = load_raw_batch(pathto);
 %         if ~isempty(batch)
@@ -65,7 +65,7 @@ if isempty(loadParams)
     end
 else
     specifics = loadParams.specifics;
-    for ru = 1:N
+    parfor ru = 1:N
         pathto = fullfile(osDrive(),'Documents','Glia',sprintf(experimentDirStr, experimentDirArg{ru}{:}));
         specificBatch = load_raw_batch(pathto,specifics);
 
