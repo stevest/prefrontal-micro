@@ -36,12 +36,12 @@ echo `pwd`
 
 parallel="1"
 #All nodes are:312 
-nodes="6"
+nodes="12"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
 cluster="4"
 # 0=Random, 1=Structured
-exp="1"
+exp="0"
 sn="4"
 clustbias="0.0"
 startRun="0"
