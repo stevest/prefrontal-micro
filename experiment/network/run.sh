@@ -36,7 +36,7 @@ echo `pwd`
 
 parallel="1"
 #All nodes are:312 
-nodes="12"
+nodes="6"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
 cluster="4"
