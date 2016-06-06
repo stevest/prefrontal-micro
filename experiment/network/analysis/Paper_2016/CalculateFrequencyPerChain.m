@@ -102,19 +102,22 @@ figure;plot(mean(squeeze(sum(QFFr_str,1))'));
 
 
 %% Compare states across configurations:
-VARPID = 75;
+Qseq = [100,50,40,30,20,10,8,6,4];
+VARPID = 25;
 close all;
 nProminentStatesCheck = 10;
 cm = lines(nProminentStatesCheck);
 rlowessWidth = 40;
 uptocoactive = 10; % plot up to 10 coactive cells.
+ConvergeValues_str = zeros(length(Qseq),nProminentStatesCheck);
+ConvergeValues_rnd = zeros(length(Qseq),nProminentStatesCheck);
 figure(5);hold on;
-for Q = 50
+for Qi = 1:length(Qseq)
     configuration = 'rnd';
     eval( sprintf('stc = stc_%s', configuration) );
     load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',VARPID),...
-        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
-    delayRange = ceil(1500/Q):run.tstop/Q ;
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
     nActivePC_rnd = cellfun(@(x) length(regexp(x,'1','match')), U );
@@ -132,18 +135,21 @@ for Q = 50
     figure(2);scatter(nActivePC_rnd(maxfreqidx(2:nProminentStatesCheck)),prominentStates(maxfreqidx(2:nProminentStatesCheck)),'o');
     
     ylim2_rnd = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
     figure(5);plot(maxfreqstates(1:nProminentStatesCheck));
     
-    title(sprintf('Q=%d',Q));
+    title(sprintf('Q=%d',Qseq(Qi)));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
     figure(1);hold on;
     for k=2:nProminentStatesCheck
-        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
+        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'color',cm(k,:),'linewidth',2);
+        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+        plot(delayRange,f(delayRange),'color',cm(k,:));
+        ConvergeValues_rnd(Qi,k) = f(delayRange(end));
     end
     ylim_rnd = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
     
     % plot state intra weight:
@@ -174,7 +180,7 @@ for Q = 50
         figure(6);scatter(ones(1,length(tmp2))*k,tmp2,'.');hold on;
         figure(6);scatter(k,mean(tmp2),'r+');
     end
-    title(sprintf('%s Q=%d',configuration,Q));
+    title(sprintf('%s Q=%d',configuration,Qseq(Qi)));
     ylabel('Synaptic Weight');xlabel('Coactive neurons');
     
 %     % plot state intra syn location:
@@ -211,8 +217,8 @@ for Q = 50
     configuration = 'str';
     eval( sprintf('stc = stc_%s', configuration) );
     load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',VARPID),...
-        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
-    delayRange = ceil(1500/Q):run.tstop/Q ;
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
     nActivePC_str = cellfun(@(x) length(regexp(x,'1','match')), U );
@@ -230,18 +236,21 @@ for Q = 50
     figure(4);scatter(nActivePC_str(maxfreqidx(2:nProminentStatesCheck)),prominentStates(maxfreqidx(2:nProminentStatesCheck)),'o');
     
     ylim2_str = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
     figure(5);plot(maxfreqstates(1:nProminentStatesCheck));
     
-    title(sprintf('Q=%d',Q));
+    title(sprintf('Q=%d',Qseq(Qi)));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
     figure(3);hold on;
     for k=2:nProminentStatesCheck
         plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
+        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+        plot(delayRange,f(delayRange),'color',cm(k,:));
+        ConvergeValues_str(Qi,k) = f(delayRange(end));
     end
     ylim_str = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
     
     % plot state intra weight:
@@ -272,7 +281,7 @@ for Q = 50
         figure(7);scatter(ones(1,length(tmp2))*k,tmp2,'.');hold on;
         figure(7);scatter(k,mean(tmp2),'r+');
     end
-    title(sprintf('%s Q=%d',configuration,Q));
+    title(sprintf('%s Q=%d',configuration,Qseq(Qi)));
     ylabel('Synaptic Weight');xlabel('Coactive neurons');
     
 %     % plot state intra syn location:
@@ -594,10 +603,11 @@ end
 
 %% Plot distributions of individual iNMDA traces:
 close all;
-inmdaData = inmdaDetailed_S_PID50;
+inmdaData = inmdaDetailed_S_SN4_PID25;
 figure(1);figure(2);
 for ii=1:length(sc_rnd)
     for jj=1:length(sc_rnd)
+            [ii, jj]
 %         P = inmdaData{sc_rnd(ii),sc_rnd(jj),1};
 %         Q = inmdaData{sc_rnd(ii),sc_rnd(jj),2};
         if ~isempty(inmdaData{sc_rnd(ii),sc_rnd(jj),1})
