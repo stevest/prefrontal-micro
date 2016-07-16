@@ -29,7 +29,9 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
 		for q=0,n-1 {r_msec[s].x[q]=q*dt }
 		PC.gid2cell($1).soma {cv.record(&v(0.5),r_volts[s],r_msec[s],0)}
-		PC.gid2cell($1).dend[0] {cv.record(&v(VARPID),r_dvolts[s],r_msec[s],0)}
+		if($1 <700){
+			PC.gid2cell($1).dend[0] {cv.record(&v(VARPID),r_dvolts[s],r_msec[s],0)}
+		}
 		recordedCells.append($1)
 		//print "Recording cell: ", $1
 	}
