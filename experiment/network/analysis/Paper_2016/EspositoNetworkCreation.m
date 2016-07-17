@@ -36,9 +36,9 @@ scatter3(PCsomata(:,1),PCsomata(:,2),PCsomata(:,3));
 AllConnMat = zeros(run.nPC);
 
 %
-% total_prob = @(x) 0.22.*exp(-0.0052*x);
-% recipProbsPC2PC = @(x) 0.12 .* exp(-0.0085* x);
-% connProbsPC2PC =@(x) ((0.22.*exp(-0.0052*x)) - (0.12 .* exp(-0.0085* x))); % REMOVE THE MULTIPLICATION FACTOR!!
+total_prob_org = @(x) 0.22.*exp(-0.0052*x);
+recipProbsPC2PC_org = @(x) 0.12 .* exp(-0.0085* x);
+connProbsPC2PC_org =@(x) ((0.22.*exp(-0.0052*x)) - (0.12 .* exp(-0.0085* x))); % REMOVE THE MULTIPLICATION FACTOR!!
 % SOS remove the multiplication factor because of error in the paper: SOS
 
 total_prob = @(x) 0.9.*exp(-0.0052*x);
@@ -49,6 +49,9 @@ connProbsPC2PC =@(x) ((0.9.*exp(-0.0052*x)) - (0.45 .* exp(-0.0085* x))); % REMO
 upto = cube_dimensions;
 fact = 1;%665;
 figure;hold on;
+plot(total_prob_org(0:upto)*fact,'color',[1,0.6,0.6]);
+plot(connProbsPC2PC_org(0:upto)*fact,'color',[0.6,0.6,0.6]);
+plot(recipProbsPC2PC_org(0:upto)*fact,'color',[0.6,0.6,1]);
 plot(total_prob(0:upto)*fact,'r');
 plot(connProbsPC2PC(0:upto)*fact,'k');
 plot(recipProbsPC2PC(0:upto)*fact,'b');
@@ -153,58 +156,96 @@ end
 % Extrapolating Perin's findings, more CN, more shift in distribution:
 snormal = @(x,m,a,sigma) ((1+erf((a.*x)/sqrt(2)))/2) .* normpdf(x,m,sigma);
 rang = 0:0.01:8;
-NCN = m_commonNeighbors(PC2PC_str);
-NCN(logical(eye(run.nPC))) = NaN;
-maxNeighbors = nanmax(NCN(:));
-minNeighbors = nanmin(NCN(:));
-alpha = 3*ones(1,maxNeighbors);%linspace(3,0.1,maxNeighbors)%.*exp(linspace(0,0.5,maxNeighbors)).^-2;%[20,10,2,1];
+CN_str = m_commonNeighbors(PC2PC_str);
+CN_str(logical(eye(run.nPC))) = NaN;
+maxNeighbors = nanmax(CN_str(:));
+minNeighbors = nanmin(CN_str(:));
+% Create distinct categories corresponding to different commuities
+% and try to measure the overlap:
+ncommunities = 6;
+diffNeighbors = maxNeighbors - minNeighbors;
+categNeighbors = minNeighbors:floor(diffNeighbors/ncommunities+1):maxNeighbors;
+ncategNeighbors = length(categNeighbors);
+
+alpha = 3*ones(1,ncategNeighbors);%linspace(3,0.1,maxNeighbors)%.*exp(linspace(0,0.5,maxNeighbors)).^-2;%[20,10,2,1];
 maxSigma = 5 ;
 minSigma = 0.1 ;
-expClimb = (exp(linspace(0,0.5,maxNeighbors)).^5)-1;
+expClimb = (exp(linspace(0,0.5,ncategNeighbors)).^5)-1;
 expClimb = (expClimb/max(expClimb)*maxSigma)+minSigma;
-m = ones(1,maxNeighbors).*expClimb.*2;%exp(linspace(0,0.6,maxNeighbors))-1;
+m = ones(1,ncategNeighbors).*expClimb.*2;%exp(linspace(0,0.6,maxNeighbors))-1;
 m = m-m(1);
-sigma = 0.5*ones(1,maxNeighbors).*expClimb%.*(1./(1+exp(-linspace(-2,5,maxNeighbors))))%.*exp(linspace(0,0.5,maxNeighbors)).^-10;%[0.15, 0.2, 4, 6];
-normFactors = ones(1,maxNeighbors);%[0.0045, 0.006, 0.02, 0.02];
+sigma = 0.5*ones(1,ncategNeighbors).*expClimb%.*(1./(1+exp(-linspace(-2,5,maxNeighbors))))%.*exp(linspace(0,0.5,maxNeighbors)).^-10;%[0.15, 0.2, 4, 6];
+normFactors = ones(1,ncategNeighbors);%[0.0045, 0.006, 0.02, 0.02];
 % LogNormal PDF parameters:
-parmhat(1,1:maxNeighbors) = linspace(0.1,10,maxNeighbors);
-parmhat(2,1:maxNeighbors) = 2.6;
+% parmhat(1,1:diffNeighbors) = linspace(0.1,10,diffNeighbors);
+% parmhat(2,1:diffNeighbors) = 2.6;
 CNsnormal = [];
 % Probabilities changed to replicate mean EPSP amplitude per connections in
 % cluster (Perin et al, Fig.6A):
-maxCDF = zeros(maxNeighbors,length(rang));
-for k=1:maxNeighbors
+maxCDF = zeros(ncategNeighbors,length(rang));
+for k=1:ncategNeighbors
     CNsnormal(k,:) = snormal(rang, m(k), alpha(k), sigma(k))*normFactors(k);
     maxCDF(k,:) = cumsum(CNsnormal(k,:))/max(cumsum(CNsnormal(k,:)));
 end
-figure;plot(CNsnormal(minNeighbors:maxNeighbors,:)');hold on;
+figure;plot(CNsnormal(:,:)');hold on;
 set(gca,'xtick',1:60:length(rang));
 set(gca,'xticklabel',rang(1:60:end));
+categLegend = cell(1,ncategNeighbors);
+for k=1:ncategNeighbors
+    categLegend{1,k} = sprintf('Community %d',k);
+end
+legend(categLegend);
 
-CN_str = m_commonNeighbors(PC2PC_str);
 weights_str = ones(nPC,nPC);
 tmp_weights_str = ones(nPC,nPC);
-for k=1:maxNeighbors
-    k
-    % Even more efficient: get them instantly from maxCDF:
-    randomSampling = rand(1,sum(sum(CN_str==k-1)));
+communities_str = ones(nPC,nPC);
+allCategNeighbors = [categNeighbors, maxNeighbors+1];
+for k=1:ncategNeighbors
+    NCCrangemat = (CN_str >= allCategNeighbors(k)) & (CN_str < allCategNeighbors(k+1));
+    randomSampling = rand(1,sum(sum(NCCrangemat)));
     tmp = histc(randomSampling,[0,maxCDF(k,:)]);
     idxvec = zeros(1,sum(tmp));
     cumvec = [0,cumsum(tmp)];
     for kk=1:length(cumvec)-1
         idxvec(cumvec(kk)+1:cumvec(kk+1)) = kk;
     end
-    tmp_weights_str(CN_str==k-1) = rang(idxvec(randperm(length(idxvec))));
-    
+    tmp_weights_str(NCCrangemat) = rang(idxvec(randperm(length(idxvec))));
+    communities_str(NCCrangemat) = k;
 end
+run.communities_gt = communities_str;
+
+% Calculate intersections between distributions: community overlap:
+% 
+Q=zeros(ncategNeighbors);
+    start = 2;
+for ii = 1:ncategNeighbors
+    for jj = start:ncategNeighbors
+%         if ii ~= jj
+        intx = intersections(rang,CNsnormal(ii,:),rang,CNsnormal(jj,:));
+        xA = linspace(intx(1),rang(end),1000);
+        xB = linspace(rang(1),intx(1),1000);
+        yA = snormal(xA, m(ii), alpha(ii), sigma(ii))*normFactors(ii);
+        yB = snormal(xB, m(jj), alpha(jj), sigma(jj))*normFactors(jj);
+%         figure;hold on;plot(xA,yA,'b');plot(xB,yB,'r');
+        xAll = [xB(end-1),xA];
+        yAll = [yB(end-1),yA];
+        notzeroidx = (yAll ~= 0);
+        Q(ii,jj) = trapz(xAll,yAll,2);
+%         figure;hold on;plot([xA,xB(2:end)]',[yA,yB(2:end)]','b');
+%         end
+    end
+    start = start+1;
+end
+figure;imagesc(Q+Q');colorbar;
 
 % afto pou 8elw na kratisw einai to lognormal weights distribution
 weights_str(:,:) = (tmp_weights_str + rand(size(tmp_weights_str))/100 ).* PC2PC_str;
-nweights_str = (weights_str/max(weights_str(:)))*5;
+nweights_str = weights_str/max(weights_str(:));
 run.weights_str = nweights_str ;
 
-% Umberto methods:
+figure;bar(histcounts(run.weights_str));
 
+% Umberto methods:
 % Calculate local pair-wise relative connection strength:
 % can contain nans if weight is zero:
 run.Z = abs(run.weights_str - run.weights_str') ./ (run.weights_str + run.weights_str');
@@ -216,7 +257,7 @@ trianglenum = @(x) (x^2+x)/2
 % calculate network symmetry:
 run.S = 1-(2 * nansum(run.Wss) / (run.nPC*(run.nPC-1)));
 
-myrange =  -0.1:0.01:1.1 ;
+myrange =  -0.1:0.001:0.99;%1.1 ;
 figure;bar(myrange(1:end-1), histcounts( run.Wss, myrange ));
 ylabel('Count');xlabel('Pairwise relative connection strength (Z)');
 

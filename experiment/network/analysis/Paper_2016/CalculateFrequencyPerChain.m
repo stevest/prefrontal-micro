@@ -9,12 +9,12 @@ stc_str = 4;
 % load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
 % load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
 
-% VARPID = 25;
-% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
-% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
+VARPID = 25;
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
 
-run.tstop = 20000;
-run.nruns = 100;
+run.tstop = 10000;
+run.nruns = 50;
 
 % List of stimulated/non-stimulated cells in each configuration:
 sc_rnd = run.stimulatedCells_rnd{stc_rnd};
@@ -776,29 +776,98 @@ end
 
 %% Plot distributions of individual iNMDA traces:
 % na bebaiw8w oti ta src kai trg einai consistent: EINAI.
-close all;
+% allbatchmv = cell(933,50);
+% for kk=1:50
+%     kk
+%     load(sprintf('\\\\139.91.162.50\\stefanos_synology\\Glia\\SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c3_SN2_mV_r%d_PID25.mat',kk-1));
+%     allbatchmv(:,kk) = batch;
+% end
+% close all;
 inmdaRang = 0:0.0005:0.05;
 inmdaData = inmdaDetailed_S_PID25;
 sc = sc_str;
-figure(1);%figure(2);
-for ii=1:length(sc)
-    for jj=1:length(sc)
-            
+nmdamean = nan(length(sc),length(sc),50);
+wmean = nan(length(sc),length(sc),50);
+vmean = nan(length(sc),length(sc),50);
+% figure(1);
+activation=cell(length(sc),3);
+for jj=1:length(sc)
+    for ii=1:length(sc)
 %         P = inmdaData{sc_rnd(ii),sc_rnd(jj),1};
 %         Q = inmdaData{sc_rnd(ii),sc_rnd(jj),2};
         if ~isempty(inmdaData{sc(ii),sc(jj),1})
-            
             tmpW = run.weights_str(sc(ii),sc(jj));
-            [ii, jj, tmpW]
             tmp = squeeze(cell2mat( cellfun(@(x) x',inmdaData(sc(ii),sc(jj),:),'uniformoutput',false) ));
+            tmp2 = (inmdaRang(1:end-1)*tmp)./sum(tmp);
+            nmdamean(ii,jj,1:length(tmp2)) = tmp2;
+            wmean(ii,jj,1:length(tmp2)) = repmat(tmpW,1,length(tmp2));
+            for kk=1:length(tmp2)
+                vmean(ii,jj,kk) = mean(allbatchmv{sc(jj),kk}(1500:end));
+            end
+%             [f,gof] = fit(inmdaRang(1:end-1)',tmp(:,1),'gauss2');
+%             [f.b1,f.b2,mean((inmdaRang(1:end-1)*tmp)./sum(tmp))]
+%             figure(1);plot(f,inmdaRang(1:end-1)',tmp(:,1));pause();cla;
 %             figure(1);imagesc(tmp(2:end,:));
-            figure(2);plot(inmdaRang(2:end-1),tmp(2:end,:));
-            pause();cla;
+%             figure(1);scatter( mean((inmdaRang(1:end-1)*tmp)./sum(tmp)),tmpW,50,cm(jj,:),'filled' );
+            activation{jj,1} = [activation{jj,1}, mean((inmdaRang(1:end-1)*tmp)./sum(tmp))];
+            activation{jj,2} = [activation{jj,2}, tmpW];
+            activation{jj,3} = [activation{jj,3}, mean(batch{sc(jj),1}(1500:end))];
+            
+%             figure(2);plot(inmdaRang(2:end-1),tmp(2:end,:));
+%             pause();cla;
 %             dist=KLDiv(P,Q)
         end
 %         dist=KLDiv(P,Q)
     end
 end
+
+% apo ti e3artatai to ypervoliko iNMDA pou blepw se merikes synapseis?
+% To pososto tou depolarization einai IDENTICAL, giati to PID einai
+% sta8ero. Opote logika mono to W paizei rolo. Ean baloume k to
+% depolarization sto paixnidi:
+x = wmean(:)/max(wmean(:));
+y = nmdamean(:)/max(nmdamean(:));
+% z = cellfun(@mean,activation(:,3));
+z = 1-(-1*(vmean(:)/max(-1*vmean(:))));
+figure;scatter3(x,y,z);axis equal;
+xlabel('Weight');ylabel('iNMDA');zlabel('depolarization');
+
+[RHO,PVAL] = corrcoef([x,y]);
+idx = ~isnan(RHO);
+RHO(~any(idx),:) = [];
+RHO(:,~any(idx)) = [];
+figure;imagesc(RHO);
+figure;imagesc([nmdamean./wmean]);
+figure;scatter(x,y);
+b1 = x\y;
+yCalc1 = b1*x;
+hold on;
+plot(x,yCalc1);
+
+
+
+figure;hold on;
+title(sprintf('# of incomming connections and mean incomming weight (all runs)'));
+xlabel('# of incomming connections');ylabel('mean incomming weight (all runs)');
+scatter( cellfun(@length,activation(:,1)),cellfun(@mean,activation(:,2)),50,cm(jj,:),'filled' );
+
+dataxy = [cellfun(@length,activation(:,1)),cellfun(@mean,activation(:,1))];
+dataxy(any([isnan(dataxy(:,1)),isnan(dataxy(:,2))],2),:) = [];
+[RHO,PVAL] = corr(dataxy);
+figure;hold on;
+title(sprintf('# of incomming connections and mean iNMDA (all runs)(r=%.2f)',RHO(2)));
+xlabel('# of incomming connections');ylabel('mean iNMDA (all runs)');
+scatter( dataxy(:,1),dataxy(:,2),50,cm(jj,:),'filled' );
+
+dataxy = [cellfun(@mean,activation(:,2)),cellfun(@mean,activation(:,1))];
+dataxy(any([isnan(dataxy(:,1)),isnan(dataxy(:,2))],2),:) = [];
+[RHO,PVAL] = corr(dataxy);
+figure;hold on;
+title(sprintf('mean incomming weight and mean iNMDA (all runs)(r=%.2f)',RHO(2)));
+xlabel('mean incomming weight');ylabel('mean iNMDA');
+scatter( dataxy(:,1),dataxy(:,2),50,cm(jj,:),'filled' );
+
+
 
 % % plot state intra weight:
 %     stateMeanW_rnd = [];

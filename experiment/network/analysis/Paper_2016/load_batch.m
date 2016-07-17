@@ -65,7 +65,7 @@ if isempty(loadParams)
     end
 else
     specifics = loadParams.specifics;
-    parfor ru = 1:N
+    for ru = 1:N
         pathto = fullfile(osDrive(),'Documents','Glia',sprintf(experimentDirStr, experimentDirArg{ru}{:}));
         specificBatch = load_raw_batch(pathto,specifics);
 
