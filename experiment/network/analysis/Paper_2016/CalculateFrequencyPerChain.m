@@ -287,7 +287,7 @@ figure(5);hold on;
 for Qi = 1:length(Qseq)
     configuration = 'rnd';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
     delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
@@ -388,7 +388,7 @@ for Qi = 1:length(Qseq)
     
     configuration = 'str';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
     delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
@@ -800,18 +800,18 @@ for jj=1:length(sc)
             tmp = squeeze(cell2mat( cellfun(@(x) x',inmdaData(sc(ii),sc(jj),:),'uniformoutput',false) ));
             tmp2 = (inmdaRang(1:end-1)*tmp)./sum(tmp);
             nmdamean(ii,jj,1:length(tmp2)) = tmp2;
-            wmean(ii,jj,1:length(tmp2)) = repmat(tmpW,1,length(tmp2));
-            for kk=1:length(tmp2)
-                vmean(ii,jj,kk) = mean(allbatchmv{sc(jj),kk}(1500:end));
-            end
+%             wmean(ii,jj,1:length(tmp2)) = repmat(tmpW,1,length(tmp2));
+%             for kk=1:length(tmp2)
+%                 vmean(ii,jj,kk) = mean(allbatchmv{sc(jj),kk}(1500:end));
+%             end
 %             [f,gof] = fit(inmdaRang(1:end-1)',tmp(:,1),'gauss2');
 %             [f.b1,f.b2,mean((inmdaRang(1:end-1)*tmp)./sum(tmp))]
 %             figure(1);plot(f,inmdaRang(1:end-1)',tmp(:,1));pause();cla;
 %             figure(1);imagesc(tmp(2:end,:));
 %             figure(1);scatter( mean((inmdaRang(1:end-1)*tmp)./sum(tmp)),tmpW,50,cm(jj,:),'filled' );
-            activation{jj,1} = [activation{jj,1}, mean((inmdaRang(1:end-1)*tmp)./sum(tmp))];
-            activation{jj,2} = [activation{jj,2}, tmpW];
-            activation{jj,3} = [activation{jj,3}, mean(batch{sc(jj),1}(1500:end))];
+%             activation{jj,1} = [activation{jj,1}, mean((inmdaRang(1:end-1)*tmp)./sum(tmp))];
+%             activation{jj,2} = [activation{jj,2}, tmpW];
+%             activation{jj,3} = [activation{jj,3}, mean(batch{sc(jj),1}(1500:end))];
             
 %             figure(2);plot(inmdaRang(2:end-1),tmp(2:end,:));
 %             pause();cla;
@@ -844,8 +844,6 @@ yCalc1 = b1*x;
 hold on;
 plot(x,yCalc1);
 
-
-
 figure;hold on;
 title(sprintf('# of incomming connections and mean incomming weight (all runs)'));
 xlabel('# of incomming connections');ylabel('mean incomming weight (all runs)');
@@ -867,31 +865,84 @@ title(sprintf('mean incomming weight and mean iNMDA (all runs)(r=%.2f)',RHO(2)))
 xlabel('mean incomming weight');ylabel('mean iNMDA');
 scatter( dataxy(:,1),dataxy(:,2),50,cm(jj,:),'filled' );
 
+%% get iNMDA per pyramidal:
+inmdaRang = 0:0.0005:0.05;
+inmdaData = inmdaDetailed_S_PID25;
+sc = sc_str;
+nmdamean = nan(length(sc),length(sc),50);
+wmean = nan(length(sc),length(sc),50);
+vmean = nan(length(sc),length(sc),50);
+% figure(1);
+activation=cell(length(sc),1);
+activationgrp=cell(length(sc),1);
+activmedian = zeros(length(sc),1);
+for jj=1:length(sc)
+    totalactiv = [];
+    for ii=1:length(sc)
+        if ~isempty(inmdaData{sc(ii),sc(jj),1})
+            tmp = squeeze(cell2mat( cellfun(@(x) x',inmdaData(sc(ii),sc(jj),1),'uniformoutput',false) ));
+            totalactiv = [totalactiv,  (inmdaRang(1:end-1)*tmp)./sum(tmp)];
+%             figure(1);plot(inmdaRang(1:end-1)',tmp(:,1));title(sprintf('trg cell %d',jj));pause();cla;
+        end
+    end
+    activation{jj,1} = totalactiv';
+    activationgrp{jj,1} = ones(length(totalactiv),1)*jj;
+    activmedian(jj,1) = nanmedian(totalactiv);
+end
 
+x = cell2mat(activation);
+g = cell2mat(activationgrp);
+[~,idx] = sort(activmedian,'descend');
+newg = [];newx=[];
+for jj = 1:length(sc)
+%     newg = [newg; ones(length(activationgrp{jj,1}),1)*idx(jj)];
+    newx = [newx; activation{idx(jj),1}];
+    newg = [newg; ones(length(activationgrp{idx(jj),1}),1)*(jj)];
+end
+figure;boxplot(newx,newg);
+title('Synaptic iNMDA per pyramidal.');
+xlabel('Pyramidal ID');ylabel('Mean synaptic iNMDA');
 
-% % plot state intra weight:
-%     stateMeanW_rnd = [];
-%     eval( sprintf('stimulatedCells = sc_%s;',configuration) );
-%     for k=2:nProminentStatesCheck
-%         [~, S] = regexp(U{maxfreqidx(k)},'1','match');
-%         stateCells = stimulatedCells(S)';
-%         if length(stateCells) > 1
-%             eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
-%             stateMeanW_rnd(k) = mean(tmpW(~eye(length(stateCells))));
-%         end
-%     end
-%     AllStateMeanW_rnd = {};
-%     for k=2:uptocoactive
-%         tmp = find(nActivePC_rnd == k);
-%         for kk = 1:length(tmp)
-%             [~, S] = regexp(U{tmp(kk)},'1','match');
-%             stateCells = stimulatedCells(S)';
-%             if length(stateCells) > 1
-%                 eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
-%                 AllStateMeanW_rnd{k,kk} = mean(tmpW(~eye(length(stateCells))));
-%             end
-%         end
-%     end
+%% Get active cells per state:
+Qseq = [10];
+% close all;
+nProminentStatesCheck = 100;
+for Qi = 1:length(Qseq)
+    configuration = 'str';
+    eval( sprintf('stc = stc_%s', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
+    prominentStates = mean(voteState(:,delayRange),2);
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+
+    tmp = maxfreqidx(2:nProminentStatesCheck);
+    stateCells = cell(1,length(tmp));
+    eval( sprintf('stimulatedCells = sc_%s;',configuration) );
+    for k = 1:length(tmp)
+        [~, S] = regexp(U{tmp(k)},'1','match');
+        stateCells{1,k} = stimulatedCells(S)';
+    end
+end
+
+%% 
+cellsPerState = cell(1,length(stimulatedCells));
+for k=1:length(stimulatedCells)
+    cellsPerState{k} = find(cell2mat(stateCells) == stimulatedCells(k));
+end
+
+nanidx = isnan(activmedian);
+x=activmedian(~nanidx);
+y=cellfun(@length,cellsPerState)';
+y(nanidx) = [];
+RHO = corr([x,y])
+b1 = x\y;
+yCalc1 = b1*x;
+figure;scatter(x, y);
+hold on;
+plot(x,yCalc1);
+title(sprintf('iNMDA VS state freq (r=%.3f)',RHO(2)));
+xlabel('Median iNMDA (per cell)');ylabel('Freq of active in states');
 
 %% Parse above data:
 % Na apofasisw ti na kanw me afti tin analysi: Ti apo ola afta pou exw
