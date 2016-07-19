@@ -68,12 +68,19 @@ else
     for ru = 1:N
         pathto = fullfile(osDrive(),'Documents','Glia',sprintf(experimentDirStr, experimentDirArg{ru}{:}));
         specificBatch = load_raw_batch(pathto,specifics);
-
-%         if ~isempty(specificBatch)
-            specificBatch_all(1,ru) = {specificBatch};
-%         else
-%             warning('Empty data loaded!!!');
-%         end
+        
+        %         if ~isempty(specificBatch)
+        specificBatch_all(1,ru) = {specificBatch};
+        %         else
+        %             warning('Empty data loaded!!!');
+        %         end
+        if isempty(loadParams)
+            batch = batch_all{1,ru};
+            save(fullfile(osDrive(),'Documents','Glia',sprintf(runParams.experimentFileStr, runParams.experimentFileArg{ru}{:})),'batch','-v7.3');
+        else
+            specificBatch = specificBatch_all{1,ru};
+            save(fullfile(osDrive(),'Documents','Glia',sprintf(loadParams.specificsFileStr, loadParams.specificsFileArg{ru}{:})),'specificBatch','-v7.3');
+        end
     end
 end
 disp(sprintf('Data loaded in %f seconds.',toc));
@@ -105,13 +112,7 @@ disp(sprintf('Data loaded in %f seconds.',toc));
 
 % save in serial:
 for ru = 1:N
-    if isempty(loadParams)
-        batch = batch_all{1,ru};
-        save(fullfile(osDrive(),'Documents','Glia',sprintf(runParams.experimentFileStr, runParams.experimentFileArg{ru}{:})),'batch','-v7.3');
-    else
-        specificBatch = specificBatch_all{1,ru};
-        save(fullfile(osDrive(),'Documents','Glia',sprintf(loadParams.specificsFileStr, loadParams.specificsFileArg{ru}{:})),'specificBatch','-v7.3');
-    end
+    
 end
 
 if isempty(loadParams)

@@ -10,8 +10,8 @@ stc_str = 4;
 % load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
 
 VARPID = 25;
-load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
-load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
+% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
+% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
 
 run.tstop = 10000;
 run.nruns = 50;
@@ -22,7 +22,15 @@ nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
 sc_str = run.stimulatedCells_str{stc_str};
 nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
 
-
+%% Visualize stc because is not visible in the repo:
+putativestc = [];
+for k=1:run.nPC
+	putativestc(k) = mean(batch{k,1}(1:1500));
+end
+[~,sidx] = sort(putativestc,'descend');
+figure;hold on;
+plot(sort(run.stimulatedCells_rnd{stc_rnd},'ascend'),'r');
+plot(sort(sidx(1:100),'ascend'),'b');
 %% Array of windows Q to apply:
 % Qseq = [100,50,40,30,20,10,8,6,4];
 Qseq = [4:2:100];
@@ -274,7 +282,7 @@ set(gca,'YTickLabel',Qseq)
 ylabel('Q');xlabel('Prominent States');
 %% Compare states across configurations:
 % Qseq = [100,50,40,30,20,10,8,6,4];
-Qseq = [10];
+Qseq = [100];
 % VARPID = 25;
 close all;
 nProminentStatesCheck = 10;
@@ -316,9 +324,9 @@ for Qi = 1:length(Qseq)
     figure(1);hold on;
     for k=2:nProminentStatesCheck
         plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'color',cm(k,:),'linewidth',2);
-        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+%         f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
 %         plot(delayRange,f(delayRange),'color',cm(k,:));
-        ConvergeValues_rnd(Qi,k) = f(delayRange(end));
+%         ConvergeValues_rnd(Qi,k) = f(delayRange(end));
     end
     ylim_rnd = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
@@ -417,9 +425,9 @@ for Qi = 1:length(Qseq)
     figure(3);hold on;
     for k=2:nProminentStatesCheck
         plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
-        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+%         f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
 %         plot(delayRange,f(delayRange),'color',cm(k,:));
-        ConvergeValues_str(Qi,k) = f(delayRange(end));
+%         ConvergeValues_str(Qi,k) = f(delayRange(end));
     end
     ylim_str = get(gca,'YLim');
     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
@@ -533,6 +541,45 @@ for Qi = 1:length(Qseq)
 %         spikes = batch_str_spikes{sc_str(kk),20};
 %         scatter(spikes,ones(length(spikes),1)*kk);
 %     end
+end
+%% Load and visualize subcluster states and their frequency:
+% It seems that the structured has again very different response, given
+% that only a small subpart of the network was stimulated (question is:
+% what was the sampling space/what cells that produced the states?)
+
+prob_rnd = cell(1,22);
+prob_str = cell(1,22);
+% coactive = zeros(10,700);
+for k=1:22
+    data_rnd = AllClustersStates_rnd(k,:,1);
+    data_str = AllClustersStates_str(k,:,1);
+    tmp_rnd = [];tmp_str = [];
+    for kk=1:700
+        if ~isempty(data_rnd{1,kk})
+            pz = 10-size(data_rnd{1,kk},1);
+            tmp_rnd = [tmp_rnd, padarray(data_rnd{1,kk}(2:end,3),[pz,0],NaN,'post') ];
+        end
+        if ~isempty(data_str{1,kk})
+            pz = 10-size(data_str{1,kk},1);
+            tmp_str = [tmp_str, padarray(data_str{1,kk}(2:end,3),[pz,0],NaN,'post') ];
+        end
+    end
+    [~,sidx_rnd] = sort(tmp_rnd(1,:),'descend');
+    [~,sidx_str] = sort(tmp_str(1,:),'descend');
+    prob_rnd{k} = tmp_rnd(:,sidx_rnd);
+    prob_str{k} = tmp_str(:,sidx_str);
+end
+
+close all;
+figure(1);figure(2);
+for k=1:17
+    figure(1);surf(prob_rnd{k});
+    title('Random');xlabel('# Cluster');ylabel('# State');zlabel('Frequency');
+    view([177 8]);
+    figure(2);surf(prob_str{k});
+    title('Structured');xlabel('# Cluster');ylabel('# State');zlabel('Frequency');
+    view([177 8]);
+    pause();cla;
 end
 
 %% Check location of synapses across runs:
@@ -866,84 +913,17 @@ xlabel('mean incomming weight');ylabel('mean iNMDA');
 scatter( dataxy(:,1),dataxy(:,2),50,cm(jj,:),'filled' );
 
 %% get iNMDA per pyramidal:
+% Na 3anadimiourgisw ta arxeia pou fortwnw wste na 3anabebaiw8w, kai na
+% kanw pio swsta tin sygkrisi (No of states / mean iNMDA) meta3ei STR/RND.
+load('C:\\Users\\stefanos\\Documents\\inmdaDetailed_S_PID25.mat');
 inmdaRang = 0:0.0005:0.05;
-inmdaData = inmdaDetailed_S_PID25;
-sc = sc_str;
-nmdamean = nan(length(sc),length(sc),50);
-wmean = nan(length(sc),length(sc),50);
-vmean = nan(length(sc),length(sc),50);
-% figure(1);
-activation=cell(length(sc),1);
-activationgrp=cell(length(sc),1);
-activmedian = zeros(length(sc),1);
-for jj=1:length(sc)
-    totalactiv = [];
-    for ii=1:length(sc)
-        if ~isempty(inmdaData{sc(ii),sc(jj),1})
-            tmp = squeeze(cell2mat( cellfun(@(x) x',inmdaData(sc(ii),sc(jj),1),'uniformoutput',false) ));
-            totalactiv = [totalactiv,  (inmdaRang(1:end-1)*tmp)./sum(tmp)];
-%             figure(1);plot(inmdaRang(1:end-1)',tmp(:,1));title(sprintf('trg cell %d',jj));pause();cla;
-        end
-    end
-    activation{jj,1} = totalactiv';
-    activationgrp{jj,1} = ones(length(totalactiv),1)*jj;
-    activmedian(jj,1) = nanmedian(totalactiv);
-end
+% Qseq = [4,10,20];
+Qseq = [100,50,40,30,20,10,8,6,4];
+inmda_analysis(run,inmdaDetailed_S_PID25,inmdaRang,stc_str,sc_str,Qseq,'str');
 
-x = cell2mat(activation);
-g = cell2mat(activationgrp);
-[~,idx] = sort(activmedian,'descend');
-newg = [];newx=[];
-for jj = 1:length(sc)
-%     newg = [newg; ones(length(activationgrp{jj,1}),1)*idx(jj)];
-    newx = [newx; activation{idx(jj),1}];
-    newg = [newg; ones(length(activationgrp{idx(jj),1}),1)*(jj)];
-end
-figure;boxplot(newx,newg);
-title('Synaptic iNMDA per pyramidal.');
-xlabel('Pyramidal ID');ylabel('Mean synaptic iNMDA');
-
-%% Get active cells per state:
-Qseq = [10];
-% close all;
-nProminentStatesCheck = 100;
-for Qi = 1:length(Qseq)
-    configuration = 'str';
-    eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
-        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
-    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
-    prominentStates = mean(voteState(:,delayRange),2);
-    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
-
-    tmp = maxfreqidx(2:nProminentStatesCheck);
-    stateCells = cell(1,length(tmp));
-    eval( sprintf('stimulatedCells = sc_%s;',configuration) );
-    for k = 1:length(tmp)
-        [~, S] = regexp(U{tmp(k)},'1','match');
-        stateCells{1,k} = stimulatedCells(S)';
-    end
-end
-
-%% 
-cellsPerState = cell(1,length(stimulatedCells));
-for k=1:length(stimulatedCells)
-    cellsPerState{k} = find(cell2mat(stateCells) == stimulatedCells(k));
-end
-
-nanidx = isnan(activmedian);
-x=activmedian(~nanidx);
-y=cellfun(@length,cellsPerState)';
-y(nanidx) = [];
-RHO = corr([x,y])
-b1 = x\y;
-yCalc1 = b1*x;
-figure;scatter(x, y);
-hold on;
-plot(x,yCalc1);
-title(sprintf('iNMDA VS state freq (r=%.3f)',RHO(2)));
-xlabel('Median iNMDA (per cell)');ylabel('Freq of active in states');
-
+load('C:\\Users\\stefanos\\Documents\\inmdaDetailed_R_PID25.mat');
+inmdaRang = 0:0.0005:0.01;
+inmda_analysis(run,inmdaDetailed_R_PID25,inmdaRang,stc_rnd,sc_rnd,Qseq,'rnd');
 %% Parse above data:
 % Na apofasisw ti na kanw me afti tin analysi: Ti apo ola afta pou exw
 % kanei toso kairo a3izei na graftei k na to exw, pou exei ginei poutana o
