@@ -5,11 +5,16 @@ load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN2.mat'));
 %Which cluster is stimulated in each configuration:
 stc_rnd = 2;
 stc_str = 4;
-VARPID = 75;
+
+% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
+% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
+
+VARPID = 25;
 load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
 load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
+
 run.tstop = 10000;
-run.nruns = 100;
+run.nruns = 50;
 
 % List of stimulated/non-stimulated cells in each configuration:
 sc_rnd = run.stimulatedCells_rnd{stc_rnd};
@@ -19,7 +24,8 @@ nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
 
 
 %% Array of windows Q to apply:
-Qseq = [100,50,40,30,20,10,8,6,4];
+% Qseq = [100,50,40,30,20,10,8,6,4];
+Qseq = [4:2:100];
 
 % Na e3etazw ono to network, mono to stimulated k mono to recruited 'H ola
 % ta ypolloipa kyttara (ola ane3artita apo to an einai recruited).
@@ -76,21 +82,214 @@ caxis([cmmin cmmax]);
 colormap(cm);title('Structured');
 
 
+%% Firing Frequency per window Q:
 
+Q = 10;
+Qn = length(1500:Q:run.tstop)-1;
+QFFr_rnd = zeros(run.nPC,Qn,run.nruns);
+QFFr_str = zeros(run.nPC,Qn,run.nruns);
+for ru=1:size(batch_rnd_spikes,2)
+    for c = 1:run.nPC
+        st_rnd = batch_rnd_spikes{c,ru};
+        st_rnd = st_rnd(st_rnd>1500);
+        QFFr_rnd(c,:,ru) = histcounts(st_rnd,1500:Q:run.tstop);
+    end
+end
+for ru=1:size(batch_str_spikes,2)
+    for c = 1:run.nPC
+        st_str = batch_str_spikes{c,ru};
+        st_str = st_str(st_str>1500);
+        QFFr_str(c,:,ru) = histcounts(st_str,1500:Q:run.tstop);
+    end
+end
+
+figure;plot(mean(squeeze(sum(QFFr_rnd,1))'));
+figure;plot(mean(squeeze(sum(QFFr_str,1))'));
 %% Compare states across configurations:
-VARPID = 75;
+% Qseq = [100,50,40,30,20,10,8,6,4];
+Qseq = 4:100;
+VARPID = 25;
 close all;
 nProminentStatesCheck = 10;
 cm = lines(nProminentStatesCheck);
 rlowessWidth = 40;
 uptocoactive = 10; % plot up to 10 coactive cells.
-figure(5);hold on;
-for Q = 50
+
+fha=figure(1);
+set(gcf,'OuterPosition',[0,40,600,600]);
+fhb=figure(2);
+set(gcf,'OuterPosition',[600,40,600,600]);
+for Qi = 1:length(Qseq)
+    disp(sprintf('Q = %d',Qseq(Qi)));
+    configuration = 'rnd';
+    eval( sprintf('stc = stc_%s;', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2_DETAILED',VARPID),...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
+    prominentStates = mean(voteState(:,delayRange),2);
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    nActivePC_rnd = cellfun(@(x) length(regexp(x,'1','match')), U );
+
+    figure(1);cla;hold on;
+    for k=2:nProminentStatesCheck
+        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'color',cm(k,:),'linewidth',2);
+    end
+    ylim_rnd = get(gca,'YLim');
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
+    ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+    
+    
+    configuration = 'str';
+    eval( sprintf('stc = stc_%s;', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2_DETAILED',VARPID),...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
+    prominentStates = mean(voteState(:,delayRange),2);
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    nActivePC_str = cellfun(@(x) length(regexp(x,'1','match')), U );
+
+
+    figure(2);cla;hold on;
+    for k=2:nProminentStatesCheck
+        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
+    end
+    ylim_str = get(gca,'YLim');
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
+    ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+ 
+    ylim_max = max([ylim_str(2),ylim_rnd(2)]);
+    figure(1);set(gca,'YLim',[0, ylim_max]);
+    figure(2);set(gca,'YLim',[0, ylim_max]);
+    
+    
+%     fda = screencapture(fha,[]);
+%     fdb = screencapture(fhb,[]);
+	ffa = getframe(fha);
+    fda = ffa.cdata;
+    ffb = getframe(fhb);
+    fdb = ffb.cdata;
+%     imageData = screencapture(0,  [0,0,1200,600]);  % capture a small desktop region
+%     figure;imagesc(imageData)
+    pause(1);
+    imwrite([fda,fdb],sprintf('Capture_SN2_VARPID25_Q%d_DETAILED.jpg',Qseq(Qi)));
+   
+end
+
+%% KL PLOTS: Compare states across configurations:
+Qseq = [100,50,40,30,20,10,8,6,4];
+% VARPID = 25;
+close all;
+nProminentStatesCheck = 10;
+cm = lines(nProminentStatesCheck);
+rlowessWidth = 40;
+uptocoactive = 10; % plot up to 10 coactive cells.
+ConvergeValues_str = zeros(length(Qseq),nProminentStatesCheck);
+ConvergeValues_rnd = zeros(length(Qseq),nProminentStatesCheck);
+
+for Qi = 1:length(Qseq)
+%     figure(1);cla;
+%     figure(3);cla;
     configuration = 'rnd';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',VARPID),...
-        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
-    delayRange = ceil(1500/Q):run.tstop/Q ;
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('Qanalysis_stimulatedClusterOnly_GABAb01_SN%d',run.sn),...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
+    prominentStates = mean(voteState(:,delayRange),2);
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    nActivePC_rnd = cellfun(@(x) length(regexp(x,'1','match')), U );
+
+    frequencyPerActive = {}; gPC={};
+    for k=1:uptocoactive 
+        tmp = find(nActivePC_rnd == k);
+        gPC{k,1} = ones(length(tmp),1)*k;
+        frequencyPerActive{k,1} = prominentStates(tmp);
+    end
+
+%     ylim2_rnd = get(gca,'YLim');
+%     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
+%     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
+    
+%     title(sprintf('Q=%d',Qseq(Qi)));
+%     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
+%     figure(1);hold on;
+    for k=2:nProminentStatesCheck
+%         plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'color',cm(k,:),'linewidth',2);
+%         plot(voteState(maxfreqidx(k),delayRange)','color',cm(k,:),'linewidth',2);
+        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+%         plot(delayRange,f(delayRange),'color',cm(k,:));
+        ConvergeValues_rnd(Qi,k) = mean(f(delayRange(end-round(length(delayRange)/10):end)));
+    end
+%     ylim_rnd = get(gca,'YLim');
+%     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
+%     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+    
+    
+    configuration = 'str';
+    eval( sprintf('stc = stc_%s', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('Qanalysis_stimulatedClusterOnly_GABAb01_SN%d',run.sn),...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
+    prominentStates = mean(voteState(:,delayRange),2);
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+    nActivePC_str = cellfun(@(x) length(regexp(x,'1','match')), U );
+    
+    frequencyPerActive = {}; gPC={};
+    for k=1:uptocoactive
+        tmp = find(nActivePC_str == k);
+        gPC{k,1} = ones(length(tmp),1)*k;
+        frequencyPerActive{k,1} = prominentStates(tmp);
+    end
+
+%     ylim2_str = get(gca,'YLim');
+%     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
+%     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
+    
+%     title(sprintf('Q=%d',Qseq(Qi)));
+%     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
+%     figure(3);hold on;
+    for k=2:nProminentStatesCheck
+%         plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
+%         plot(voteState(maxfreqidx(k),delayRange)','linewidth',2);
+        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+%         plot(delayRange,f(delayRange),'color',cm(k,:));
+        ConvergeValues_str(Qi,k) = mean(f(delayRange(end-round(length(delayRange)/10):end)));
+    end
+%     ylim_str = get(gca,'YLim');
+%     title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
+%     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
+
+% pause();
+    
+end
+
+
+figure;imagesc(ConvergeValues_rnd_SN7)
+title('RND convergence values (last 10% mean)');
+set(gca,'YTickLabel',Qseq)
+ylabel('Q');xlabel('Prominent States');
+
+figure;imagesc(ConvergeValues_str_SN7)
+title('STR convergence values (last 10% mean)');
+set(gca,'YTickLabel',Qseq)
+ylabel('Q');xlabel('Prominent States');
+%% Compare states across configurations:
+% Qseq = [100,50,40,30,20,10,8,6,4];
+Qseq = [10];
+% VARPID = 25;
+close all;
+nProminentStatesCheck = 10;
+cm = lines(nProminentStatesCheck);
+rlowessWidth = 40;
+uptocoactive = 10; % plot up to 10 coactive cells.
+ConvergeValues_str = zeros(length(Qseq),nProminentStatesCheck);
+ConvergeValues_rnd = zeros(length(Qseq),nProminentStatesCheck);
+figure(5);hold on;
+for Qi = 1:length(Qseq)
+    configuration = 'rnd';
+    eval( sprintf('stc = stc_%s', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
     nActivePC_rnd = cellfun(@(x) length(regexp(x,'1','match')), U );
@@ -108,18 +307,21 @@ for Q = 50
     figure(2);scatter(nActivePC_rnd(maxfreqidx(2:nProminentStatesCheck)),prominentStates(maxfreqidx(2:nProminentStatesCheck)),'o');
     
     ylim2_rnd = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
     figure(5);plot(maxfreqstates(1:nProminentStatesCheck));
     
-    title(sprintf('Q=%d',Q));
+    title(sprintf('Q=%d',Qseq(Qi)));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
     figure(1);hold on;
     for k=2:nProminentStatesCheck
-        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
+        plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'color',cm(k,:),'linewidth',2);
+        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+%         plot(delayRange,f(delayRange),'color',cm(k,:));
+        ConvergeValues_rnd(Qi,k) = f(delayRange(end));
     end
     ylim_rnd = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
     
     % plot state intra weight:
@@ -150,7 +352,7 @@ for Q = 50
         figure(6);scatter(ones(1,length(tmp2))*k,tmp2,'.');hold on;
         figure(6);scatter(k,mean(tmp2),'r+');
     end
-    title(sprintf('%s Q=%d',configuration,Q));
+    title(sprintf('%s Q=%d',configuration,Qseq(Qi)));
     ylabel('Synaptic Weight');xlabel('Coactive neurons');
     
 %     % plot state intra syn location:
@@ -186,9 +388,9 @@ for Q = 50
     
     configuration = 'str';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('PID%d_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',VARPID),...
-        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Q)));
-    delayRange = ceil(1500/Q):run.tstop/Q ;
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
     [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
     nActivePC_str = cellfun(@(x) length(regexp(x,'1','match')), U );
@@ -206,18 +408,21 @@ for Q = 50
     figure(4);scatter(nActivePC_str(maxfreqidx(2:nProminentStatesCheck)),prominentStates(maxfreqidx(2:nProminentStatesCheck)),'o');
     
     ylim2_str = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Coactive neurons');
     figure(5);plot(maxfreqstates(1:nProminentStatesCheck));
     
-    title(sprintf('Q=%d',Q));
+    title(sprintf('Q=%d',Qseq(Qi)));
     ylabel('Relative Frequency (%)');xlabel('States ID (sorted)');
     figure(3);hold on;
     for k=2:nProminentStatesCheck
         plot(smooth(voteState(maxfreqidx(k),delayRange)',rlowessWidth,'rlowess'),'linewidth',2);
+        f = fit(delayRange',voteState(maxfreqidx(k),delayRange)','exp1')
+%         plot(delayRange,f(delayRange),'color',cm(k,:));
+        ConvergeValues_str(Qi,k) = f(delayRange(end));
     end
     ylim_str = get(gca,'YLim');
-    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Q,size(voteState,1)));
+    title(sprintf('%s Q=%d (n(U)=%d)',configuration,Qseq(Qi),size(voteState,1)));
     ylabel('Relative Frequency (%)');xlabel('Time (in Q windows)');
     
     % plot state intra weight:
@@ -248,7 +453,7 @@ for Q = 50
         figure(7);scatter(ones(1,length(tmp2))*k,tmp2,'.');hold on;
         figure(7);scatter(k,mean(tmp2),'r+');
     end
-    title(sprintf('%s Q=%d',configuration,Q));
+    title(sprintf('%s Q=%d',configuration,Qseq(Qi)));
     ylabel('Synaptic Weight');xlabel('Coactive neurons');
     
 %     % plot state intra syn location:
@@ -359,42 +564,207 @@ end
 figure;imagesc(cellfun(@median,loccummat_str))
     
 %%
-% VARPID = 25;
-% stc_rnd = 2;
-% inmdaSum = zeros(700,700,50);
-% for ru=1:50
-%     load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_inmda_r%d_PID%d.mat',stc_rnd-1, run.sn,ru-1,VARPID)));
-% 
-%     blah = cellfun(@length, inmdaBatch);
-%     inmdaIDX = find(blah);
-% 
-%     for k = inmdaIDX'
-%         [y,x] = ind2sub(size(inmdaBatch),k);
-%         inmda = inmdaBatch{y,x}(1500:end);
-%         inmda(inmda>0)=0;
-%         inmdaSum(y,x,ru)=-sum(inmda);
-%     end
-% end
+VARPID = 25;
+stc = 6;
+inmdaDetailed_SN4_S_PID25 = cell(700,700,50);
+inmdaRang = 0:0.0005:0.05;
+for ru=2:50
+    ru
+    load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_inmda_r%d_PID%d.mat',stc-1, run.sn,ru-1,VARPID)));
+
+    blah = cellfun(@length, specificBatch);
+    inmdaIDX = find(blah);
+
+    for k = inmdaIDX'
+        [y,x] = ind2sub(size(specificBatch),k);
+        inmda = specificBatch{y,x}(1500:end);
+        inmda(inmda>0)=0;
+        inmdaDetailed_SN4_S_PID25(y,x,ru)={histcounts(-(inmda),inmdaRang)};
+    end
+end
 
 % figure;imagesc(std(inmdaSum(sc_rnd,sc_rnd,:),0,3))
 % figure;imagesc(sum(inmdaSum(sc_rnd,sc_rnd,:),3))
 
-inmdaSTD_R_PID25 = std(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),0,3);
-inmdaSUM_R_PID25 = sum(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),3);
+% inmdaSTD_R_PID25 = std(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),0,3);
+% inmdaSUM_R_PID25 = sum(inmdaSum_R_PID25(sc_rnd,sc_rnd,:),3);
+% 
+% inmdaSTD_S_PID25 = std(inmdaSum_S_PID25(sc_str,sc_str,:),0,3);
+% inmdaSUM_S_PID25 = sum(inmdaSum_S_PID25(sc_str,sc_str,:),3);
 
-inmdaSTD_S_PID25 = std(inmdaSum_S_PID25(sc_str,sc_str,:),0,3);
-inmdaSUM_S_PID25 = sum(inmdaSum_S_PID25(sc_str,sc_str,:),3);
+% get iNMDA distribution; Is it normal?
+% clear phat_rnd;
+% phat_rnd(length(sc_rnd),length(sc_rnd)).m = [];
+% phat_rnd(length(sc_rnd),length(sc_rnd)).s = [];
+inmdaRange = 0:10:70;
+figure;hold on;
+k=1
+for ii=1:length(sc_rnd)
+    for jj=1:length(sc_rnd)
+        if(ii~=jj)
+%             phat = mle(squeeze(inmdaSum_R_PID25(sc_rnd(ii),sc_rnd(jj),:))) ;
+%             phat_rnd(ii,jj).m = phat(1);
+%             phat_rnd(ii,jj).s = phat(2);
+            c = rand(1,3);
+            tmphisto = histcounts(squeeze(inmdaTotal_R{k}(sc_rnd(ii),sc_rnd(jj),:)),inmdaRange) / size(inmdaTotal_R{k},3);
+            phat = mle(squeeze(inmdaTotal_R{k}(sc_rnd(ii),sc_rnd(jj),:))) ;
+            norm = normpdf(inmdaRange(1):inmdaRange(end),phat(1),phat(2))
+%             tmphisto = smooth(tmphisto);
+            plot(inmdaRange(1:end-1),tmphisto,'r');
+            if ~isnan(norm)
+                plot(inmdaRange(1):inmdaRange(end),norm,'g');
+                pause();cla;
+            end
+            cla;
+        end
+    end
+end
+
+
+
+inmdaTotal_R = {inmdaSum_R_PID25,inmdaSum_R_PID50,inmdaSum_R_PID75};
+inmdaTotal_S = {inmdaSum_S_PID25,inmdaSum_S_PID50,inmdaSum_S_PID75};
+
+
+
+
+clear phat_rnd;
+phat_rnd(length(sc_rnd),length(sc_rnd),3).m = [];
+phat_rnd(length(sc_rnd),length(sc_rnd),3).s = [];
+for k=1:3
+    for ii=1:length(sc_rnd)
+        for jj=1:length(sc_rnd)
+            if(ii~=jj)
+                phat = mle(squeeze(inmdaTotal_R{k}(sc_rnd(ii),sc_rnd(jj),:))) ;
+                phat_rnd(ii,jj,k).m = phat(1);
+                phat_rnd(ii,jj,k).s = phat(2);
+            end
+        end
+    end
+end
+
+clear phat_str;
+phat_str(length(sc_str),length(sc_str),3).m = [];
+phat_str(length(sc_str),length(sc_str),3).s = [];
+for k=1:3
+    for ii=1:length(sc_str)
+        for jj=1:length(sc_str)
+            if(ii~=jj)
+                phat = mle(squeeze(inmdaTotal_S{k}(sc_str(ii),sc_str(jj),:))) ;
+                phat_str(ii,jj,k).m = phat(1);
+                phat_str(ii,jj,k).s = phat(2);
+            end
+        end
+    end
+end
+
+% Comparisson plots:
+
+cl = lines(2);
+figure;hold on;
+scatter(cell2mat({phat_rnd(:,:,1).s}),cell2mat({phat_rnd(:,:,1).m}),20,cl(1,:),'marker','.');
+scatter(cell2mat({phat_str(:,:,1).s}),cell2mat({phat_str(:,:,1).m}),20,cl(2,:),'marker','.');
+title('PID 25');
+ylabel('mu');xlabel('sigma');
+legend({'Rnd','Str'});
 
 figure;hold on;
-scatter(inmdaSTD_R_PID25(:),inmdaSUM_R_PID25(:),'.k');
+scatter(cell2mat({phat_rnd(:,:,2).s}),cell2mat({phat_rnd(:,:,2).m}),20,cl(1,:),'marker','.');
+scatter(cell2mat({phat_str(:,:,2).s}),cell2mat({phat_str(:,:,2).m}),20,cl(2,:),'marker','.');
+title('PID 50');
+ylabel('mu');xlabel('sigma');
+legend({'Rnd','Str'});
+
+figure;hold on;
+scatter(cell2mat({phat_rnd(:,:,3).s}),cell2mat({phat_rnd(:,:,3).m}),20,cl(1,:),'marker','.');
+scatter(cell2mat({phat_str(:,:,3).s}),cell2mat({phat_str(:,:,3).m}),20,cl(2,:),'marker','.');
+title('PID 75');
+ylabel('mu');xlabel('sigma');
+legend({'Rnd','Str'});
+
+
+
+% individual plots:
+cl = lines(3);
+sz = [1 1 20];
+figure;hold on;
+for k=1:3
+    scatter(cell2mat({phat_rnd(:,:,k).s}),cell2mat({phat_rnd(:,:,k).m}),sz(k),cl(k,:),'marker','.');
+end
 title('RND');
-ylabel('SUM');xlabel('STD');
-    
-    
+ylabel('mu');xlabel('sigma');
+legend({'0.25','0.50','0.75'});
 figure;hold on;
-scatter(inmdaSTD_S_PID25(:),inmdaSUM_S_PID25(:),'.k');
-title('STR');
-ylabel('SUM');xlabel('STD');
+for k=1:3
+    scatter(cell2mat({phat_str(:,:,k).s}),cell2mat({phat_str(:,:,k).m}),sz(k),cl(k,:),'marker','.');
+end
+title('str');
+ylabel('mu');xlabel('sigma');
+legend({'0.25','0.50','0.75'});
+
+
+% 
+% 
+% clear phat_rnd;
+% phat_rnd(length(sc_rnd),length(sc_rnd)).m = [];
+% phat_rnd(length(sc_rnd),length(sc_rnd)).s = [];
+% inmdaRange = 0:10:70;
+% % figure;hold on;
+% for ii=1:length(sc_rnd)
+%     for jj=1:length(sc_rnd)
+%         if(ii~=jj)
+%             phat = mle(squeeze(inmdaSum_R_PID25(sc_rnd(ii),sc_rnd(jj),:))) ;
+%             phat_rnd(ii,jj).m = phat(1);
+%             phat_rnd(ii,jj).s = phat(2);
+% %             c = rand(1,3);
+% %             tmphisto = histcounts(squeeze(inmdaSum_R_PID25(sc_rnd(ii),sc_rnd(jj),:)),inmdaRange) / size(inmdaSum_R_PID25,3);
+% %             tmphisto = smooth(tmphisto);
+% %             plot(inmdaRange(1:end-1),tmphisto,'color',c);
+%         end
+%     end
+% end
+% 
+% clear phat_str;
+% phat_str(length(sc_str),length(sc_str)).m = [];
+% phat_str(length(sc_str),length(sc_str)).s = [];
+% inmdaRange = 0:100:900;
+% %figure;%hold on;
+% for ii=1:length(sc_str)
+%     for jj=1:length(sc_str)
+%         if(ii~=jj)
+%             phat = mle(squeeze(inmdaSum_S_PID25(sc_str(ii),sc_str(jj),:))) ;
+%             phat_str(ii,jj).m = phat(1);
+%             phat_str(ii,jj).s = phat(2);
+% %             c = rand(1,3);
+% %             tmphisto = histcounts(squeeze(inmdaSum_S_PID25(sc_str(ii),sc_str(jj),:)),inmdaRange) / size(inmdaSum_S_PID25,3);
+% %             tmphisto = smooth(tmphisto);
+% %             plot(inmdaRange(1:end-1),tmphisto,'color',c);
+% %             pause();cla;
+%         end
+%     end
+% end
+% 
+% figure;hold on;
+% scatter(cell2mat({phat_rnd.s}),cell2mat({phat_rnd.m}),'.k');
+% title('RND');
+% ylabel('mu');xlabel('sigma');
+% figure;hold on;
+% scatter(cell2mat({phat_str.s}),cell2mat({phat_str.m}),'.k');
+% title('str');
+% ylabel('mu');xlabel('sigma');
+% 
+% 
+% 
+% figure;hold on;
+% scatter(inmdaSTD_R_PID25(:),inmdaSUM_R_PID25(:),'.k');
+% title('RND');
+% ylabel('Cumulative sum of Inmda');xlabel('STD');
+%     
+%     
+% figure;hold on;
+% scatter(inmdaSTD_S_PID25(:),inmdaSUM_S_PID25(:),'.k');
+% title('STR');
+% ylabel('Cumulative sum of Inmda');xlabel('STD');
     
 
 
@@ -403,6 +773,176 @@ for ru=1:49
     imagesc(inmdaSum(sc_rnd,sc_rnd,ru));
     pause();
 end
+
+%% Plot distributions of individual iNMDA traces:
+% na bebaiw8w oti ta src kai trg einai consistent: EINAI.
+% allbatchmv = cell(933,50);
+% for kk=1:50
+%     kk
+%     load(sprintf('\\\\139.91.162.50\\stefanos_synology\\Glia\\SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c3_SN2_mV_r%d_PID25.mat',kk-1));
+%     allbatchmv(:,kk) = batch;
+% end
+% close all;
+inmdaRang = 0:0.0005:0.05;
+inmdaData = inmdaDetailed_S_PID25;
+sc = sc_str;
+nmdamean = nan(length(sc),length(sc),50);
+wmean = nan(length(sc),length(sc),50);
+vmean = nan(length(sc),length(sc),50);
+% figure(1);
+activation=cell(length(sc),3);
+for jj=1:length(sc)
+    for ii=1:length(sc)
+%         P = inmdaData{sc_rnd(ii),sc_rnd(jj),1};
+%         Q = inmdaData{sc_rnd(ii),sc_rnd(jj),2};
+        if ~isempty(inmdaData{sc(ii),sc(jj),1})
+            tmpW = run.weights_str(sc(ii),sc(jj));
+            tmp = squeeze(cell2mat( cellfun(@(x) x',inmdaData(sc(ii),sc(jj),:),'uniformoutput',false) ));
+            tmp2 = (inmdaRang(1:end-1)*tmp)./sum(tmp);
+            nmdamean(ii,jj,1:length(tmp2)) = tmp2;
+%             wmean(ii,jj,1:length(tmp2)) = repmat(tmpW,1,length(tmp2));
+%             for kk=1:length(tmp2)
+%                 vmean(ii,jj,kk) = mean(allbatchmv{sc(jj),kk}(1500:end));
+%             end
+%             [f,gof] = fit(inmdaRang(1:end-1)',tmp(:,1),'gauss2');
+%             [f.b1,f.b2,mean((inmdaRang(1:end-1)*tmp)./sum(tmp))]
+%             figure(1);plot(f,inmdaRang(1:end-1)',tmp(:,1));pause();cla;
+%             figure(1);imagesc(tmp(2:end,:));
+%             figure(1);scatter( mean((inmdaRang(1:end-1)*tmp)./sum(tmp)),tmpW,50,cm(jj,:),'filled' );
+%             activation{jj,1} = [activation{jj,1}, mean((inmdaRang(1:end-1)*tmp)./sum(tmp))];
+%             activation{jj,2} = [activation{jj,2}, tmpW];
+%             activation{jj,3} = [activation{jj,3}, mean(batch{sc(jj),1}(1500:end))];
+            
+%             figure(2);plot(inmdaRang(2:end-1),tmp(2:end,:));
+%             pause();cla;
+%             dist=KLDiv(P,Q)
+        end
+%         dist=KLDiv(P,Q)
+    end
+end
+
+% apo ti e3artatai to ypervoliko iNMDA pou blepw se merikes synapseis?
+% To pososto tou depolarization einai IDENTICAL, giati to PID einai
+% sta8ero. Opote logika mono to W paizei rolo. Ean baloume k to
+% depolarization sto paixnidi:
+x = wmean(:)/max(wmean(:));
+y = nmdamean(:)/max(nmdamean(:));
+% z = cellfun(@mean,activation(:,3));
+z = 1-(-1*(vmean(:)/max(-1*vmean(:))));
+figure;scatter3(x,y,z);axis equal;
+xlabel('Weight');ylabel('iNMDA');zlabel('depolarization');
+
+[RHO,PVAL] = corrcoef([x,y]);
+idx = ~isnan(RHO);
+RHO(~any(idx),:) = [];
+RHO(:,~any(idx)) = [];
+figure;imagesc(RHO);
+figure;imagesc([nmdamean./wmean]);
+figure;scatter(x,y);
+b1 = x\y;
+yCalc1 = b1*x;
+hold on;
+plot(x,yCalc1);
+
+figure;hold on;
+title(sprintf('# of incomming connections and mean incomming weight (all runs)'));
+xlabel('# of incomming connections');ylabel('mean incomming weight (all runs)');
+scatter( cellfun(@length,activation(:,1)),cellfun(@mean,activation(:,2)),50,cm(jj,:),'filled' );
+
+dataxy = [cellfun(@length,activation(:,1)),cellfun(@mean,activation(:,1))];
+dataxy(any([isnan(dataxy(:,1)),isnan(dataxy(:,2))],2),:) = [];
+[RHO,PVAL] = corr(dataxy);
+figure;hold on;
+title(sprintf('# of incomming connections and mean iNMDA (all runs)(r=%.2f)',RHO(2)));
+xlabel('# of incomming connections');ylabel('mean iNMDA (all runs)');
+scatter( dataxy(:,1),dataxy(:,2),50,cm(jj,:),'filled' );
+
+dataxy = [cellfun(@mean,activation(:,2)),cellfun(@mean,activation(:,1))];
+dataxy(any([isnan(dataxy(:,1)),isnan(dataxy(:,2))],2),:) = [];
+[RHO,PVAL] = corr(dataxy);
+figure;hold on;
+title(sprintf('mean incomming weight and mean iNMDA (all runs)(r=%.2f)',RHO(2)));
+xlabel('mean incomming weight');ylabel('mean iNMDA');
+scatter( dataxy(:,1),dataxy(:,2),50,cm(jj,:),'filled' );
+
+%% get iNMDA per pyramidal:
+inmdaRang = 0:0.0005:0.05;
+inmdaData = inmdaDetailed_S_PID25;
+sc = sc_str;
+nmdamean = nan(length(sc),length(sc),50);
+wmean = nan(length(sc),length(sc),50);
+vmean = nan(length(sc),length(sc),50);
+% figure(1);
+activation=cell(length(sc),1);
+activationgrp=cell(length(sc),1);
+activmedian = zeros(length(sc),1);
+for jj=1:length(sc)
+    totalactiv = [];
+    for ii=1:length(sc)
+        if ~isempty(inmdaData{sc(ii),sc(jj),1})
+            tmp = squeeze(cell2mat( cellfun(@(x) x',inmdaData(sc(ii),sc(jj),1),'uniformoutput',false) ));
+            totalactiv = [totalactiv,  (inmdaRang(1:end-1)*tmp)./sum(tmp)];
+%             figure(1);plot(inmdaRang(1:end-1)',tmp(:,1));title(sprintf('trg cell %d',jj));pause();cla;
+        end
+    end
+    activation{jj,1} = totalactiv';
+    activationgrp{jj,1} = ones(length(totalactiv),1)*jj;
+    activmedian(jj,1) = nanmedian(totalactiv);
+end
+
+x = cell2mat(activation);
+g = cell2mat(activationgrp);
+[~,idx] = sort(activmedian,'descend');
+newg = [];newx=[];
+for jj = 1:length(sc)
+%     newg = [newg; ones(length(activationgrp{jj,1}),1)*idx(jj)];
+    newx = [newx; activation{idx(jj),1}];
+    newg = [newg; ones(length(activationgrp{idx(jj),1}),1)*(jj)];
+end
+figure;boxplot(newx,newg);
+title('Synaptic iNMDA per pyramidal.');
+xlabel('Pyramidal ID');ylabel('Mean synaptic iNMDA');
+
+%% Get active cells per state:
+Qseq = [10];
+% close all;
+nProminentStatesCheck = 100;
+for Qi = 1:length(Qseq)
+    configuration = 'str';
+    eval( sprintf('stc = stc_%s', configuration) );
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+        sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
+    delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
+    prominentStates = mean(voteState(:,delayRange),2);
+    [maxfreqstates,maxfreqidx] = sort(prominentStates,'descend') ;
+
+    tmp = maxfreqidx(2:nProminentStatesCheck);
+    stateCells = cell(1,length(tmp));
+    eval( sprintf('stimulatedCells = sc_%s;',configuration) );
+    for k = 1:length(tmp)
+        [~, S] = regexp(U{tmp(k)},'1','match');
+        stateCells{1,k} = stimulatedCells(S)';
+    end
+end
+
+%% 
+cellsPerState = cell(1,length(stimulatedCells));
+for k=1:length(stimulatedCells)
+    cellsPerState{k} = find(cell2mat(stateCells) == stimulatedCells(k));
+end
+
+nanidx = isnan(activmedian);
+x=activmedian(~nanidx);
+y=cellfun(@length,cellsPerState)';
+y(nanidx) = [];
+RHO = corr([x,y])
+b1 = x\y;
+yCalc1 = b1*x;
+figure;scatter(x, y);
+hold on;
+plot(x,yCalc1);
+title(sprintf('iNMDA VS state freq (r=%.3f)',RHO(2)));
+xlabel('Median iNMDA (per cell)');ylabel('Freq of active in states');
 
 %% Parse above data:
 % Na apofasisw ti na kanw me afti tin analysi: Ti apo ola afta pou exw

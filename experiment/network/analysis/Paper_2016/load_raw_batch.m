@@ -1,4 +1,4 @@
-function [st,tstop]=load_raw_batch(pathto,varargin)
+function [train]=load_raw_batch(pathto,varargin)
 % Load experiment batch..
 % ...GIVEN that one run is inside the pathto folder.
 % One run is equivalent to one MPI batch job (in its own folder!).
@@ -38,15 +38,17 @@ files = sort(rfvm(cellfun(@(x) strcmp(x(end-3:end),'.bin'),rfvm)));
 n = size(files,2);
 
 if (isempty(files))
-   warning('No files found in folder!');
-   st={};
-   return;
+    warning('No files found in folder!');
+    st={};
+    return;
 end
-st = cell(n,1);
+st = cell(1,n);
+stidx = zeros(2,n);
 
-textprogressbar(sprintf('Loading %s: ',pathto));
-for fn=1:n
-    if ~isempty(requestedvar)
+% textprogressbar(sprintf('Loading %s: ',pathto));
+
+if ~isempty(requestedvar)
+    parfor fn=1:n
         %These, tmp, index change according to dataset!
         tmp = strsplit(files{fn}, {'inmda_srcPC','_trgPC','.bin'});
         % get cell id:
@@ -62,54 +64,65 @@ for fn=1:n
             end
             % dt equals 0.1:
             trace = trace(1:10:end);
-            st{srcid,trgid} = trace';
+            %             st{srcid,trgid} = trace';
+            st{fn} = trace';
+            stidx(:,fn) = [srcid;trgid];
         else
-            warning(sprintf('File: %s appears to have disappeared after initial ls! This is shady...)',filename));
-            st{srcid,trgid} = [];
+            warning('File: %s appears to have disappeared after initial ls! This is shady...)',filename);
+            %             st{srcid,trgid} = [];
+            st{fn} = [];
+            stidx(:,fn) = [srcid;trgid];
         end
-    else
-        %These, tmp, index change according to dataset!
-        tmp = strsplit(files{fn}, {'_','.'});
-        % get cell id:
-        cid = str2double(tmp{1})+1;
-        % get run id
-%         rid = str2double(tmp{2})+1;
-        filename = fullfile(pathto,files{fn});
-        if( exist(filename,'file') )
-            try
-                trace = nrn_vread(filename,'n');
-            catch e
-                warning('Error with nrn_vread() !');
-            end
-            % dt equals 0.1:
-            trace = trace(1:10:end);
-            if s
-                [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
-            else
-                st{cid,1} = trace';
-            end
-        else
-            warning(sprintf('File: %s appears to have disappeared after initial ls! This is shady...)',filename));
-            st{cid,1} = [];
-        end
+        disp(fn/n);
     end
     
+    train = cell(700,700);
+    for fn=1:n
+        train{stidx(1,fn),stidx(2,fn)} = st{fn};
+    end
+    %     else
+    %         %These, tmp, index change according to dataset!
+    %         tmp = strsplit(files{fn}, {'_','.'});
+    %         % get cell id:
+    %         cid = str2double(tmp{1})+1;
+    %         % get run id
+    % %         rid = str2double(tmp{2})+1;
+    %         filename = fullfile(pathto,files{fn});
+    %         if( exist(filename,'file') )
+    %             try
+    %                 trace = nrn_vread(filename,'n');
+    %             catch e
+    %                 warning('Error with nrn_vread() !');
+    %             end
+    %             % dt equals 0.1:
+    %             trace = trace(1:10:end);
+    %             if s
+    %                 [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
+    %             else
+    %                 st{cid,1} = trace';
+    %             end
+    %         else
+    %             warning(sprintf('File: %s appears to have disappeared after initial ls! This is shady...)',filename));
+    %             st{cid,1} = [];
+    %         end
+    %     end
     
-    textprogressbar((fn/n)*100);
+    
+    %     textprogressbar((fn/n)*100);
 end
-textprogressbar('done');
+% textprogressbar('done');
 
 %given that batch will have the same tstop:
-tstop = size(trace,1)-1;
+% tstop = size(trace,1)-1;
 
 return
 
 function textprogressbar(c)
-% This function creates a text progress bar. It should be called with a 
-% STRING argument to initialize and terminate. Otherwise the number correspoding 
+% This function creates a text progress bar. It should be called with a
+% STRING argument to initialize and terminate. Otherwise the number correspoding
 % to progress in % should be supplied.
-% INPUTS:   C   Either: Text string to initialize or terminate 
-%                       Percentage number to show progress 
+% INPUTS:   C   Either: Text string to initialize or terminate
+%                       Percentage number to show progress
 % OUTPUTS:  N/A
 % Example:  Please refer to demo_textprogressbar.m
 
@@ -126,7 +139,7 @@ persistent strCR;           %   Carriage return pesistent variable
 strPercentageLength = 10;   %   Length of percentage string (must be >5)
 strDotsMaximum      = 10;   %   The total number of dots in a progress bar
 
-% Main 
+% Main
 
 if isempty(strCR) && ~ischar(c),
     % Progress bar must be initialized with a string
@@ -137,7 +150,7 @@ elseif isempty(strCR) && ischar(c),
     strCR = -1;
 elseif ~isempty(strCR) && ischar(c),
     % Progress bar  - termination
-    strCR = [];  
+    strCR = [];
     fprintf([c '\n']);
 elseif isnumeric(c)
     % Progress bar - normal progress
