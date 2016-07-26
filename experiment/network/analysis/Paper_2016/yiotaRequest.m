@@ -18,10 +18,14 @@ nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
 
 FF_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
 FF_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
+FF_nstc_stim_rnd = zeros(length(nsc_rnd),size(batch_rnd_spikes,2));
+FF_nstc_delay_rnd = zeros(length(nsc_rnd),size(batch_rnd_spikes,2));
 CV_stim_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
 CV_delay_rnd = zeros(length(sc_rnd),size(batch_rnd_spikes,2));
 FF_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
 FF_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
+FF_nstc_stim_str = zeros(length(nsc_str),size(batch_str_spikes,2));
+FF_nstc_delay_str = zeros(length(nsc_str),size(batch_str_spikes,2));
 CV_stim_str = zeros(length(sc_str),size(batch_str_spikes,2));
 CV_delay_str = zeros(length(sc_str),size(batch_str_spikes,2));
 for ru=1:size(batch_rnd_spikes,2)
@@ -37,6 +41,13 @@ for ru=1:size(batch_rnd_spikes,2)
         CV_stim_rnd(c,ru) = std(ISI_stim_rnd)/mean(ISI_stim_rnd);
         CV_delay_rnd(c,ru) = std(ISI_delay_rnd)/mean(ISI_delay_rnd);
     end
+    for c=1:length(nsc_rnd)
+        st_rnd = batch_rnd_spikes{nsc_rnd(c),ru};
+        st_stim_rnd = st_rnd(st_rnd<=1500);
+        st_delay_rnd = st_rnd(st_rnd>1500);
+        FF_nstc_stim_rnd(c,ru) = length(st_stim_rnd)/1.5;
+        FF_nstc_delay_rnd(c,ru) = length(st_delay_rnd)/((run.tstop-1500)/1000);
+    end
 end
 for ru=1:size(batch_str_spikes,2)
     for c=1:length(sc_str)
@@ -50,6 +61,13 @@ for ru=1:size(batch_str_spikes,2)
         FF_delay_str(c,ru) = length(st_delay_str)/((run.tstop-1500)/1000);
         CV_stim_str(c,ru) = std(ISI_stim_str)/mean(ISI_stim_str);
         CV_delay_str(c,ru) = std(ISI_delay_str)/mean(ISI_delay_str);
+    end
+    for c=1:length(nsc_str)
+        st_str = batch_str_spikes{nsc_str(c),ru};
+        st_stim_str = st_str(st_str<=1500);
+        st_delay_str = st_str(st_str>1500);
+        FF_nstc_stim_str(c,ru) = length(st_stim_str)/1.5;
+        FF_nstc_delay_str(c,ru) = length(st_delay_str)/((run.tstop-1500)/1000);
     end
 end
 
@@ -81,22 +99,42 @@ plot(edges(2:end),tmp_stim(1,2:end),'color',cm(1,:));
 plot(edges(2:end),tmp_stim(2,2:end),'color',cm(2,:));
 
 dmax=max([tmp_delay(:);tmp_stim(:)]);dmax=dmax+dmax*0.1;
-scatter(nanmean([CV_delay_rnd(:),CV_delay_str(:)]),[1,1]*dmax,[],cm(1:2,:),'v','fill');
-scatter(nanmean([CV_stim_rnd(:),CV_stim_str(:)]),[1,1]*dmax,[],cm(1:2,:),'v','fill');
+scatter([nanmean(CV_delay_rnd(:)),nanmean(CV_delay_str(:))],[1,1]*dmax,[],cm(1:2,:),'v','fill');
+scatter([nanmean(CV_stim_rnd(:)),nanmean(CV_stim_str(:))],[1,1]*dmax,[],cm(1:2,:),'v','fill');
 
-legend({'Random','Structured'});xlabel('Coefficient of Variation (CV)');ylabel('Count (#)');title('Histogram of CV (Cluster in delay period)');
+legend({'Random','Structured'});xlabel('Coefficient of Variation (CV)');ylabel('Count (#)');title(sprintf('CV: Stimulated Cluster in delay period (SN%d)',run.sn));
 
 % FF for stimulated cluster (delay period):
 edges = 0:2:60;
 tmp = [histc(FF_delay_rnd(:),edges)'/sum(~isnan(FF_delay_rnd(:)));histc(FF_delay_str(:),edges)'/sum(~isnan(FF_delay_str(:)))];
-figure;plot(edges(2:end),tmp(:,2:end));
-legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Count (#)');title('Histogram of FF (Cluster in delay period)');
+figure;hold on;
+plot(edges(2:end),tmp(1,2:end)*100,'b','linewidth',3);
+plot(edges(2:end),tmp(2,2:end)*100,'r','linewidth',3);
+nstim_tmp = [histc(FF_nstc_delay_rnd(:),edges)'/sum(~isnan(FF_nstc_delay_rnd(:)));histc(FF_nstc_delay_str(:),edges)'/sum(~isnan(FF_nstc_delay_str(:)))];
+plot(edges(2:end),nstim_tmp(1,2:end)*100,'b');
+plot(edges(2:end),nstim_tmp(2,2:end)*100,'r');
+legend({'Stimulated Cluster Random','Stimulated Cluster Structured','Rest of the network Random','Rest of the network Structured'});
+xlabel('Firing Frequency (Hz)');ylabel('Relative Frequency (%)');title(sprintf('FF: Stimulated Cluster in delay period, all runs (SN%d)',run.sn));
 set(gca,'XScale','log');
 
 
+% Raster plots:
+figure;plotSpikeRaster(batch_rnd_spikes([sc_rnd',nsc_rnd],1),'PlotType','vertline');title(sprintf('Response Raster Random (SN%d)',run.sn));ylabel('Cell ID');xlabel('time (ms)');
+figure;plotSpikeRaster(batch_str_spikes([sc_str',nsc_str],1),'PlotType','vertline');title(sprintf('Response Raster Structured (SN%d)',run.sn);ylabel('Cell ID');xlabel('time (ms)');
+
+% recruitment (again):
+edges = 0:1:60;
+tmp = [histc(FF_nstc_delay_rnd(:),edges)'/sum(~isnan(FF_nstc_delay_rnd(:)));histc(FF_nstc_delay_str(:),edges)'/sum(~isnan(FF_nstc_delay_str(:)))];
+figure;hold on;
+plot(edges,tmp(1,:)*100,'b','linewidth',3);
+plot(edges,tmp(2,:)*100,'r','linewidth',3);
+legend({'Random','Structured'});xlabel('Firing Frequency (Hz)');ylabel('Relative Frequency (%)');title('Non-Stimulated Cells Firing Rate (all runs)');
+set(gca,'XScale','log');
+plot([0.4,0.4],[0,max(max(tmp(:,2:end)))*100],'k')
+
 %% Recruitement:
-FFr_rnd = zeros(length(nsc_rnd),run.nruns);
-FFr_str = zeros(length(nsc_str),run.nruns);
+FFr_rnd = zeros(length(nsc_rnd),size(batch_rnd_spikes,2));
+FFr_str = zeros(length(nsc_str),size(batch_str_spikes,2));
 
 for ru=1:size(batch_rnd_spikes,2)
     for c=1:length(nsc_rnd)

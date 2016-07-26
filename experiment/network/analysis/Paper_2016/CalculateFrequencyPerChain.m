@@ -1,26 +1,47 @@
 %% Compute relative frequency of network states:
 close all;clear all;clc;
 % load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN4.mat'));
-load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN2.mat'));
+load(fullfile(osDrive(),'Documents','Glia','NetworkCreation_SN7.mat'));
 %Which cluster is stimulated in each configuration:
-stc_rnd = 2;
-stc_str = 4;
+stc_rnd = 6;
+stc_str = 6;
 
-% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
-% load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
-
-VARPID = 25;
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Rs10c%d_SN%d_spikes.mat',stc_rnd-1, run.sn)));
+load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('updatedStimGABAb01NEWBGST_Ss10c%d_SN%d_spikes.mat',stc_str-1,run.sn)));
+% 
+% VARPID = 25;
 % load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c%d_SN%d_PID%d_spikes.mat',stc_rnd-1, run.sn,VARPID)));
 % load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_PID%d_spikes.mat',stc_str-1,run.sn,VARPID)));
 
 run.tstop = 10000;
-run.nruns = 50;
+run.nruns = 100;
 
 % List of stimulated/non-stimulated cells in each configuration:
 sc_rnd = run.stimulatedCells_rnd{stc_rnd};
 nsc_rnd = find(~ismember(1:700,run.stimulatedCells_rnd{stc_rnd}));
 sc_str = run.stimulatedCells_str{stc_str};
 nsc_str = find(~ismember(1:700,run.stimulatedCells_str{stc_str}));
+
+
+%%
+% Qseq = [100,50,40,30,20,10,8,6,4];
+close all;
+p.nProminentStatesCheck = 100;
+p.nProminentStates = 100;
+p.rlowessWidth = 40;
+p.uptocoactive = 60; % plot up to 10 coactive cells.
+p.postanalysisdir = sprintf('Qanalysis_stimulatedClusterOnly_GABAb01_SN%d',run.sn);
+p.Qseq = [10];
+p.stc_str = stc_str;
+p.stc_rnd = stc_rnd;
+p.activeCluster = [];
+p.Qi = [];
+p.stimulatedCells = [];
+p.activeConfig = '';
+    
+% compareStateFrequencyPerConfiguration(run,p);
+p.Qseq = [100,50,40,30,20,10,8,6,4];
+getMeanStateFrequencyPerQ(run,p);
 
 %% Visualize stc because is not visible in the repo:
 putativestc = [];
@@ -32,8 +53,8 @@ figure;hold on;
 plot(sort(run.stimulatedCells_rnd{stc_rnd},'ascend'),'r');
 plot(sort(sidx(1:100),'ascend'),'b');
 %% Array of windows Q to apply:
-% Qseq = [100,50,40,30,20,10,8,6,4];
-Qseq = [4:2:100];
+Qseq = [100,50,40,30,20,10,8,6,4];
+% Qseq = [4:2:100];
 
 % Na e3etazw ono to network, mono to stimulated k mono to recruited 'H ola
 % ta ypolloipa kyttara (ola ane3artita apo to an einai recruited).
@@ -49,8 +70,145 @@ eval( sprintf('stc = stc_%s;', configuration) );
 % Qseq = [100,50,40,30,20,10,8,6,4];
 configuration = 'rnd';
 eval( sprintf('st = batch_%s_spikes(sc_%s,:);',configuration,configuration) );
+% eval( sprintf('st = batch_%s_spikes;',configuration) );
 eval( sprintf('stc = stc_%s;', configuration) );
 [~, ~, ~] = createVoteState(run, Qseq, st, stc-1, configuration, 'save');
+
+%% Set threshold using Poisson distribution:
+lambda = 0.049;
+psnst = poissrnd(lambda,run.nPC,run.tstop);
+psnst(psnst>=1) = 1;
+psnSpikes = cell(run.nPC,1);
+for k=1:run.nPC
+    psnSpikes{k} = find(psnst(k,:));
+end
+
+psnHz = cellfun(@length,psnSpikes)./(run.tstop/1000);
+% psnCV = lambda^(-0.5);
+figure;boxplot(psnHz);ylabel('Poisson Population Hz');
+
+configuration = 'psn';
+eval( sprintf('stc = stc_%s;', 'rnd') );
+Qseq = [100,50,40,30,20,10,8,6,4];
+psnClusterSize = 700;
+psnCluster = psnSpikes(1:psnClusterSize,:);
+savefolder = sprintf('PoissonQanalysis_%dHz_%dcells',round(lambda*1000),psnClusterSize);
+createVoteState(run, Qseq, psnCluster, stc-1, configuration,savefolder, 'save');
+
+% Compare states across configurations:
+nProminentStatesCheck = 100;
+psnStateNo = zeros(7,2,length(Qseq));
+psnStates = cell(7,2,length(Qseq));
+psnCoactiveNo = cell(7,2,length(Qseq));
+psnClusterSize = [100,700];
+FFseq = [7,14,21,28,35,42,49];
+CSseq = [100,700];
+for Qi = 1:length(Qseq)
+    configuration = 'psn';
+    eval( sprintf('stc = stc_%s;', 'rnd') );
+    % all poisson configurations:
+    for ff =1:7
+        ff
+        for cs = 1:2
+            loadfolder = sprintf('PoissonQanalysis_%dHz_%dcells',7*ff,psnClusterSize(cs));
+            loadfile = fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',loadfolder,...
+                sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi)));
+            disp(loadfile);
+            stateVars = load(loadfile);
+            delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
+            prominentStates = mean(stateVars.voteState(:,delayRange),2);
+            [maxfreqstates,~] = sort(prominentStates,'descend') ;
+            psnCoactiveNo{ff,cs,Qi} = cellfun(@(x) length(regexp(x,'1','match')), stateVars.U );
+            psnStateNo(ff,cs,Qi) = size(stateVars.voteState,1);
+            if  psnStateNo(ff,cs,Qi) < nProminentStatesCheck
+                nProminentStatesLess = psnStateNo(ff,cs,Qi);
+            else
+                nProminentStatesLess = nProminentStatesCheck;
+            end
+            psnStates{ff,cs,Qi} = maxfreqstates(1:nProminentStatesLess);
+            
+        end
+    end
+end
+
+% Plot State Freq VS network firing freq:
+Qi = 6;
+cs = 1;
+x = [];g = [];
+for ff=1:7
+    x = [x ; psnStates{ff,cs,Qi}];
+    g = [g ; ones(length(psnStates{ff,cs,Qi}), 1)*ff ];
+end
+figure;hold on;
+boxplot(x,g);
+scatter(g,x,10,'k','filled');
+set(gca,'XtickLabel',[7,14,21,28,35,42,49]);
+title(sprintf('Q=%d, Cluster size=%d (SN%d)',Qseq(Qi),CSseq(cs), run.sn));
+xlabel('Poisson Net Firing Freq (Hz)');ylabel('Frequency of States (pooled)');
+
+% Plot number of coactives VS network firing freq:
+x = [];g = [];
+for ff=1:7
+    x = [x ; psnCoactiveNo{ff,cs,Qi}];
+    g = [g ; ones(length(psnCoactiveNo{ff,cs,Qi}), 1)*ff ];
+end
+figure;hold on;
+boxplot(x,g);
+scatter(g,x,10,'k','filled');
+set(gca,'XtickLabel',[7,14,21,28,35,42,49]);
+title(sprintf('Q=%d, Cluster size=%d (SN%d)',Qseq(Qi),CSseq(cs),run.sn));
+xlabel('Poisson Net Firing Freq (Hz)');ylabel('Number of coactives');
+
+% % Plot state number VS frequency of states:
+% x = [];g = [];
+% for ff=1:7
+%     x = [x ; psnCoactiveNo{ff,cs,Qi}];
+%     g = [g ; ones(length(psnCoactiveNo{ff,cs,Qi}), 1)*ff ];
+% end
+% figure;hold on;
+% boxplot(x,g);
+% scatter(g,x,10,'k','filled');
+% set(gca,'XtickLabel',[7,14,21,28,35,42,49]);
+% title(sprintf('Q=%d (SN%d)',Qseq(Qi),run.sn));
+% xlabel('Poisson Net Firing Freq (Hz)');ylabel('Number of coactives');
+
+% Plot Q VS number of unique states:
+cm = lines(length(FFseq));
+figure;hold on;
+for ff=1:length(FFseq)
+    x = [];g = [];cs = 1; %for the cluster case
+    for Qi=1:length(Qseq)
+        x = [x ; psnStateNo(ff,cs,Qi)];
+        g = [g ; ones(length(psnStateNo(ff,cs,Qi)), 1)*Qi ];
+    end
+    
+    plot(g,x,'color',cm(ff,:));
+end
+set(gca,'XtickLabel',Qseq);
+title(sprintf('All Qs, Cluster size=%d (SN%d)', CSseq(cs),run.sn));
+xlabel('Different Qs');ylabel('Number of unique states');
+legend({'FF 7Hz','FF 14Hz','FF 21Hz','FF 28Hz','FF 35Hz','FF 42Hz','FF 49Hz'});
+
+% Plot State Freq VS network firing freq:
+% GIA Q=10 POU DEN EXOUME DIAFORA STO PROMINENT FREQUENCY ME DIAFORETIKO
+% FIRING FREQUENCY! GIA TA YPOLLOIPA PREPEI NA TO DW!!
+Qi = 6; %Q=10
+cs = 1;
+x = [];g = [];
+for Qi=1:length(Qseq)
+    for ff=1:length(FFseq)
+        x = [x ; psnStates{ff,cs,Qi}];
+        g = [g ; ones(length(psnStates{ff,cs,Qi}), 1)*Qi ];
+    end
+end
+figure;hold on;
+boxplot(x,g);
+scatter(g,x,10,'k','filled');
+set(gca,'XtickLabel',Qseq);
+title(sprintf('Q=%d, Cluster size=%d (SN%d)',Qseq(Qi),CSseq(cs), run.sn));
+xlabel('Different Qs');ylabel('Frequency of States (pooled)');
+
+
 
 %% Get most active cells in each configuration.
 FFr_rnd = zeros(run.nPC,run.nruns);
@@ -282,10 +440,11 @@ set(gca,'YTickLabel',Qseq)
 ylabel('Q');xlabel('Prominent States');
 %% Compare states across configurations:
 % Qseq = [100,50,40,30,20,10,8,6,4];
-Qseq = [100];
+Qseq = [50];
 % VARPID = 25;
 close all;
-nProminentStatesCheck = 10;
+nProminentStatesCheck = 20;
+nProminentStates = 20;
 cm = lines(nProminentStatesCheck);
 rlowessWidth = 40;
 uptocoactive = 10; % plot up to 10 coactive cells.
@@ -295,7 +454,7 @@ figure(5);hold on;
 for Qi = 1:length(Qseq)
     configuration = 'rnd';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
     delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
@@ -343,15 +502,24 @@ for Qi = 1:length(Qseq)
             stateMeanW_rnd(k) = mean(tmpW(~eye(length(stateCells))));
         end
     end
+    ShuffledStateMeanW_rnd = zeros(uptocoactive-1,1000);
+    for k=2:uptocoactive
+        for kk = 1:1000
+            shuffledCells = ceil(rand(k,1)*700)';
+            eval( sprintf('shuffledCellsW = run.weights_%s(shuffledCells,shuffledCells);',configuration) );
+            eval( sprintf('shuffledCellsC = run.configuration_%s(shuffledCells,shuffledCells);',configuration) );
+            ShuffledStateMeanW_rnd(k,kk) = mean(shuffledCellsW(~eye(length(shuffledCells)) & shuffledCellsC));
+        end
+    end
     AllStateMeanW_rnd = {};
     for k=2:uptocoactive
-        tmp = find(nActivePC_rnd == k);
+        tmp = find(nActivePC_rnd(maxfreqidx(2:nProminentStates)) == k);
         for kk = 1:length(tmp)
             [~, S] = regexp(U{tmp(kk)},'1','match');
             stateCells = stimulatedCells(S)';
             if length(stateCells) > 1
-                eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
-                AllStateMeanW_rnd{k,kk} = mean(tmpW(~eye(length(stateCells))));
+                eval( sprintf('stateCellsW = run.weights_%s(stateCells,stateCells);',configuration) );
+                AllStateMeanW_rnd{k,kk} = mean(stateCellsW(~eye(length(stateCells))));
             end
         end
     end
@@ -396,7 +564,7 @@ for Qi = 1:length(Qseq)
     
     configuration = 'str';
     eval( sprintf('stc = stc_%s', configuration) );
-    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','PID25_iNMDA_Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
+    load(fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','Qanalysis_stimulatedClusterOnly_GABAb01_SN2',...
         sprintf('cluster_smooth_states_%s_stc%d_SN%d_Q%d_v73.mat',configuration,stc-1,run.sn,Qseq(Qi))));
     delayRange = ceil(1500/Qseq(Qi)):run.tstop/Qseq(Qi) ;
     prominentStates = mean(voteState(:,delayRange),2);
@@ -444,15 +612,24 @@ for Qi = 1:length(Qseq)
             stateMeanW_str(k) = mean(tmpW(~eye(length(stateCells))));
         end
     end
+    ShuffledStateMeanW_str = zeros(uptocoactive-1,1000);
+    for k=2:uptocoactive
+        for kk = 1:1000
+            shuffledCells = ceil(rand(k,1)*700)';
+            eval( sprintf('shuffledCellsW = run.weights_%s(shuffledCells,shuffledCells);',configuration) );
+            eval( sprintf('shuffledCellsC = run.configuration_%s(shuffledCells,shuffledCells);',configuration) );
+            ShuffledStateMeanW_str(k,kk) = mean(shuffledCellsW(~eye(length(shuffledCells)) & shuffledCellsC));
+        end
+    end
     AllStateMeanW_str = {};
     for k=2:uptocoactive
-        tmp = find(nActivePC_str == k);
+        tmp = find(nActivePC_str(maxfreqidx(2:nProminentStates)) == k);
         for kk = 1:length(tmp)
             [~, S] = regexp(U{tmp(kk)},'1','match');
             stateCells = stimulatedCells(S)';
             if length(stateCells) > 1
-                eval( sprintf('tmpW = run.weights_%s(stateCells,stateCells);',configuration) );
-                AllStateMeanW_str{k,kk} = mean(tmpW(~eye(length(stateCells))));
+                eval( sprintf('stateCellsW = run.weights_%s(stateCells,stateCells);',configuration) );
+                AllStateMeanW_str{k,kk} = mean(stateCellsW(~eye(length(stateCells))));
             end
         end
     end
@@ -612,23 +789,50 @@ figure;imagesc(cellfun(@median,loccummat_str))
     
 %%
 VARPID = 25;
-stc = 6;
-inmdaDetailed_SN4_S_PID25 = cell(700,700,50);
-inmdaRang = 0:0.0005:0.05;
-for ru=2:50
+stc = 4;
+inmdaDetailed_SN2_S_dvolt_delay_PID25 = cell(700,700,50);
+inmdaDetailed_SN2_S_dvolt_stimulus_PID25 = cell(700,700,50);
+inmdaRang = 0:0.0005:0.1;
+for ru=1:47
     ru
-    load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_inmda_r%d_PID%d.mat',stc-1, run.sn,ru-1,VARPID)));
+    load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_dvolt_inmda_r%d_PID%d.mat',stc-1, run.sn,ru-1,VARPID)));
 
     blah = cellfun(@length, specificBatch);
     inmdaIDX = find(blah);
 
     for k = inmdaIDX'
         [y,x] = ind2sub(size(specificBatch),k);
-        inmda = specificBatch{y,x}(1500:end);
-        inmda(inmda>0)=0;
-        inmdaDetailed_SN4_S_PID25(y,x,ru)={histcounts(-(inmda),inmdaRang)};
+        inmda_s = specificBatch{y,x}(1:1500);
+        inmda_s(inmda_s>0)=0;
+        inmdaDetailed_SN2_S_dvolt_stimulus_PID25(y,x,ru)={histcounts(-(inmda_s),inmdaRang)};
+        
+        inmda_d = specificBatch{y,x}(1500:end);
+        inmda_d(inmda_d>0)=0;
+        inmdaDetailed_SN2_S_dvolt_delay_PID25(y,x,ru)={histcounts(-(inmda_d),inmdaRang)};
     end
 end
+
+%load Voltage:
+inmdaDetailed_SN2_S_dvolt_vdend_delay_PID25 = cell(700,1);
+inmdaDetailed_SN2_S_dvolt_vdend_stimulus_PID25 = cell(700,1);
+for ru=1:47
+    ru
+    load(fullfile(osDrive(),'Documents','Glia',sprintf('SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c%d_SN%d_dvolt_vdend_r%d_PID%d.mat',stc-1, run.sn,ru-1,VARPID)));
+
+    for c=1:700
+    inmdaDetailed_SN2_S_dvolt_vdend_delay_PID25(y,x,ru) = specificBatch{y,x}(1500:end);
+    inmdaDetailed_SN2_S_dvolt_vdend_stimulus_PID25(y,x,ru) = specificBatch{y,x}(1:1500);
+    end
+end
+
+% QUICK iNMDA Analysis with iNMDA recorded for every cell!:
+% Na 3anadimiourgisw ta arxeia pou fortwnw wste na 3anabebaiw8w, kai na
+% kanw pio swsta tin sygkrisi (No of states / mean iNMDA) meta3ei STR/RND.
+inmdaRang = 0:0.0005:0.1; % !!!to range me to opoio egine generated!!!
+Qseq = [100,50,40,30,20,10,8,6,4];
+% Qseq=[100,40,4];
+inmda_analysis(run,inmdaDetailed_SN2_S_dvolt_delay_PID25,inmdaRang,stc_str,sc_str,Qseq,'str');
+
 
 % figure;imagesc(std(inmdaSum(sc_rnd,sc_rnd,:),0,3))
 % figure;imagesc(sum(inmdaSum(sc_rnd,sc_rnd,:),3))
@@ -1714,3 +1918,4 @@ for stc=1:NC
     figure;imagesc(voteState{1,stc}(:,sidx(2:100)))
     figure;plot(sum(voteState{1,stc}(:,sidx(2:100)))/size(clusterStatesAll{stc},1))
 end
+

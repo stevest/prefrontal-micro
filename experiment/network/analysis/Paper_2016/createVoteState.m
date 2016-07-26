@@ -1,7 +1,15 @@
-function [voteState, U] = createVoteState(run, Qseq, st, stc, configuration, varargin)
+function [voteState, U] = createVoteState(run, Qseq, st, stc, configuration, savefolder, varargin)
 
 sf = false;
-pathto = fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab','DefaultQanalysis');
+pathto = fullfile(osDrive(),'Documents','Glia','dataParsed2Matlab',savefolder);
+
+% Create path if does not exist, else exit!
+if ~exist('pathto','dir')
+    mkdir(pathto);
+else
+    warning('Save folder name is taken!');
+    exit();
+end
 
 %check if need to save:
 for a=1:length(varargin)
