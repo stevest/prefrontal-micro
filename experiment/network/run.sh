@@ -36,25 +36,25 @@ echo `pwd`
 
 parallel="1"
 #All nodes are:312 
-nodes="312"
+nodes="310"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="3"
+cluster="5"
 # 0=Random, 1=Structured
-exp="1"
-sn="2"
+exp="0"
+sn="7"
 clustbias="0.0"
-startRun="25"
-endRun="49"
+startRun="0"
+endRun="0"
 VARPID="0.25"
 custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="test_nosge"
-	jobname="SAVENMDAupdatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_dvolt_r"
+	jobname="BG_AupdatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_dvolt_r"
 else
 	#jobname="niceCRAP_rnd"
-	jobname="SAVENMDAupdatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_dvolt_r"
+	jobname="RNDsparseWEIGHTSupdatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_dvolt_r"
 fi
 
 mechanisms="mechanism_simple"
@@ -99,7 +99,8 @@ do
 	echo $run;
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
-	outputDir="${storagehome}/${uniquejobname}_PID25"
+	#outputDir="${storagehome}/${uniquejobname}_PID25"
+	outputDir="${storagehome}/${uniquejobname}"
 	echo "Output Job directory is:"
 	echo $outputDir
 	if [ -d $outputDir ]; then
@@ -109,7 +110,7 @@ do
 		mkdir -p $outputDir;
 	fi
 	## Submit as Job in Sun Grid Engine:
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 264-$nodes -p -3 -M mpi@dendrites.gr -m bea -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN'\\\"\)" -c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" -c "execute1\(\\\"'GITSHA1 = \\\"$gitsha1\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" -c "VARPID=$VARPID" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 310-$nodes -p -3 -M mpi@dendrites.gr -m bea -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN'\\\"\)" -c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" -c "execute1\(\\\"'GITSHA1 = \\\"$gitsha1\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" -c "VARPID=$VARPID" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 	## Run without scheduler:
 	#/opt/openmpi/bin/mpirun -v -n $nodes --host compute-0-1,compute-0-3 /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c 'execute1("strdef JOBNAME, JOBDIR, GITSHA1, SN")' -c "execute1(\"SN = \\\"$sn\\\"\")" -c "execute1(\"GITSHA1 = \\\"$gitsha1\\\"\")" -c "execute1(\"JOBNAME = \\\"$uniquejobname\\\"\")" -c "execute1(\"JOBDIR = \\\"$outputDir\\\"\")" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc | tee "${outputDir}/${outputFile}" 
 	

@@ -54,7 +54,7 @@ tic;
 experimentDirStr = runParams.experimentDirStr;
 experimentDirArg = runParams.experimentDirArg;
 if isempty(loadParams)
-    parfor ru = 1:N
+    for ru = 1:N
         pathto = fullfile(osDrive(),'Documents','Glia',sprintf(experimentDirStr, experimentDirArg{ru}{:}));
         batch = load_raw_batch(pathto);
 %         if ~isempty(batch)
@@ -62,6 +62,13 @@ if isempty(loadParams)
 %         else
 %             warning('Empty data loaded!!!');
 %         end
+        if isempty(loadParams)
+            batch = batch_all{1,ru};
+            save(fullfile(osDrive(),'Documents','Glia',sprintf(runParams.experimentFileStr, runParams.experimentFileArg{ru}{:})),'batch','-v7.3');
+        else
+            specificBatch = specificBatch_all{1,ru};
+            save(fullfile(osDrive(),'Documents','Glia',sprintf(loadParams.specificsFileStr, loadParams.specificsFileArg{ru}{:})),'specificBatch','-v7.3');
+        end
     end
 else
     specifics = loadParams.specifics;

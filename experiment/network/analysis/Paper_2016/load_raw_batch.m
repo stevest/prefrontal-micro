@@ -49,12 +49,9 @@ stidx = zeros(2,n);
 
 if ~isempty(requestedvar)
     parfor fn=1:n
-        %These, tmp, index change according to dataset!
-        tmp = strsplit(files{fn}, {'inmda_srcPC','_trgPC','.bin'});
+        tmp = strsplit(files{fn}, {'vdend_','_','_','.'});
         % get cell id:
-        srcid = str2double(tmp{2})+1;
-        % get run id
-        trgid = str2double(tmp{3})+1;
+        cid = str2double(tmp{2})+1;
         filename = fullfile(pathto,files{fn});
         if( exist(filename,'file') )
             try
@@ -66,27 +63,22 @@ if ~isempty(requestedvar)
             trace = trace(1:10:end);
             %             st{srcid,trgid} = trace';
             st{fn} = trace';
-            stidx(:,fn) = [srcid;trgid];
+            %             stidx(:,fn) = [cid];
         else
             warning('File: %s appears to have disappeared after initial ls! This is shady...)',filename);
             %             st{srcid,trgid} = [];
             st{fn} = [];
-            stidx(:,fn) = [srcid;trgid];
+            %             stidx(:,fn) = [srcid;trgid];
         end
-        disp(fn/n);
+        stidx(1,fn) = cid;
     end
     
-    train = cell(700,700);
-    for fn=1:n
-        train{stidx(1,fn),stidx(2,fn)} = st{fn};
-    end
-    %     else
     %         %These, tmp, index change according to dataset!
-    %         tmp = strsplit(files{fn}, {'_','.'});
+    %         tmp = strsplit(files{fn}, {'inmda_srcPC','_trgPC','.bin'});
     %         % get cell id:
-    %         cid = str2double(tmp{1})+1;
+    %         srcid = str2double(tmp{2})+1;
     %         % get run id
-    % %         rid = str2double(tmp{2})+1;
+    %         trgid = str2double(tmp{3})+1;
     %         filename = fullfile(pathto,files{fn});
     %         if( exist(filename,'file') )
     %             try
@@ -96,26 +88,70 @@ if ~isempty(requestedvar)
     %             end
     %             % dt equals 0.1:
     %             trace = trace(1:10:end);
-    %             if s
-    %                 [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
-    %             else
-    %                 st{cid,1} = trace';
-    %             end
+    %             %             st{srcid,trgid} = trace';
+    %             st{fn} = trace';
+    %             stidx(:,fn) = [srcid;trgid];
     %         else
-    %             warning(sprintf('File: %s appears to have disappeared after initial ls! This is shady...)',filename));
-    %             st{cid,1} = [];
+    %             warning('File: %s appears to have disappeared after initial ls! This is shady...)',filename);
+    %             %             st{srcid,trgid} = [];
+    %             st{fn} = [];
+    %             stidx(:,fn) = [srcid;trgid];
     %         end
+    %         disp(fn/n);
+    %     end
+    %
+    %     train = cell(700,700);
+    %     for fn=1:n
+    %         train{stidx(1,fn),stidx(2,fn)} = st{fn};
     %     end
     
+    train = cell(700,1);
+    for fn=1:n
+        train{stidx(1,fn),1} = st{fn};
+    end
     
-    %     textprogressbar((fn/n)*100);
+else
+    for fn=1:n
+        %These, tmp, index change according to dataset!
+        tmp = strsplit(files{fn}, {'_','.'});
+        % get cell id:
+        cid = str2double(tmp{1})+1;
+        % get run id
+        %         rid = str2double(tmp{2})+1;
+        filename = fullfile(pathto,files{fn});
+        if( exist(filename,'file') )
+            try
+                trace = nrn_vread(filename,'n');
+            catch e
+                warning('Error with nrn_vread() !');
+            end
+            % dt equals 0.1:
+            trace = trace(1:10:end);
+            if s
+                [~, st{cid,1}] = advanced_spike_count(trace,-20,0);
+            else
+                st{cid,1} = trace';
+            end
+        else
+            warning(sprintf('File: %s appears to have disappeared after initial ls! This is shady...)',filename));
+            st{cid,1} = [];
+        end
+    end
+    train = cell(700,1);
+    for fn=1:n
+        train{fn,1} = st{fn};
+    end
+end
+
+
+%     textprogressbar((fn/n)*100);
 end
 % textprogressbar('done');
 
 %given that batch will have the same tstop:
 % tstop = size(trace,1)-1;
 
-return
+% return
 
 function textprogressbar(c)
 % This function creates a text progress bar. It should be called with a
@@ -176,4 +212,5 @@ elseif isnumeric(c)
 else
     % Any other unexpected input
     error('Unsupported argument type');
+end
 end
