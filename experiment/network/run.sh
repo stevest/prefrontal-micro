@@ -36,16 +36,16 @@ echo `pwd`
 
 parallel="1"
 #All nodes are:312 
-nodes="310"
+nodes="312"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="5"
+cluster="4"
 # 0=Random, 1=Structured
 exp="0"
-sn="7"
+sn="6"
 clustbias="0.0"
 startRun="0"
-endRun="0"
+endRun="99"
 VARPID="0.25"
 custom_jobs=(41 42)
 #naming convention in ten characters:

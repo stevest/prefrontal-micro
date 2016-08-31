@@ -23,15 +23,15 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 		//if(DEBUG){printf("Recording cell %d voltage on node %d\n", $1,PC.id)}
 		s=recordedCells.size()
 		r_volts[s]=new Vector(n)
-		r_dvolts[s]=new Vector(n)
+		//r_dvolts[s]=new Vector(n)
 		r_msec[s]=new Vector(n)
 		//Also a known bug:
 		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
 		for q=0,n-1 {r_msec[s].x[q]=q*dt }
 		PC.gid2cell($1).soma {cv.record(&v(0.5),r_volts[s],r_msec[s],0)}
-		if($1 <700){
+		/*if($1 <700){
 			PC.gid2cell($1).dend[0] {cv.record(&v(VARPID),r_dvolts[s],r_msec[s],0)}
-		}
+		}*/
 		recordedCells.append($1)
 		//print "Recording cell: ", $1
 	}
@@ -82,7 +82,7 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 			r_volts[s].printf(vfilePC,"%8.4f\n")
 		}
 		vfilePC.close()
-
+/*
 		if(recordedCells.x(s) <700){
 			sprint(vfilePC_filename,"%s/vdend_%03d_%03d_%03d.%s", $s1,recordedCells.x(s),RUN,$2,ext) 
 			//print "Saving @ ", vfilePC_filename
@@ -104,12 +104,13 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 			}
 			vfilePC.close()
 		}
+*/
 	}
 	{ PC.barrier() }
 	
 
 } //End save membrane voltage proc
-
+/*
 objref cuminmdaPC2PC[nPCcells][nPCcells]
 proc par_save_inmda(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
 	{ PC.barrier() } 
@@ -212,3 +213,4 @@ proc par_save_synaptic_delays(){
 	}
 	}
 }
+*/
