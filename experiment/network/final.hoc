@@ -110,7 +110,7 @@ if(1){assert(execute1(EXEC_CMD))}
 */
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_contRNDweights.hoc\")}",PATH,SN)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_contRNDweights_nW_10.hoc\")}",PATH,SN)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Stimulation Parameters.")}
