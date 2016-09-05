@@ -45,7 +45,7 @@ exp="0"
 sn="6"
 clustbias="0.0"
 startRun="0"
-endRun="99"
+endRun="0"
 VARPID="0.25"
 custom_jobs=(41 42)
 #naming convention in ten characters:
@@ -54,7 +54,7 @@ if [ "$exp" == "1" ]; then
 	jobname="BG_AupdatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_dvolt_r"
 else
 	#jobname="niceCRAP_rnd"
-	jobname="RNDsparseWEIGHTSupdatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_dvolt_r"
+	jobname="continuous_nW_10_updatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_dvolt_r"
 fi
 
 mechanisms="mechanism_simple"
