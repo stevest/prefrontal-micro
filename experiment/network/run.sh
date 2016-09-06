@@ -39,9 +39,9 @@ parallel="1"
 nodes="312"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="4"
+cluster="3"
 # 0=Random, 1=Structured
-exp="0"
+exp="1"
 sn="6"
 clustbias="0.0"
 startRun="0"
@@ -51,7 +51,7 @@ custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="test_nosge"
-	jobname="BG_AupdatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_dvolt_r"
+	jobname="continuous_nW_10_updatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_dvolt_r"
 else
 	#jobname="niceCRAP_rnd"
 	jobname="continuous_nW_10_updatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_dvolt_r"
