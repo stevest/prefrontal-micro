@@ -51,10 +51,10 @@ custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
 	#jobname="test_nosge"
-	jobname="continuous_nW_10_updatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_dvolt_r"
+	jobname="continuous_RND_nW_15_STR_nW_7_5_updatedStimGABAb01NEWBGST_Ss10c${cluster}_SN${sn}_dvolt_r"
 else
 	#jobname="niceCRAP_rnd"
-	jobname="continuous_nW_10_updatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_dvolt_r"
+	jobname="continuous_RND_nW_15_STR_nW_7_5_updatedStimGABAb01NEWBGST_Rs10c${cluster}_SN${sn}_dvolt_r"
 fi
 
 mechanisms="mechanism_simple"
