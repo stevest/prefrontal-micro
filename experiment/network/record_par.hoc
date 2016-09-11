@@ -23,7 +23,7 @@ proc par_rec_membrane_voltage(){local i,s,q  // use gid as parameter
 		//if(DEBUG){printf("Recording cell %d voltage on node %d\n", $1,PC.id)}
 		s=recordedCells.size()
 		r_volts[s]=new Vector(n)
-		//r_dvolts[s]=new Vector(n)
+		r_dvolts[s]=new Vector(n)
 		r_msec[s]=new Vector(n)
 		//Also a known bug:
 		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
