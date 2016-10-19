@@ -82,7 +82,7 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 			r_volts[s].printf(vfilePC,"%8.4f\n")
 		}
 		vfilePC.close()
-
+/*
 		if(recordedCells.x(s) <700){
 			sprint(vfilePC_filename,"%s/vdend_%03d_%03d_%03d.%s", $s1,recordedCells.x(s),RUN,$2,ext) 
 			//print "Saving @ ", vfilePC_filename
@@ -104,13 +104,13 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 			}
 			vfilePC.close()
 		}
-
+*/
 	}
 	{ PC.barrier() }
 	
 
 } //End save membrane voltage proc
-
+/*
 objref cuminmdaPC2PC[nPCcells][nPCcells]
 proc par_save_inmda(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
 	{ PC.barrier() } 
@@ -213,3 +213,4 @@ proc par_save_synaptic_delays(){
 	}
 	}
 }
+*/
