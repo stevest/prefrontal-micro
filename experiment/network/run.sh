@@ -53,6 +53,7 @@ if [ "$exp" == "1" ]; then
 	jobname="final_capacity_0_9_RNDnWc_5_STRnWc_5_Ss10c1to3_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Ss10c${cluster}_SN${sn}_r"
 else
+	jobname="final_capacity_0_9_RNDnWc_5_STRnWc_5_Rs10c1to3_SN${sn}_r"
 	#jobname="final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 fi
