@@ -39,22 +39,22 @@ parallel="1"
 nodes="312"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="5"
+cluster="1"
 # 0=Random, 1=Structured
-exp="0"
-sn="5"
+exp="1"
+sn="6"
 clustbias="0.0"
 startRun="0"
-endRun="39"
+endRun="4"
 VARPID="0.5"
 custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	#jobname="test_nosge"
-	jobname="final_RNDnWc_5_STRnWc_5_Ss10c${cluster}_SN${sn}_r"
+	jobname="final_capacity_0_9_RNDnWc_5_STRnWc_5_Ss10c1to3_SN${sn}_r"
+	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Ss10c${cluster}_SN${sn}_r"
 else
-	#jobname="niceCRAP_rnd"
-	jobname="final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
+	#jobname="final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
+	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 fi
 
 mechanisms="mechanism_simple"

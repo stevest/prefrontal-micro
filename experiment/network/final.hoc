@@ -72,9 +72,9 @@ if(1){pprint("Load NEURON environment.")}
 strdef EXEC_CMD
 EXEC_CMD = ""
 if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s_RNDnWc_5_STRnWc_5.hoc\")}",PATH,SN)}
+	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s_RND_nWc_10_STR_nWc_5.hoc\")}",PATH,SN)}
 } else {
-	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_RNDnWc_5_STRnWc_5.hoc\")}",PATH,SN)
+	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_RND_nWc_10_STR_nWc_5.hoc\")}",PATH,SN)
 }
 if(PARALLEL){PC.barrier}
 tstop = 10000 
@@ -110,7 +110,7 @@ if(1){assert(execute1(EXEC_CMD))}
 */
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_RNDnWc_5_STRnWc_5.hoc\")}",PATH,SN)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_c1to3_0_9_RND_nW_10_STR_nW_5.hoc\")}",PATH,SN)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Stimulation Parameters.")}
