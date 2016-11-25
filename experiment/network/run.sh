@@ -39,21 +39,21 @@ parallel="1"
 nodes="312"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="1"
+cluster="0"
 # 0=Random, 1=Structured
 exp="1"
 sn="6"
 clustbias="0.0"
 startRun="0"
-endRun="4"
+endRun="299"
 VARPID="0.5"
 custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	jobname="final_capacity_0_9_RNDnWc_5_STRnWc_5_Ss10c1to3_SN${sn}_r"
+	jobname="final_crandom_rsn6_RNDnWc_10_STRnWc_5_Ss5_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Ss10c${cluster}_SN${sn}_r"
 else
-	jobname="final_capacity_0_9_RNDnWc_5_STRnWc_5_Rs10c1to3_SN${sn}_r"
+	jobname="final_crandom_rsn6_RNDnWc_10_STRnWc_5_Rs5c1to3_SN${sn}_r"
 	#jobname="final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 fi
@@ -98,6 +98,12 @@ for run in $(seq $startRun $endRun);
 #for run in "${custom_jobs[@]}"
 do
 	echo $run;
+	cluster="${run}"
+	if [ "$exp" == "1" ]; then
+		jobname="final_crandom_rsn6_RNDnWc_10_STRnWc_5_Ss5c${cluster}_SN${sn}_r"
+	else
+		jobname="final_crandom_rsn6_RNDnWc_10_STRnWc_5_Rs5c${cluster}_SN${sn}_r"
+	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
 	#outputDir="${storagehome}/${uniquejobname}_PID25"
