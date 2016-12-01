@@ -50,10 +50,10 @@ VARPID="0.5"
 custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	jobname="final_clustering_rsn6_RNDnWc_10_STRnWc_5_Ss5c${cluster}_SN${sn}_r"
+	jobname="final_minvar_rsn6_RNDnWc_10_STRnWc_5_Ss5c${cluster}_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Ss10c${cluster}_SN${sn}_r"
 else
-	jobname="final_clustering_rsn6_RNDnWc_10_STRnWc_5_Rs5c${cluster}_SN${sn}_r"
+	jobname="final_minvar_rsn6_RNDnWc_10_STRnWc_5_Rs5c${cluster}_SN${sn}_r"
 	#jobname="final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 fi

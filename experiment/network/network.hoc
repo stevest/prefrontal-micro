@@ -168,7 +168,7 @@ sns  = new NetStim(0.5)
 sns.interval=20//14.28//12.5//SSS 
 sns.number=50//70//80//SSS
 sns.start=0
-sns.noise=0.2
+sns.noise=0//0.2
 strdef EXEC_CMD
 //The only way to have conditional execution without parser errors
 //is to have the commands executed on runtime. Else parser will complain
@@ -185,7 +185,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 		r_stimPC[kk] = new Random(ID*$1 + 165 + kk )
 		rApic_stimPC[kk] = new Random(ID*$1 + 12 + kk)
 		rBasal_stimPC[kk] = new Random(ID*$1 + 67 + kk)
-		PID = r_stimPC[kk].uniform(0,1)
+		PID = 0.5//r_stimPC[kk].uniform(0,1)
 	}
 
 	for i=0, nPCcells - 1  { 
@@ -206,7 +206,7 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 				}
 				// Apical input:
 				for j=0, (Stim_MaxSyn_apic-1) {
-					PID=r_stimPC[i].repick()
+					//PID=r_stimPC[i].repick()
 					rApicIdx = int(rApic_stimPC[i].uniform(0,PCcells.o(localID).ApicNo-1))
 					if(save_stimulation_locations){
 						{sprint(EXEC_CMD,"{stimpidPC2PC[%d].append(%f)}",trgGID,PID)}
@@ -257,7 +257,7 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 	r = new Random(ID*$1 + 300 + PC.id)
 	rv = new Random(ID*$1 +400)
 	RV = rv.uniform(1, StimDur)
-	PID = r.uniform(0,1)
+	PID = 0.5//r.uniform(0,1)
 	rlb = new Random(ID*$1+160)
 	rla = new Random(ID*$1+560)
 
@@ -285,22 +285,21 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				PCcells.o(localID).dend[RLB] {ampaBGd[i][j]=new GLU(PID)}
 				PCcells.o(localID).dend[RLB] {nmdaBGd[i][j]=new nmda_segev(PID)}
 
-				PID = r.repick()
+				//PID = r.repick()
 				RLB = rlb.repick()
 				vstimd[i][j] = new VecStim(0.5)
 				vstimd[i][j].delay = 0
 				EXEC_CMD = ""
 				{sprint(EXEC_CMD,"vstimd[%d][%d].play(BGb%03d[%d])",i,j,i,j)}
-				{assert(execute1(EXEC_CMD))}
-				//vstimd[i][j].play(BG_Stim_basal[$2][i][j])
+				{assert(execute1(EXEC_CMD))} //vstimd[i][j].play(BG_Stim_basal[$2][i][j])
 				BG_AMPAd[i][j]=new NetCon(vstimd[i][j], ampaBGd[i][j]) //vstimd[i][j]
 				BG_AMPAd[i][j].delay=0
-				BG_AMPAd[i][j].weight = ampaweight*10 //SSS		
+				BG_AMPAd[i][j].weight = ampaweight*5 //SSS		
 				BG_AMPAd[i][j].threshold=-10 
 
 				BG_NMDAd[i][j]=new NetCon(vstimd[i][j], nmdaBGd[i][j]) //vstimd[i][j]
 				BG_NMDAd[i][j].delay=0
-				BG_NMDAd[i][j].weight = 0.25*10 //SSS		
+				BG_NMDAd[i][j].weight = 0.25*5 //SSS		
 				BG_NMDAd[i][j].threshold=-10  
 			}
 
@@ -312,7 +311,7 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				PCcells.o(localID).apic[RLA] ampaBGa[i][j]=new GLU(PID)
 				PCcells.o(localID).apic[RLA] nmdaBGa[i][j]=new nmda_segev(PID)
 
-				PID = r.repick()
+				//PID = r.repick()
 				RLA = rla.repick()
 				vstima[i][j] = new VecStim(0.5)
 				vstima[i][j].delay = 0
@@ -322,12 +321,12 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				//vstima[i][j].play(BG_Stim_Apic[$2][i][j])
 				BG_AMPAa[i][j]=new NetCon(vstima[i][j], ampaBGa[i][j])//vstima[i][j]
 				BG_AMPAa[i][j].delay=0
-				BG_AMPAa[i][j].weight = ampaweightpr*10 //SSS		
+				BG_AMPAa[i][j].weight = ampaweightpr*5 //SSS		
 				BG_AMPAa[i][j].threshold=-10 
 
 				BG_NMDAa[i][j]=new NetCon(vstima[i][j], nmdaBGa[i][j])
 				BG_NMDAa[i][j].delay=0
-				BG_NMDAa[i][j].weight = 0.2*10 //SSS		
+				BG_NMDAa[i][j].weight = 0.2*5 //SSS		
 				BG_NMDAa[i][j].threshold=-10 
 			}
 
@@ -348,12 +347,12 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				//vstimp[i][j].play(BG_Stim_Apicpr[$2][i][j])
 				BG_AMPAp[i][j]=new NetCon(vstimp[i][j], ampaBGp[i][j])//vstimp[i][j]
 				BG_AMPAp[i][j].delay=0
-				BG_AMPAp[i][j].weight = ampaweightpr*10 //SSS		
+				BG_AMPAp[i][j].weight = ampaweightpr*5 //SSS		
 				BG_AMPAp[i][j].threshold=-10 
 
 				BG_NMDAp[i][j]=new NetCon(vstimp[i][j], nmdaBGp[i][j])
 				BG_NMDAp[i][j].delay=0
-				BG_NMDAp[i][j].weight =  0.22*10 //SSS		
+				BG_NMDAp[i][j].weight =  0.22*5 //SSS		
 				BG_NMDAp[i][j].threshold=-10 
 			}
 		}//end bool
@@ -370,7 +369,7 @@ pvns.noise=1
 proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
 	r = new Random(ID*$1 + 150)
-	PID = r.uniform(0,1)
+	PID = 0.5//r.uniform(0,1)
 
 		for trg=0, nPVcells-1 {
 			trgGID = ind2gid(trg,1) //PV cells!
@@ -388,7 +387,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 					{assert(execute1(EXEC_CMD))}
 					for syn=0, (BG_PVSyn-1) {
 
-						PID = r.repick()
+						//PID = r.repick()
 						PVcells.o(localID).dend ampaBGPV[trg][syn] = new GLUIN(PID) //no Dends available in the model! (???????)
 						PVcells.o(localID).dend nmdaBGPV[trg][syn] = new NMDA(PID)
 			
@@ -540,8 +539,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							//PID=r.repick()
 							//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 							clusterDend[trgGID].x(syn) = 0
-							PID = clustbias(clusterPID[trgGID].x[syn],RN_PC2PC[trg].repick())
-							//PID = VARPID //bias MCMC
+							//PID = clustbias(clusterPID[trgGID].x[syn],RN_PC2PC[trg].repick())
+							PID = VARPID //bias MCMC
 							FIDp = abs(fp_PC2PC[trg].repick())
 							if( FIDp <= dt ){ FIDp = dt + 0.01 }
 							if(save_synaptic_delays){
@@ -595,8 +594,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 				{assert(execute1(EXEC_CMD))}
 			}
 			for j=0, (PC_MaxAutosyn-1) { 
-				PID=r_PC2PC[PCgids.x[i]].repick()
-				//PID = VARPID // bias MCMC
+				//PID=r_PC2PC[PCgids.x[i]].repick()
+				PID = VARPID // bias MCMC
 				FIDp = abs(fp_PC2PC[PCgids.x[i]].repick())
 				rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 				if( FIDp <= dt ){ FIDp = dt + 0.01 }
