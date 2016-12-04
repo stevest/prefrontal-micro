@@ -44,8 +44,8 @@ cluster="0"
 exp="1"
 sn="6"
 clustbias="0.0"
-startRun="10"
-endRun="19"
+startRun="20"
+endRun="29"
 VARPID="0.5"
 custom_jobs=(41 42)
 #naming convention in ten characters:
