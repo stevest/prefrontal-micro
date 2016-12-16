@@ -561,12 +561,12 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 									{assert(execute1(EXEC_CMD))}
 								//}
 							}
-							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  W.x[srcGID][trgGID] )
+							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  W.x[srcGID][trgGID]*0.7 )
 							//if(PcellStimList.x(trgGID) ){ 	//All cells with dopamin are enhanced	
 								//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,arg  *  W.x[srcGID][trgGID] ) 
 								//print "Jolted ", src, " ", trg," with weight ", arg
 							//} else {
-								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID] )
+								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID]*0.7 )
 								//print "Connected ", src, " ", trg," with weight ",0.25
 							//}
 						}

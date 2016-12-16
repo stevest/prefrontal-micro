@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-##Make sure that before each run git repo is clean, so
-##one can track each run to its source code:
+#!/usr/bin/env bash ##Make sure that before each run git repo is clean, so ##one can track each run to its source code:
 ##Documentation in: https://git-scm.com/docs/git-status
 dirtygit="0"
 ##Files MODIFIED since index:
@@ -39,13 +37,15 @@ parallel="1"
 nodes="312"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="0"
+cluster="6"
 # 0=Random, 1=Structured
-exp="1"
+#!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
+exp="0"
+#!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 sn="6"
 clustbias="0.0"
-startRun="20"
-endRun="29"
+startRun="50"
+endRun="69"
 VARPID="0.5"
 custom_jobs=(41 42)
 #naming convention in ten characters:
