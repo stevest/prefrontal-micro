@@ -37,23 +37,23 @@ parallel="1"
 nodes="312"
 ##jobname="STR_N100_S6_STC0"
 jobstdout=""
-cluster="6"
+cluster="1"
 # 0=Random, 1=Structured
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 exp="0"
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 sn="6"
-clustbias="0.0"
-startRun="50"
-endRun="69"
+clustbias="1"
+startRun="20"
+endRun="25"
 VARPID="0.5"
 custom_jobs=(41 42)
 #naming convention in ten characters:
 if [ "$exp" == "1" ]; then
-	jobname="final_minvar_rsn6_RNDnWc_10_STRnWc_5_Ss5c${cluster}_SN${sn}_r"
+	jobname="final_minvar_nosynvar_rsn6_RNDnWc_10_STRnWc_5_Ss5c${cluster}_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Ss10c${cluster}_SN${sn}_r"
 else
-	jobname="final_minvar_rsn6_RNDnWc_10_STRnWc_5_Rs5c${cluster}_SN${sn}_r"
+	jobname="final_minvar_nosynvar_rsn6_RNDnWc_5_STRnWc_5_Rs5c${cluster}_SN${sn}_r"
 	#jobname="final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 	#jobname="NMDAtimes2final_RNDnWc_5_STRnWc_5_Rs10c${cluster}_SN${sn}_r"
 fi

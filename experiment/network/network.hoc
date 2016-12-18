@@ -168,7 +168,7 @@ sns  = new NetStim(0.5)
 sns.interval=20//14.28//12.5//SSS 
 sns.number=50//70//80//SSS
 sns.start=0
-sns.noise=0//0.2
+sns.noise=0.2
 strdef EXEC_CMD
 //The only way to have conditional execution without parser errors
 //is to have the commands executed on runtime. Else parser will complain
@@ -291,15 +291,16 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				vstimd[i][j].delay = 0
 				EXEC_CMD = ""
 				{sprint(EXEC_CMD,"vstimd[%d][%d].play(BGb%03d[%d])",i,j,i,j)}
-				{assert(execute1(EXEC_CMD))} //vstimd[i][j].play(BG_Stim_basal[$2][i][j])
+				{assert(execute1(EXEC_CMD))}
+				//vstimd[i][j].play(BG_Stim_basal[$2][i][j])
 				BG_AMPAd[i][j]=new NetCon(vstimd[i][j], ampaBGd[i][j]) //vstimd[i][j]
 				BG_AMPAd[i][j].delay=0
-				BG_AMPAd[i][j].weight = ampaweight*5 //SSS		
+				BG_AMPAd[i][j].weight = ampaweight*2 //SSS		
 				BG_AMPAd[i][j].threshold=-10 
 
 				BG_NMDAd[i][j]=new NetCon(vstimd[i][j], nmdaBGd[i][j]) //vstimd[i][j]
 				BG_NMDAd[i][j].delay=0
-				BG_NMDAd[i][j].weight = 0.25*5 //SSS		
+				BG_NMDAd[i][j].weight = 0.25*2 //SSS		
 				BG_NMDAd[i][j].threshold=-10  
 			}
 
@@ -321,12 +322,12 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				//vstima[i][j].play(BG_Stim_Apic[$2][i][j])
 				BG_AMPAa[i][j]=new NetCon(vstima[i][j], ampaBGa[i][j])//vstima[i][j]
 				BG_AMPAa[i][j].delay=0
-				BG_AMPAa[i][j].weight = ampaweightpr*5 //SSS		
+				BG_AMPAa[i][j].weight = ampaweightpr*2 //SSS		
 				BG_AMPAa[i][j].threshold=-10 
 
 				BG_NMDAa[i][j]=new NetCon(vstima[i][j], nmdaBGa[i][j])
 				BG_NMDAa[i][j].delay=0
-				BG_NMDAa[i][j].weight = 0.2*5 //SSS		
+				BG_NMDAa[i][j].weight = 0.2*2 //SSS		
 				BG_NMDAa[i][j].threshold=-10 
 			}
 
@@ -347,12 +348,12 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 				//vstimp[i][j].play(BG_Stim_Apicpr[$2][i][j])
 				BG_AMPAp[i][j]=new NetCon(vstimp[i][j], ampaBGp[i][j])//vstimp[i][j]
 				BG_AMPAp[i][j].delay=0
-				BG_AMPAp[i][j].weight = ampaweightpr*5 //SSS		
+				BG_AMPAp[i][j].weight = ampaweightpr*2 //SSS		
 				BG_AMPAp[i][j].threshold=-10 
 
 				BG_NMDAp[i][j]=new NetCon(vstimp[i][j], nmdaBGp[i][j])
 				BG_NMDAp[i][j].delay=0
-				BG_NMDAp[i][j].weight =  0.22*5 //SSS		
+				BG_NMDAp[i][j].weight =  0.22*2 //SSS		
 				BG_NMDAp[i][j].threshold=-10 
 			}
 		}//end bool
@@ -539,8 +540,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							//PID=r.repick()
 							//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 							clusterDend[trgGID].x(syn) = 0
-							//PID = clustbias(clusterPID[trgGID].x[syn],RN_PC2PC[trg].repick())
-							PID = VARPID //bias MCMC
+							PID = clustbias(clusterPID[trgGID].x[syn],RN_PC2PC[trg].repick())
+							//PID = VARPID //bias MCMC
 							FIDp = abs(fp_PC2PC[trg].repick())
 							if( FIDp <= dt ){ FIDp = dt + 0.01 }
 							if(save_synaptic_delays){
@@ -561,12 +562,12 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 									{assert(execute1(EXEC_CMD))}
 								//}
 							}
-							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  W.x[srcGID][trgGID]*0.7 )
+							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  W.x[srcGID][trgGID] )
 							//if(PcellStimList.x(trgGID) ){ 	//All cells with dopamin are enhanced	
 								//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,arg  *  W.x[srcGID][trgGID] ) 
 								//print "Jolted ", src, " ", trg," with weight ", arg
 							//} else {
-								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID]*0.7 )
+								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID] )
 								//print "Connected ", src, " ", trg," with weight ",0.25
 							//}
 						}
@@ -594,8 +595,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 				{assert(execute1(EXEC_CMD))}
 			}
 			for j=0, (PC_MaxAutosyn-1) { 
-				//PID=r_PC2PC[PCgids.x[i]].repick()
-				PID = VARPID // bias MCMC
+				PID=r_PC2PC[PCgids.x[i]].repick()
+				//PID = VARPID // bias MCMC
 				FIDp = abs(fp_PC2PC[PCgids.x[i]].repick())
 				rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 				if( FIDp <= dt ){ FIDp = dt + 0.01 }
