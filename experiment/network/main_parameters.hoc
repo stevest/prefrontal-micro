@@ -63,6 +63,12 @@ pprint(pprintStr)
 if (name_declared("CLUSTBIAS")!=5){
 	exit(1)
 }
+if (name_declared("EXCITBIAS")!=5){
+	exit(1)
+}
+if (name_declared("INHIBIAS")!=5){
+	exit(1)
+}
 
 // given a cell index ($1) and the type of cell ($2), return the gid
 // As for $2, 0 stands for pyramidal cells, 1 for PVs

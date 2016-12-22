@@ -562,12 +562,12 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 									{assert(execute1(EXEC_CMD))}
 								//}
 							}
-							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  W.x[srcGID][trgGID] )
+							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-20,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS)
 							//if(PcellStimList.x(trgGID) ){ 	//All cells with dopamin are enhanced	
 								//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,arg  *  W.x[srcGID][trgGID] ) 
 								//print "Jolted ", src, " ", trg," with weight ", arg
 							//} else {
-								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID] )
+								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS)
 								//print "Connected ", src, " ", trg," with weight ",0.25
 							//}
 						}
@@ -808,8 +808,8 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 						delstimpvpc=abs(fp_PV2PC[PCgids.x[localID]].repick())
 						//delstimpvpc=abs(fpvpc.repick())
 						if(delstimpvpc<=dt){delstimpvpc=dt+0.01}
-						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_a*1) //SSS change weight instead of # of synapses
-						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_b*1) //SSS DEFAULT WEIGHT is 4 !!
+						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_a*INHIBIAS) //SSS change weight instead of # of synapses
+						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -20, delstimpvpc, gabaweight_pv2pc_b*INHIBIAS) //SSS DEFAULT WEIGHT is 4 !!
 						if(save_synaptic_delays){
 							{sprint(EXEC_CMD,"{delayPV2PC[%d][%d].append(%f)}",src,trg,delstimpvpc)}
 							{assert(execute1(EXEC_CMD))}
