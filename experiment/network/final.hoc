@@ -1,7 +1,6 @@
 //Set parameters and run this for the net (generated from MATLAB scripts)
 //Written 1/8/13 stamatiad.st@gmail.com
-//tmp
-ISBINARY=1
+ISBINARY=0
 ID=12
 strdef pprintStr
 strdef PATH, PPRINT_CMD
@@ -72,12 +71,12 @@ if(1){pprint("Load NEURON environment.")}
 strdef EXEC_CMD
 EXEC_CMD = ""
 if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s_RNDnWc_5_STRnWc_5.hoc\")}",PATH,SN)}
+	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)}
 } else {
-	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_RNDnWc_5_STRnWc_5.hoc\")}",PATH,SN)
+	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 4000 
+tstop = 40//00 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -90,9 +89,9 @@ if(1){pprint("Load Network Parameters.")}
 } else {
 	sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importGapParametersSTR.hoc\")}",PATH,ID)
 }*/
-if(1){assert(execute1(EXEC_CMD))}
-if(PARALLEL){PC.barrier}
-if(1){pprint("Load Gap Parameters.")}
+//if(1){assert(execute1(EXEC_CMD))}
+//if(PARALLEL){PC.barrier}
+//if(1){pprint("Load Gap Parameters.")}
 /*
 EXEC_CMD = ""
 {sprint(EXEC_CMD,"{xopen(\"%simportNetworkStimulationHeader.hoc\")}",PATH)}
@@ -110,7 +109,7 @@ if(1){assert(execute1(EXEC_CMD))}
 */
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_clustering_rsn%d_RND_nW_10_STR_nW_5.hoc\")}",PATH,SN,RUN)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Stimulation Parameters.")}
@@ -146,7 +145,7 @@ if(EXPERIMENT){ //if Structured...
 	for i=0,PcellStimListSTR[CLUSTER_ID].size()-1{
 		PcellStimList.x[PcellStimListSTR[CLUSTER_ID].x[i]]=1
 		 {sprint(PPRINT_CMD,"Stimulating cell: %d",PcellStimListSTR[CLUSTER_ID].x[i])}
-		pprint(PPRINT_CMD)
+		if(DEBUG){pprint(PPRINT_CMD)}
 
 	}
 } else {
@@ -161,8 +160,8 @@ if(DEBUG){pprint("Parse Stimulation Parameters.")}
 objref PcellIDlist
 PcellIDlist = new Vector(nPCcells,1)
 
-if(PARALLEL){PC.barrier}
-if(DEBUG){pprint("Choose morphologies.")}
+//if(PARALLEL){PC.barrier}
+//if(DEBUG){pprint("Choose morphologies.")}
 
 if(PARALLEL){
 } else {
@@ -325,7 +324,7 @@ if(1){
 	{pprint(PPRINT_CMD)}
 }
 //ATTENTION TO WEIGHT OF BG SYNAPSES!! CORRECTED FOR FEWER SYNAPSES!!!! SSS
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivity(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -333,7 +332,7 @@ if(1){
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivityPV(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -404,7 +403,8 @@ if(PARALLEL){
 	{sprint(PPRINT_CMD,"Network Initialization time: %10.4g minutes.\n", inittime/60)}
 	{pprint(PPRINT_CMD)}
 	inittime=startsw()
-	stdinit() //not such function after devel version 7.4
+	//stdinit() //not such function after devel version 7.4
+	finitialize() //without argument to leave already adjusted compartments as are.
 	inittime = startsw() - inittime
 	{sprint(PPRINT_CMD,"Compartment Initialization (stdinit()) time: %10.4g minutes.\n", inittime/60)}
 	{pprint(PPRINT_CMD)}

@@ -217,12 +217,12 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[i][j] = new nmda_segev(PID)}
 
 					ncAMPA[i][j] = new NetCon(sns, ampapr[i][j]) //vstim_stim[i][j]
-					ncAMPA[i][j].delay=500
+					ncAMPA[i][j].delay=1000
 					ncAMPA[i][j].weight = ampaweightpr// *15//SSS
 					ncAMPA[i][j].threshold=-10 
 
 					ncNMDA[i][j] = new NetCon(sns, nmdapr[i][j])
-					ncNMDA[i][j].delay=500
+					ncNMDA[i][j].delay=1000
 					ncNMDA[i][j].weight = nmdaweightpr// *15//SSS
 					ncNMDA[i][j].threshold=-10
 				}
@@ -246,14 +246,13 @@ for k = 0, AllBGsyns-1 {
 	bns[k].noise=1
 	bns[k].noiseFromRandom(psn[k])
 }
+
+/*
+objref rUniform, rPoisson
+objref nhPoissonStim
+objref rateVect
+
 proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,StimFreq,StimNo,SynapsesNo localobj r,rv,rlb,rla
-	/*
-	//Matlab handles these:
-	SynapsesNo = 500
-	StimDur = tstop
-	StimFreq = 1 // Hz
-	StimNo = StimDur/1000 * StimFreq
-	*/
 	r = new Random(ID*$1 + 300 + PC.id)
 	rv = new Random(ID*$1 +400)
 	RV = rv.uniform(1, StimDur)
@@ -275,9 +274,19 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 			RLB = rlb.uniform(0,PCcells.o(localID).DendNo-1)
 			RLA = rla.uniform(0,PCcells.o(localID).ApicNo-1)
 			//Import respective stimulation/background spikes:
+			//EXEC_CMD = ""
+			//{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/NEWBGST/BG_cellgid%03d_run_%03d.hoc\")}",i+1,$1+1)}
+			//{assert(execute1(EXEC_CMD))}
 			EXEC_CMD = ""
-			{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/NEWBGST/BG_cellgid%03d_run_%03d.hoc\")}",i+1,$1+1)}
+			{sprint(EXEC_CMD,"{xopen(\"/home/cluster/stefanos/Documents/Glia/RateVectors/rateVect_%03d.hoc\")}",$1)}
 			{assert(execute1(EXEC_CMD))}
+
+			lambdaMax = rateVect.max() 
+			print "LambdaMax is: ",lambdaMax
+			rUniform = new Random(i)
+			rUniform.uniform(0,1)
+			rPoisson = new Random(i)
+			rPoisson.poisson(lambdaMax)
 			for j=0, BG_dendSyn-1 {
 				//RLB = 0
 				//PID = (j+1)/(BG_dendSyn+1)// ?!?!? Why is that?
@@ -287,23 +296,22 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 
 				//PID = r.repick()
 				RLB = rlb.repick()
-				vstimd[i][j] = new VecStim(0.5)
-				vstimd[i][j].delay = 0
-				EXEC_CMD = ""
-				{sprint(EXEC_CMD,"vstimd[%d][%d].play(BGb%03d[%d])",i,j,i,j)}
-				{assert(execute1(EXEC_CMD))}
-				//vstimd[i][j].play(BG_Stim_basal[$2][i][j])
-				BG_AMPAd[i][j]=new NetCon(vstimd[i][j], ampaBGd[i][j]) //vstimd[i][j]
+				nhPoissonStim = new NonHomPoissonStim()
+				nhPoissonStim.getRandObjPtrUniform(rUniform)
+				nhPoissonStim.getRandObjPtrPoisson(rPoisson)
+				nhPoissonStim.play(rateVect)
+				nhPoissonStim.lambdaMax = lambdaMax 
+
+				BG_AMPAd[i][j]=new NetCon(nhPoissonStim, ampaBGd[i][j]) //vstimd[i][j]
 				BG_AMPAd[i][j].delay=0
-				BG_AMPAd[i][j].weight = ampaweight*2 //SSS		
+				BG_AMPAd[i][j].weight = ampaweight //SSS		
 				BG_AMPAd[i][j].threshold=-10 
 
-				BG_NMDAd[i][j]=new NetCon(vstimd[i][j], nmdaBGd[i][j]) //vstimd[i][j]
+				BG_NMDAd[i][j]=new NetCon(nhPoissonStim, nmdaBGd[i][j]) //vstimd[i][j]
 				BG_NMDAd[i][j].delay=0
-				BG_NMDAd[i][j].weight = 0.25*2 //SSS		
+				BG_NMDAd[i][j].weight = 0.25 //SSS		
 				BG_NMDAd[i][j].threshold=-10  
 			}
-
 
 			for j=0, BG_apicSyn-1 {
 				//RLA = 0
@@ -314,20 +322,15 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 
 				//PID = r.repick()
 				RLA = rla.repick()
-				vstima[i][j] = new VecStim(0.5)
-				vstima[i][j].delay = 0
-				EXEC_CMD = ""
-				{sprint(EXEC_CMD,"vstima[%d][%d].play(BGa%03d[%d])",i,j,i,j)}
-				{assert(execute1(EXEC_CMD))}
-				//vstima[i][j].play(BG_Stim_Apic[$2][i][j])
-				BG_AMPAa[i][j]=new NetCon(vstima[i][j], ampaBGa[i][j])//vstima[i][j]
+
+				BG_AMPAa[i][j]=new NetCon(nhPoissonStim, ampaBGa[i][j])//vstima[i][j]
 				BG_AMPAa[i][j].delay=0
-				BG_AMPAa[i][j].weight = ampaweightpr*2 //SSS		
+				BG_AMPAa[i][j].weight = ampaweightpr //SSS		
 				BG_AMPAa[i][j].threshold=-10 
 
-				BG_NMDAa[i][j]=new NetCon(vstima[i][j], nmdaBGa[i][j])
+				BG_NMDAa[i][j]=new NetCon(nhPoissonStim, nmdaBGa[i][j])
 				BG_NMDAa[i][j].delay=0
-				BG_NMDAa[i][j].weight = 0.2*2 //SSS		
+				BG_NMDAa[i][j].weight = 0.2 //SSS		
 				BG_NMDAa[i][j].threshold=-10 
 			}
 
@@ -340,32 +343,31 @@ proc backgroundActivity() { local i,j,PID,RV,RLB,RLA,localID,tmpGID,StimDur,Stim
 
 				//PID = r.repick()
 				//RLA = rla.repick()
-				vstimp[i][j] = new VecStim(0.5)
-				vstimp[i][j].delay = 0
-				EXEC_CMD = ""
-				{sprint(EXEC_CMD,"vstimp[%d][%d].play(BGap%03d[%d])",i,j,i,j)}
-				{assert(execute1(EXEC_CMD))}
-				//vstimp[i][j].play(BG_Stim_Apicpr[$2][i][j])
-				BG_AMPAp[i][j]=new NetCon(vstimp[i][j], ampaBGp[i][j])//vstimp[i][j]
+
+				BG_AMPAp[i][j]=new NetCon(nhPoissonStim, ampaBGp[i][j])//vstimp[i][j]
 				BG_AMPAp[i][j].delay=0
-				BG_AMPAp[i][j].weight = ampaweightpr*2 //SSS		
+				BG_AMPAp[i][j].weight = ampaweightpr //SSS		
 				BG_AMPAp[i][j].threshold=-10 
 
-				BG_NMDAp[i][j]=new NetCon(vstimp[i][j], nmdaBGp[i][j])
+				BG_NMDAp[i][j]=new NetCon(nhPoissonStim, nmdaBGp[i][j])
 				BG_NMDAp[i][j].delay=0
-				BG_NMDAp[i][j].weight =  0.22*2 //SSS		
+				BG_NMDAp[i][j].weight =  0.22 //SSS		
 				BG_NMDAp[i][j].threshold=-10 
 			}
 		}//end bool
 	}
 }//end proc
-
+*/
+/*
 objref pvns
 pvns  = new NetStim(0.5)
 pvns.number=40//SSS
 pvns.interval=tstop/pvns.number//SSS 
 pvns.start=0
 pvns.noise=1
+//objref variable_lambda 
+//variable_lambda = new Vector(n,0)
+variable_lambda = 256
 //----------------------------------------------PV background activity-------------------------------------------------------//
 proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
@@ -392,6 +394,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 						PVcells.o(localID).dend ampaBGPV[trg][syn] = new GLUIN(PID) //no Dends available in the model! (???????)
 						PVcells.o(localID).dend nmdaBGPV[trg][syn] = new NMDA(PID)
 			
+						setpointer nmdaBGPV[trg][syn].lambda, variable_lambda 
 						vstim_pv[trg][syn] = new VecStim(0.5)
 						vstim_pv[trg][syn].delay = 0
 						EXEC_CMD = ""
@@ -414,7 +417,7 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 
 	}
 } //end procedure 
-
+*/
 // recurrent synaptic clusternig algorithm (for variation)
 func clustbias(){ local rb,oldPID localobj rbo
 	//arguments (many!)
