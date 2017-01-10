@@ -1,0 +1,20 @@
+proc par_save_stimulation_locations_PCrec(){ 
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+	ext = "bin"
+	} else {
+	ext = "txt"
+	}
+	for src=0, nPCcells-1{
+		{PC.barrier()}
+		if (object_id(stimpidPC2PC[src]) != 0){
+			str = ""
+			sprint(str,"Stimulation locations src %d:",src)
+			for ii=0,stimpidPC2PC[src].size()-1{
+				sprint(str,"%s %f",str, stimpidPC2PC[src].x[ii])
+			}
+			print str
+		}
+	}
+}

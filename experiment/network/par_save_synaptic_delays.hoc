@@ -1,0 +1,16 @@
+proc par_save_synaptic_delays(){ 
+	{ PC.barrier() } 
+	for src=0, nPCcells-1{
+	for trg=0, nPCcells-1{
+		{PC.barrier()}
+		if (object_id(delayPC2PC[src][trg]) != 0){
+			str = ""
+			sprint(str,"Delays src %d, trg %d:",src,trg)
+			for ii=0,delayPC2PC[src][trg].size()-1{
+				sprint(str,"%s %f",str, delayPC2PC[src][trg].x[ii])
+			}
+			print str
+		}
+	}
+	}
+}
