@@ -5,6 +5,7 @@ DUMMY_RUN = 0
 SHUFFLE_SYNAPSES = 0
 save_synaptic_locations = 0 
 save_stimulation_locations = 0 
+save_background_locations = 0 
 save_synaptic_delays = 0 
 save_inmda = 0 
 // Experimental setup

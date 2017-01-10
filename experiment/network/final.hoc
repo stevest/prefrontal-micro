@@ -1,12 +1,12 @@
 //Set parameters and run this for the net (generated from MATLAB scripts)
 //Written 1/8/13 stamatiad.st@gmail.com
-ISBINARY=0
+ISBINARY=1
 ID=12
 strdef pprintStr
 strdef PATH, PPRINT_CMD
 PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
 inittime=startsw()
-{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
 //define a basic assert function:
 proc assert(){ 
 	if(!$1){	
@@ -76,46 +76,19 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 40//00 
+tstop = 600 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
 pprint(EXEC_CMD)
 if(1){assert(execute1(EXEC_CMD))}
 if(1){pprint("Load Network Parameters.")}
-//Load Gap junctions connectivity data:
-/*if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importGapParametersSTR.hoc\")}",PATH,ID)}
-} else {
-	sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importGapParametersSTR.hoc\")}",PATH,ID)
-}*/
-//if(1){assert(execute1(EXEC_CMD))}
-//if(PARALLEL){PC.barrier}
-//if(1){pprint("Load Gap Parameters.")}
-/*
-EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportNetworkStimulationHeader.hoc\")}",PATH)}
-if(1){assert(execute1(EXEC_CMD))}
-*/
-/*EXEC_CMD = ""
-sprint(EXEC_CMD,"~xopen(\"experiment_%d/importNetworkInhibition.hoc\")",ID)
-execute(EXEC_CMD)*/
-//if(!xopen("importNetworkParameters.hoc")){print "ERROR	Failed to import network parameters!"}
-/*
-EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportBackgroundStimParamsHeader.hoc\")}",PATH)}
-if(1){assert(execute1(EXEC_CMD))}
-//if(!xopen("importBackgroundStimParams.hoc")){print "ERROR	Failed to import network parameters!"}
-*/
 
 EXEC_CMD = ""
 {sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load Stimulation Parameters.")}
-
-
-//xopen("gap.hoc") //for PV gup junctions
 
 {sprint(EXEC_CMD,"{xopen(\"%smain_parameters.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
@@ -207,10 +180,14 @@ synapses_backinh=500
 synapses_inh=1
 
 //override complex background spiketrains:
-BG_dendSyn = 2//synapses_backb
-BG_apicSyn = 2//synapses_backa
-BG_apicprSyn = 2//synapses_backpr
-BG_PVSyn = 2//synapses_backinh
+//Background activity like Haider
+//PC ~1Hz, PV ~14Hz
+BG_dendSyn = 1//BGE//2 synapses as of 1/10/15 
+BG_apicSyn = 1//BGE//2 synapses as of 1/10/15
+BG_apicprSyn = BGE//2 synapses as of 1/10/15
+BG_PVSyn = BGI //2 synapses as of
+BG_all = BG_dendSyn + BG_apicSyn + BG_apicprSyn
+print "BG_all are: ", BG_all
 
 Stim_MaxSyn_apic = 90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 Stim_MaxSyn_basal=0//120	//initial stimulation
@@ -239,7 +216,6 @@ if(DEBUG){pprint("Define network parameters.")}
 fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
 {sprint(EXEC_CMD,"{xopen(\"%snetwork.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-//if(!xopen ("network.hoc")){print "ERROR	Failed to import network structure!"}
 
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Load network parameters.")}
@@ -249,7 +225,6 @@ sadp_dend()
 sadp_apical()  //mplokara kai stous apical
 {sprint(EXEC_CMD,"{xopen(\"%srecord_par.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-//assert(xopen ("record_par.hoc"))
 
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Load record routines.")}
@@ -264,9 +239,6 @@ proc report_gidvecs() { local i, rank
 			system("hostname",s)
 			print "On host: ",s
 			PCgids.printf()      
-			//PVgids.printf()            
-			//CBgids.printf()    
-			//CRgids.printf()      
 		}
 	{ PC.barrier() } // wait for all hosts to get to this point
 	}
@@ -293,29 +265,8 @@ if(PARALLEL){
 	//assert(xopen("recordandsave/record.hoc"))
 	//assert(xopen("recordandsave/save_data.hoc"))
 }
-/*
-//Import respective stimulation/background spikes:
-EXEC_CMD = ""
-//sprint(EXEC_CMD,"{xopen(\"experiment_%d/importNetworkStimulation_run_%04d.hoc\")}",ID,RUN+1)
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importNetworkStimulation_run_%04d.hoc\")}",PATH,ID,1)}
-{pprint(EXEC_CMD)}
-if(1){assert(execute1(EXEC_CMD))}
-EXEC_CMD = ""
-//sprint(EXEC_CMD,"{xopen(\"experiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",ID,RUN+1)
-{sprint(EXEC_CMD,"{xopen(\"%sexperiment_%d/importBackgroundStimParams_run_%04d.hoc\")}",PATH,ID,RUN+1)}
-{pprint(EXEC_CMD)}
-if(1){assert(execute1(EXEC_CMD))}
-{pprint("Done loading external stimulation.")}
-*/
-//override complex background spiketrains:
-//Background activity like Haider
-//PC ~1Hz, PV ~14Hz
-BG_dendSyn = 2//2 synapses as of 1/10/15 
-BG_apicSyn = 2//2 synapses as of 1/10/15
-BG_apicprSyn = 2//2 synapses as of 1/10/15
-BG_PVSyn = 2 //2 synapses as of
 
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{stimulation(%d,%d)}",0,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -324,7 +275,7 @@ if(1){
 	{pprint(PPRINT_CMD)}
 }
 //ATTENTION TO WEIGHT OF BG SYNAPSES!! CORRECTED FOR FEWER SYNAPSES!!!! SSS
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivity(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -332,7 +283,7 @@ if(0){
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 }
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivityPV(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -378,7 +329,7 @@ if(1){
 	//connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
 
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{noise(%d)}",RUN)}
 	{assert(execute1(EXEC_CMD))}
@@ -416,21 +367,36 @@ if(PARALLEL){
 	{ PC.barrier()	}
 	
 	if(1){
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_membrane_voltage.hoc\")}",PATH)}
+		if(1){assert(execute1(EXEC_CMD))}
 		par_save_membrane_voltage(JOBDIR,CLUSTER_ID,ID, ISBINARY)
 		{pprint("par_save_membrane_voltage() is active.")}
 	}
 	//par_save_anyvar(JOBDIR,CLUSTER_ID,ID,0)
 	if(save_synaptic_locations){
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_locations_PCrec.hoc\")}",PATH)}
+		if(1){assert(execute1(EXEC_CMD))}
 		par_save_synaptic_locations_PCrec(JOBDIR,CLUSTER_ID,ID,0)
 		{pprint("par_save_synaptic_locations_PCrec() is active.")}	
 	}
 	
 	if(save_stimulation_locations){
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_stimulation_locations_PCrec.hoc\")}",PATH)}
+		if(1){assert(execute1(EXEC_CMD))}
 		par_save_stimulation_locations_PCrec(JOBDIR,CLUSTER_ID,ID,0)
 		{pprint("par_save_stimulation_locations_PCrec() is active.")}
 	}
 
+	if(save_background_locations){
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_background_locations_PCrec.hoc\")}",PATH)}
+		if(1){assert(execute1(EXEC_CMD))}
+		par_save_background_locations_PCrec(JOBDIR,CLUSTER_ID,ID,0)
+		{pprint("par_save_background_locations_PCrec() is active.")}
+	}
+
 	if(save_synaptic_delays){
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_delays.hoc\")}",PATH)}
+		if(1){assert(execute1(EXEC_CMD))}
 		par_save_synaptic_delays(JOBDIR,CLUSTER_ID,ID,ISBINARY)
 		{pprint("par_save_synaptic_delays() is active.")}
 	}

@@ -21,7 +21,6 @@ TITLE NMDA synapse
 NEURON {
 	THREADSAFE
 	POINT_PROCESS nmda_segev
-	POINTER lambda
 	USEION ca READ cai WRITE ica VALENCE 2
 	NONSPECIFIC_CURRENT inmda 
 	RANGE e ,gmax,inmda
@@ -85,7 +84,6 @@ ASSIGNED {
 	ica 		(mA/cm2)
 
 	cai		(mM)	
-	lambda	
 
 }
 
@@ -124,7 +122,6 @@ BREAKPOINT {
 	inmda = (1e-3) * gnmda * (v-e)
 
 	ica = inmda/10
-	printf("lambda: %g \n",lambda)
 }
 
 
