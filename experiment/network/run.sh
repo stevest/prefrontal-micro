@@ -24,17 +24,17 @@ else
 	echo $gitsha1
 fi
 
-source /opt/gridengine/default/common/settings.csh
-
-simhome="/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network"
-storagehome="/home/cluster/stefanos/Documents/Glia"
-cd $simhome
+##source /opt/gridengine/default/common/settings.csh
+simhome=`pwd`
+simhome="${simhome}/"
+storagehome="/home/stefanos/Documents/Glia"
 echo "Currently at directory:"
+echo $simhome
 echo `pwd`
 
 parallel="1"
 #All nodes are:312 
-nodes="348" ##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="1" ##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="6"
 # 0=Random, 1=Structured
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
@@ -119,7 +119,8 @@ do
 		mkdir -p $outputDir;
 	fi
 	## Submit as Job in Sun Grid Engine:
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p -3 -M mpi@dendrites.gr -m bea -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN'\\\"\)" -c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" -c "execute1\(\\\"'GITSHA1 = \\\"$gitsha1\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" -c "EXCITBIAS=$excitbias" -c "INHIBIAS=$inhibias" -c "FS=$Fs" -c "CL=$Cl" -c "VARPID=$VARPID" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+	##qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p -3 -M mpi@dendrites.gr -m bea -R y /opt/openmpi/bin/mpirun /home/stefanos/Documents/SourceTree/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN'\\\"\)" -c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" -c "execute1\(\\\"'GITSHA1 = \\\"$gitsha1\\\"'\\\"\)" -c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" -c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" -c "EXCITBIAS=$excitbias" -c "INHIBIAS=$inhibias" -c "FS=$Fs" -c "CL=$Cl" -c "VARPID=$VARPID" /home/cluster/stefanos/Documents/SourceTree/prefrontal-micro/experiment/network/final.hoc 
+	/opt/openmpi/bin/mpirun -np 1 /home/stefanos/Documents/SourceTree/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c 'execute1("strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME")' -c 'execute1("SN = \"'$sn'\"")' -c 'execute1("GITSHA1 = \"'$gitsha1'\"")' -c 'execute1("JOBNAME = \"'$uniquejobname'\"")' -c 'execute1("JOBDIR = \"'$outputDir'\"")' -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" -c "EXCITBIAS=$excitbias" -c "INHIBIAS=$inhibias" -c "FS=$Fs" -c "CL=$Cl" -c "VARPID=$VARPID" -c 'execute1("SIMHOME = \"'$simhome'\"")' /home/stefanos/Documents/SourceTree/prefrontal-micro/experiment/network/final.hoc 
 	## Run without scheduler:
 	#/opt/openmpi/bin/mpirun -v -n $nodes --host compute-0-1,compute-0-3 /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/x86_64/special -nobanner -mpi -c "RUN=$run" -c 'execute1("strdef JOBNAME, JOBDIR, GITSHA1, SN")' -c "execute1(\"SN = \\\"$sn\\\"\")" -c "execute1(\"GITSHA1 = \\\"$gitsha1\\\"\")" -c "execute1(\"JOBNAME = \\\"$uniquejobname\\\"\")" -c "execute1(\"JOBDIR = \\\"$outputDir\\\"\")" -c "PARALLEL=$parallel" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "CLUSTBIAS=$clustbias" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc | tee "${outputDir}/${outputFile}" 
 	

@@ -4,7 +4,8 @@ ISBINARY=0
 ID=12
 strdef pprintStr
 strdef PATH, PPRINT_CMD
-PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+//PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+PATH = SIMHOME
 inittime=startsw()
 {load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
 //define a basic assert function:
