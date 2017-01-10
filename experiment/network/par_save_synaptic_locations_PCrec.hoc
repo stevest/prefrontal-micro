@@ -1,0 +1,22 @@
+proc par_save_synaptic_locations_PCrec(){ local fh, fctr localobj vfilePC 
+
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+	ext = "bin"
+	} else {
+	ext = "txt"
+	}
+	//save PC2PC synaptic locations
+	for trg=0, nPCcells-1{
+		for src=0, nPCcells-1{
+			{PC.barrier()}
+			if(object_id(pidPC2PC[src][trg])!= 0){
+				print "Synaptic locations src: ",src," ,target: ",trg," : "
+				for ii=0,pidPC2PC[src][trg].size()-1{
+					print pidPC2PC[src][trg].x[ii], " "
+				}
+			}
+		}
+	}
+}

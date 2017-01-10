@@ -26,7 +26,7 @@ PARAMETER {
 INITIAL {
 	nevents = 0
 	index = 0
-	printf("Initial voltage is: %f\n", v)
+	:printf("Initial voltage is: %f\n", v)
 	element()
 	if (index > 0) {
 		:Sent always in the next t:
@@ -35,31 +35,31 @@ INITIAL {
 }
 
 BREAKPOINT {
-	printf("BLAH DE BLAH\n")
-	printf("Initial voltage is: %f\n", v)
+	:printf("BLAH DE BLAH\n")
+	:printf("Initial voltage is: %f\n", v)
 }
 
 
 
 NET_RECEIVE (w) {
-	printf("recieved net message\n")
+	:printf("recieved net message\n")
 	if (flag == 1) {
-		printf("net message has flag == 1\n")
+		:printf("net message has flag == 1\n")
 		element()
-		printf("lambda taken from rate vector is: %f\n", lambda)
+		:printf("lambda taken from rate vector is: %f\n", lambda)
 		if (index > 0) {
-			printf("index is valid\n")
+			:printf("index is valid\n")
 			:Generate max lambda poisson events:
 			generate_poisson_events()
-			printf("number of events generated is: %f\n",nevents)
+			:printf("number of events generated is: %f\n",nevents)
 			:Thin Poisson:
 			doThin()
-			printf("number of events after thinning are: %f\n",nevents)
+			:printf("number of events after thinning are: %f\n",nevents)
 			if ( nevents > 0 ){
-				printf("Activating mechanism\n")
+				:printf("Activating mechanism at time: %f. Index is: %f\n",t,index)
 				net_event(t)
 			}
-			printf("Sending event for the next time step\n")
+			:printf("Sending event for the next time step\n")
 			net_send(1, 1)
 		}
 	}
@@ -106,13 +106,13 @@ VERBATIM
 	vv = (void**)(&space);
 	*vv = (void*)0;
 	if (ifarg(1)) {
-		printf(".play() initialized with vector\n");
+		//printf(".play() initialized with vector\n");
 		*vv = vector_arg(1);
 	}
 	{
 		int size;
 		size = vector_capacity(*((void**)(&space)));
-		printf("Playing from vector of size: %d\n", size);
+		//printf("Playing from vector of size: %d\n", size);
 	}
 	
 ENDVERBATIM
@@ -129,8 +129,8 @@ PROCEDURE generate_poisson_events() {
 		*/
 		// Generates from a (hoc defined) Poisson, using the maximum lambda:
 		nevents = nrn_random_pick(_p_randObjPtrPoisson);
-		printf("Generated poisson events, success!\n");
-		printf("No of events is: %f\n",nevents);
+		//printf("Generated poisson events, success!\n");
+		//printf("No of events is: %f\n",nevents);
 		// nevents are the pre-thined events.
 	}else{
 		hoc_execerror("Random object ref not set correctly for randObjPtrPoisson"," only via hoc Random");
@@ -164,7 +164,7 @@ PROCEDURE getRandObjPtrUniform() {
 	void** pUniform = (void**)(&_p_randObjPtrUniform);
 	if (ifarg(1)) {
 		*pUniform = nrn_random_arg(1);
-		printf("Getting Uniform Random success!\n");
+		//printf("Getting Uniform Random success!\n");
 	}else{
 		*pUniform = (void*)0;
 	}
@@ -176,7 +176,7 @@ PROCEDURE getRandObjPtrPoisson() {
 	void** pPoisson = (void**)(&_p_randObjPtrPoisson);
 	if (ifarg(1)) {
 		*pPoisson = nrn_random_arg(1);
-		printf("Getting Poisson Random success!\n");
+		//printf("Getting Poisson Random success!\n");
 	}else{
 		*pPoisson = (void*)0;
 	}
