@@ -1,6 +1,5 @@
 //Control variables
 PLOT = 0
-DEBUG = 1
 DUMMY_RUN = 0
 SHUFFLE_SYNAPSES = 0
 save_synaptic_locations = 0 

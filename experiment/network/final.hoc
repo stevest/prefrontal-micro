@@ -1,5 +1,6 @@
 //Set parameters and run this for the net (generated from MATLAB scripts)
 //Written 1/8/13 stamatiad.st@gmail.com
+DEBUG=1
 ISBINARY=1
 ID=12
 strdef pprintStr
@@ -89,6 +90,7 @@ EXEC_CMD = ""
 {sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
+if(DEBUG){pprint(EXEC_CMD)}
 if(1){pprint("Load Stimulation Parameters.")}
 
 {sprint(EXEC_CMD,"{xopen(\"%smain_parameters.hoc\")}",PATH)}
@@ -118,8 +120,8 @@ objref PcellStimList
 if(EXPERIMENT){ //if Structured...
 	for i=0,PcellStimListSTR[CLUSTER_ID].size()-1{
 		PcellStimList.x[PcellStimListSTR[CLUSTER_ID].x[i]]=1
-		 {sprint(PPRINT_CMD,"Stimulating cell: %d",PcellStimListSTR[CLUSTER_ID].x[i])}
-		if(DEBUG){pprint(PPRINT_CMD)}
+		// {sprint(PPRINT_CMD,"Stimulating cell: %d",PcellStimListSTR[CLUSTER_ID].x[i])}
+		//if(DEBUG){pprint(PPRINT_CMD)}
 
 	}
 } else {
@@ -188,7 +190,6 @@ BG_apicSyn = 1//BGE//2 synapses as of 1/10/15
 BG_apicprSyn = BGE//2 synapses as of 1/10/15
 BG_PVSyn = BGI //2 synapses as of
 BG_all = BG_dendSyn + BG_apicSyn + BG_apicprSyn
-print "BG_all are: ", BG_all
 
 Stim_MaxSyn_apic = 90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 Stim_MaxSyn_basal=0//120	//initial stimulation
@@ -251,7 +252,7 @@ objref timevec, idvec, recncs, tobj, nil, total_activity
 strdef foutput
 
 if(PARALLEL){
-	if(DEBUG){report_gidvecs()}
+	if(0){report_gidvecs()}
 	if (PC.id == 0) {
 		{sprint(syscmd,"mkdir -p multi_core")}
 		{system(syscmd)}
