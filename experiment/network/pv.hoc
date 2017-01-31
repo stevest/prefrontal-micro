@@ -19,6 +19,7 @@ proc position() { local i // adapted from Migliore 2010
 
 proc init() {
 x = y = z = 0 // only change via position
+v_init_pv = -73
 
 if(PARALLEL){gid=$1}
 
@@ -32,9 +33,10 @@ soma_canin=0.0003
 soma_kctin=0.0001
 
 soma {
-     nseg=1
-     L=27
-     diam=29//SSS FIX IR! and FF!
+	nseg=1
+	L=27
+	diam=29//SSS FIX IR! and FF!
+	v = v_init_pv
 
 	insert pas
 	cm=1.2            //microF/cm2
@@ -72,6 +74,7 @@ axon {
 	nseg=1
 	L=115
 	diam=1.5
+	v = v_init_pv
 	
 	insert pas
 	cm=1.2            //microF/cm2
@@ -92,7 +95,7 @@ dend {
 	nseg=1
 	L=22
 	diam=7
-
+	v = v_init_pv
 
 	insert pas
 	cm=1.2            //microF/cm2
@@ -116,7 +119,7 @@ dend {
  	ki0_k_ion = 140    //mM
 	celsius   = 23
 	connect axon(0), soma(0.5)
-	connect dend(0), soma(0)  
+	connect dend(0), soma(0.5)  
 }
 
 endtemplate PVcell
@@ -167,8 +170,3 @@ for i=0,PVcells.count()-1 {
 	PVcells.o(i).soma PVsoma_list.append() 
 }
 
-
-{sprint(EXEC_CMD,"{xopen(\"%s../../lib/current-balancePV.hoc\")}",PATH)}
-assert(execute1(EXEC_CMD))
-//assert(xopen("../../lib/current-balancePV.hoc"))
-current_balancePV(-73)

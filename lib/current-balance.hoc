@@ -2,7 +2,9 @@
 // written by Yiota Poirazi, July 2001, poirazi@LNC.usc.edu
 
 proc current_balance() {
-	  finitialize($1)
+	//Do not call finitialize with v_init argument, because it sets it in all cells
+	// created up to this point!
+	  finitialize()
 	  fcurrent()	
 	  //printf("Balancing each PYRAMIDAL compartment to %d mV\n", $1)
 	  forsec PCcell_list {

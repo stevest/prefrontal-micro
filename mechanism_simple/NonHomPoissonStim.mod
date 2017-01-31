@@ -4,7 +4,7 @@ NEURON {
 	THREADSAFE
 	ARTIFICIAL_CELL NonHomPoissonStim
 	POINTER randObjPtrUniform, randObjPtrPoisson
-	RANGE lambdaMax
+	RANGE lambdaMax, lambda, nevents, randNo,cellid,synid
 }
 
 ASSIGNED {
@@ -17,6 +17,9 @@ ASSIGNED {
 	randObjPtrPoisson
 	randNo
 	nevents
+	cellid
+	synid
+	myflag
 }
 
 PARAMETER { 
@@ -26,10 +29,12 @@ PARAMETER {
 INITIAL {
 	nevents = 0
 	index = 0
+	myflag = 0
 	:printf("Initial voltage is: %f\n", v)
 	element()
 	if (index > 0) {
 		:Sent always in the next t:
+		: net_send(duration(+t),flag)
 		net_send(1, 1)
 	}
 }
@@ -43,6 +48,8 @@ BREAKPOINT {
 
 NET_RECEIVE (w) {
 	:printf("recieved net message\n")
+	:Default flag is implicit and equal to 0 for external events.
+	: flag == 1 means it was triggered from within 
 	if (flag == 1) {
 		:printf("net message has flag == 1\n")
 		element()
@@ -53,13 +60,19 @@ NET_RECEIVE (w) {
 			generate_poisson_events()
 			:printf("number of events generated is: %f\n",nevents)
 			:Thin Poisson:
-			doThin()
+			:doThin()
 			:printf("number of events after thinning are: %f\n",nevents)
 			if ( nevents > 0 ){
-				:printf("Activating mechanism at time: %f. Index is: %f\n",t,index)
-				net_event(t)
+				printverbatim()
+				:printf("@t: %f Sending event nevents=%g cellid=%g synID=%g\n", t, nevents,cellid,synid)
+				if ( myflag == 1 ){
+					printf("@t=%f cellid=%g nevents=%g myflag=%g\n",t,cellid,nevents,myflag)
+					net_event(t)
+					myflag = myflag +1
+					:myflag = 0
+				}
 			}
-			:printf("Sending event for the next time step\n")
+			: net_send(duration,flag)
 			net_send(1, 1)
 		}
 	}
@@ -69,12 +82,27 @@ VERBATIM
 extern double* vector_vec();
 extern int vector_capacity();
 extern void* vector_arg();
-/* /!\ necessary lines for neuron not to get stub functions from nrnnoiv.c */
+/* necessary lines for neuron not to get stub functions from nrnnoiv.c */
 double nrn_random_pick(void* r);
 void* nrn_random_arg(int argpos);
 ENDVERBATIM
 
-PROCEDURE element() {
+PROCEDURE printverbatim() {
+	VERBATIM
+	{
+		//giati den mporw na sygkrinw me cellid? (floating point exception) WTF?
+		//Mallon giati cellid=0 kai division by zero, mipws??
+		if ( ((int)t % (int)nevents) == 0 ) {
+			myflag = myflag +1;
+			/*if(myflag ==1){
+				printf("@t=%f cellid=%g nevents=%g myflag=%g\n",t,cellid,nevents,myflag);
+			}*/
+		}
+	}
+	ENDVERBATIM
+}
+
+PROCEDURE element() { LOCAL vv, i
 VERBATIM	
   { void* vv; int i, size; double* px;
 	i = (int)index;
@@ -100,7 +128,7 @@ VERBATIM
 ENDVERBATIM
 }
 
-PROCEDURE play() {
+PROCEDURE play() { LOCAL vv
 VERBATIM
 	void** vv;
 	vv = (void**)(&space);
@@ -110,8 +138,8 @@ VERBATIM
 		*vv = vector_arg(1);
 	}
 	{
-		int size;
-		size = vector_capacity(*((void**)(&space)));
+		//int size;
+		//size = vector_capacity(*((void**)(&space)));
 		//printf("Playing from vector of size: %d\n", size);
 	}
 	
@@ -130,7 +158,7 @@ PROCEDURE generate_poisson_events() {
 		// Generates from a (hoc defined) Poisson, using the maximum lambda:
 		nevents = nrn_random_pick(_p_randObjPtrPoisson);
 		//printf("Generated poisson events, success!\n");
-		//printf("No of events is: %f\n",nevents);
+		//printf("No of poisson events is: %f\n",nevents);
 		// nevents are the pre-thined events.
 	}else{
 		hoc_execerror("Random object ref not set correctly for randObjPtrPoisson"," only via hoc Random");
@@ -159,7 +187,7 @@ PROCEDURE doThin() {
 	ENDVERBATIM
 }
 
-PROCEDURE getRandObjPtrUniform() {
+PROCEDURE getRandObjPtrUniform() { LOCAL pUniform
 	VERBATIM
 	void** pUniform = (void**)(&_p_randObjPtrUniform);
 	if (ifarg(1)) {
@@ -171,7 +199,7 @@ PROCEDURE getRandObjPtrUniform() {
 	ENDVERBATIM
 }
 
-PROCEDURE getRandObjPtrPoisson() {
+PROCEDURE getRandObjPtrPoisson() { LOCAL pPoisson
 	VERBATIM
 	void** pPoisson = (void**)(&_p_randObjPtrPoisson);
 	if (ifarg(1)) {

@@ -249,11 +249,19 @@ for k = 0, AllBGsyns-1 {
 objref rUniform_dend[nPCcells*BG_dendSyn], rPoisson_dend[nPCcells*BG_dendSyn]
 objref rUniform_apic[nPCcells*BG_apicSyn], rPoisson_apic[nPCcells*BG_apicSyn]
 objref rUniform_apicpr[nPCcells*BG_apicprSyn], rPoisson_apicpr[nPCcells*BG_apicprSyn]
-objref nhPoissonStim[nPCcells*BG_all]
+objref nhPoissonStim_dend[nPCcells*BG_dendSyn]
+objref nhPoissonStim_apic[nPCcells*BG_apicSyn]
+objref nhPoissonStim_apicpr[nPCcells*BG_apicprSyn]
 objref rateVect
+objref netstim_dend[nPCcells*BG_dendSyn]
 
 if(save_background_locations){
 	{sprint(EXEC_CMD,"{objref bgstimpidPC2PC[%d]}",nPCcells)}
+	{assert(execute1(EXEC_CMD))}
+}
+
+if(save_bg_iampa){
+	{sprint(EXEC_CMD,"{objref bg_iampa[%d][%d]}",nPCcells,BG_dendSyn)}
 	{assert(execute1(EXEC_CMD))}
 }
 
@@ -261,9 +269,14 @@ proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,R
 	r = new Random(ID*$1 + 300 + PC.id)
 	rv = new Random(ID*$1 +400)
 	RV = rv.uniform(1, StimDur)
-	PID = 0.5//r.uniform(0,1)
+	PID = r.uniform(0,1)
 	rlb = new Random(ID*$1+160)
 	rla = new Random(ID*$1+560)
+
+	EXEC_CMD = ""
+	{sprint(EXEC_CMD,"{xopen(\"%sRateVectors/rateVect_%03d.hoc\")}",SIMGLIA,$1)}
+	{assert(execute1(EXEC_CMD))}
+	lambdaMax = rateVect.max() 
 
 	for trg=0, nPCcells-1 {
 		if(PARALLEL){
@@ -278,11 +291,7 @@ proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,R
 		if(bool){
 			RLB = rlb.uniform(0,PCcells.o(localID).DendNo-1)
 			RLA = rla.uniform(0,PCcells.o(localID).ApicNo-1)
-			EXEC_CMD = ""
-			{sprint(EXEC_CMD,"{xopen(\"%sRateVectors/rateVect_%03d.hoc\")}",SIMGLIA,$1)}
-			{assert(execute1(EXEC_CMD))}
 
-			lambdaMax = rateVect.max() 
 			if(save_background_locations){
 				{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d] = new Vector()}",trgGID)}
 				{assert(execute1(EXEC_CMD))}
@@ -295,57 +304,76 @@ proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,R
 					{assert(execute1(EXEC_CMD))}
 				}
 				RLB = 0 // Basals!!
-				PCcells.o(localID).dend[RLB] {ampaBGd[trg][syn_dend]=new GLU(PID)}
-				PCcells.o(localID).dend[RLB] {nmdaBGd[trg][syn_dend]=new nmda_segev(PID)}
+				PCcells.o(localID).soma {ampaBGd[trg][syn_dend]=new GLU(PID)}
+				PCcells.o(localID).soma {nmdaBGd[trg][syn_dend]=new nmda_segev(PID)}
 
-				//PID = r.repick()
-				RLB = rlb.repick()
-				rUniform_dend[syn_dend] = new Random(trg + (nPCcells*syn_dend))
-				rUniform_dend[syn_dend].uniform(0,1)
-				rPoisson_dend[syn_dend] = new Random(trg + (nPCcells*syn_dend))
-				rPoisson_dend[syn_dend].poisson(lambdaMax)
-				nhPoissonStim[syn_dend] = new NonHomPoissonStim()
-				nhPoissonStim[syn_dend].getRandObjPtrUniform(rUniform_dend[syn_dend])
-				nhPoissonStim[syn_dend].getRandObjPtrPoisson(rPoisson_dend[syn_dend])
-				nhPoissonStim[syn_dend].play(rateVect)
-				nhPoissonStim[syn_dend].lambdaMax = lambdaMax 
+				PID = 0.5//r.repick()
+				//RLB = rlb.repick()
+				rUniform_dend[trg + (nPCcells*syn_dend)] = new Random(trg + (nPCcells*syn_dend))
+				rUniform_dend[trg + (nPCcells*syn_dend)].uniform(0,0)
+				rPoisson_dend[trg + (nPCcells*syn_dend)] = new Random(trg + (nPCcells*syn_dend))
+				rPoisson_dend[trg + (nPCcells*syn_dend)].uniform(trg+1,trg+1)//poisson(lambdaMax)
+				nhPoissonStim_dend[trg + (nPCcells*syn_dend)] = new NonHomPoissonStim()
+				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].getRandObjPtrUniform(rUniform_dend[trg+(syn_dend*nPCcells)])
+				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].getRandObjPtrPoisson(rPoisson_dend[trg+(syn_dend*nPCcells)])
+				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].play(rateVect)
+				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].lambdaMax = lambdaMax 
+				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].cellid = trg
+				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].synid = syn_dend 
 
-				BG_AMPAd[trg][syn_dend]=new NetCon(nhPoissonStim[syn_dend], ampaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
+				netstim_dend[trg + (nPCcells*syn_dend)] = new NetStim()
+				netstim_dend[trg + (nPCcells*syn_dend)].start = trg+1+200 //pws to bazw sto NHPoisson?
+				netstim_dend[trg + (nPCcells*syn_dend)].number = 1
+				netstim_dend[trg + (nPCcells*syn_dend)].noise = 0
+
+				BG_AMPAd[trg][syn_dend]=new NetCon(netstim_dend[trg + (nPCcells*syn_dend)], ampaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
+				//BG_AMPAd[trg][syn_dend]=new NetCon(nhPoissonStim_dend[trg + (nPCcells*syn_dend)], ampaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
 				BG_AMPAd[trg][syn_dend].delay=0
 				BG_AMPAd[trg][syn_dend].weight = ampaweight //SSS		
 				BG_AMPAd[trg][syn_dend].threshold=-10 
 
-				BG_NMDAd[trg][syn_dend]=new NetCon(nhPoissonStim[syn_dend], nmdaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
+				/*BG_NMDAd[trg][syn_dend]=new NetCon(nhPoissonStim_dend[trg + (nPCcells*syn_dend)], nmdaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
 				BG_NMDAd[trg][syn_dend].delay=0
 				BG_NMDAd[trg][syn_dend].weight = 0.25 //SSS		
 				BG_NMDAd[trg][syn_dend].threshold=-10  
+				*/
+				if(save_bg_iampa){
+						{sprint(EXEC_CMD,"{bg_iampa[%d][%d] = new Vector()}",trg,syn_dend)}
+						{assert(execute1(EXEC_CMD))}
+						{sprint(EXEC_CMD,"{bg_iampa[%d][%d].record(&ampaBGd[%d][%d].iglu)}",trg,syn_dend,trg,syn_dend)}
+						{assert(execute1(EXEC_CMD))}
+				}
 			}
-
+/*
 			for syn_apic=0, BG_apicSyn-1 {
 				//RLA = 0
 				//PID = (syn_apic+1)/(BG_apicSyn+1)
+				if(save_background_locations){
+					{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d].append(%f)}",trgGID,PID)}
+					{assert(execute1(EXEC_CMD))}
+				}
 				RLA = 1 //distal!!
 				PCcells.o(localID).apic[RLA] ampaBGa[trg][syn_apic]=new GLU(PID)
 				PCcells.o(localID).apic[RLA] nmdaBGa[trg][syn_apic]=new nmda_segev(PID)
 
-				//PID = r.repick()
-				RLA = rla.repick()
-				rUniform_apic[syn_apic] = new Random(trg + (nPCcells*(syn_apic+BG_dendSyn)))
-				rUniform_apic[syn_apic].uniform(0,1)
-				rPoisson_apic[syn_apic] = new Random(trg + (nPCcells*(syn_apic+BG_dendSyn)))
-				rPoisson_apic[syn_apic].poisson(lambdaMax)
-				nhPoissonStim[syn_apic] = new NonHomPoissonStim()
-				nhPoissonStim[syn_apic].getRandObjPtrUniform(rUniform_apic[syn_apic])
-				nhPoissonStim[syn_apic].getRandObjPtrPoisson(rPoisson_apic[syn_apic])
-				nhPoissonStim[syn_apic].play(rateVect)
-				nhPoissonStim[syn_apic].lambdaMax = lambdaMax 
+				PID = r.repick()
+				//RLA = rla.repick()
+				rUniform_apic[trg + (nPCcells*syn_apic)] = new Random(trg + (nPCcells*(syn_apic+BG_dendSyn)))
+				rUniform_apic[trg + (nPCcells*syn_apic)].uniform(0,1)
+				rPoisson_apic[trg + (nPCcells*syn_apic)] = new Random(trg + (nPCcells*(syn_apic+BG_dendSyn)))
+				rPoisson_apic[trg + (nPCcells*syn_apic)].poisson(lambdaMax)
+				nhPoissonStim_apic[trg + (nPCcells*syn_apic)] = new NonHomPoissonStim()
+				nhPoissonStim_apic[trg + (nPCcells*syn_apic)].getRandObjPtrUniform(rUniform_apic[trg + (nPCcells*syn_apic)])
+				nhPoissonStim_apic[trg + (nPCcells*syn_apic)].getRandObjPtrPoisson(rPoisson_apic[trg + (nPCcells*syn_apic)])
+				nhPoissonStim_apic[trg + (nPCcells*syn_apic)].play(rateVect)
+				nhPoissonStim_apic[trg + (nPCcells*syn_apic)].lambdaMax = lambdaMax 
 
-				BG_AMPAa[trg][syn_apic]=new NetCon(nhPoissonStim[syn_apic], ampaBGa[trg][syn_apic])//vstima[trg][syn_apic]
+				BG_AMPAa[trg][syn_apic]=new NetCon(nhPoissonStim_apic[trg + (nPCcells*syn_apic)], ampaBGa[trg][syn_apic])//vstima[trg][syn_apic]
 				BG_AMPAa[trg][syn_apic].delay=0
 				BG_AMPAa[trg][syn_apic].weight = ampaweightpr //SSS		
 				BG_AMPAa[trg][syn_apic].threshold=-10 
 
-				BG_NMDAa[trg][syn_apic]=new NetCon(nhPoissonStim[syn_apic], nmdaBGa[trg][syn_apic])
+				BG_NMDAa[trg][syn_apic]=new NetCon(nhPoissonStim_apic[trg + (nPCcells*syn_apic)], nmdaBGa[trg][syn_apic])
 				BG_NMDAa[trg][syn_apic].delay=0
 				BG_NMDAa[trg][syn_apic].weight = 0.2 //SSS		
 				BG_NMDAa[trg][syn_apic].threshold=-10 
@@ -354,30 +382,36 @@ proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,R
 			for syn_apicpr=0, BG_apicprSyn-1 {
 				//RLA = 0
 				//PID = (syn_apicpr+1)/(BG_apicprSyn+1)
+				PID = r.repick()
+				if(save_background_locations){
+					{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d].append(%f)}",trgGID,PID)}
+					{assert(execute1(EXEC_CMD))}
+				}
 				RLA = 0 //proximal!!
 				PCcells.o(localID).apic[RLA] ampaBGp[trg][syn_apicpr]=new GLU(PID)
 				PCcells.o(localID).apic[RLA] nmdaBGp[trg][syn_apicpr]=new nmda_segev(PID)
 
-				rUniform_apicpr[syn_apicpr] = new Random(trg + (nPCcells*(syn_apicpr+BG_dendSyn+BG_apicprSyn)))
-				rUniform_apicpr[syn_apicpr].uniform(0,1)
-				rPoisson_apicpr[syn_apicpr] = new Random(trg + (nPCcells*(syn_apicpr+BG_dendSyn+BG_apicprSyn)))
-				rPoisson_apicpr[syn_apicpr].poisson(lambdaMax)
-				nhPoissonStim[syn_apicpr] = new NonHomPoissonStim()
-				nhPoissonStim[syn_apicpr].getRandObjPtrUniform(rUniform_apicpr[syn_apicpr])
-				nhPoissonStim[syn_apicpr].getRandObjPtrPoisson(rPoisson_apicpr[syn_apicpr])
-				nhPoissonStim[syn_apicpr].play(rateVect)
-				nhPoissonStim[syn_apicpr].lambdaMax = lambdaMax 
+				rUniform_apicpr[trg + (nPCcells*syn_apicpr)] = new Random(trg + (nPCcells*(syn_apicpr+BG_dendSyn+BG_apicprSyn)))
+				rUniform_apicpr[trg + (nPCcells*syn_apicpr)].uniform(0,1)
+				rPoisson_apicpr[trg + (nPCcells*syn_apicpr)] = new Random(trg + (nPCcells*(syn_apicpr+BG_dendSyn+BG_apicprSyn)))
+				rPoisson_apicpr[trg + (nPCcells*syn_apicpr)].poisson(lambdaMax)
+				nhPoissonStim_apicpr[trg + (nPCcells*syn_apicpr)] = new NonHomPoissonStim()
+				nhPoissonStim_apicpr[trg + (nPCcells*syn_apicpr)].getRandObjPtrUniform(rUniform_apicpr[trg + (nPCcells*syn_apicpr)])
+				nhPoissonStim_apicpr[trg + (nPCcells*syn_apicpr)].getRandObjPtrPoisson(rPoisson_apicpr[trg + (nPCcells*syn_apicpr)])
+				nhPoissonStim_apicpr[trg + (nPCcells*syn_apicpr)].play(rateVect)
+				nhPoissonStim_apicpr[trg + (nPCcells*syn_apicpr)].lambdaMax = lambdaMax 
 
-				BG_AMPAp[trg][syn_apicpr]=new NetCon(nhPoissonStim[syn_apicpr], ampaBGp[trg][syn_apicpr])//vstimp[trg][syn_apicpr]
+				BG_AMPAp[trg][syn_apicpr]=new NetCon(nhPoissonStim_apicpr[trg + (nPCcells*syn_apicpr)], ampaBGp[trg][syn_apicpr])//vstimp[trg][syn_apicpr]
 				BG_AMPAp[trg][syn_apicpr].delay=0
 				BG_AMPAp[trg][syn_apicpr].weight = ampaweightpr //SSS		
 				BG_AMPAp[trg][syn_apicpr].threshold=-10 
 
-				BG_NMDAp[trg][syn_apicpr]=new NetCon(nhPoissonStim[syn_apicpr], nmdaBGp[trg][syn_apicpr])
+				BG_NMDAp[trg][syn_apicpr]=new NetCon(nhPoissonStim_apicpr[trg + (nPCcells*syn_apicpr)], nmdaBGp[trg][syn_apicpr])
 				BG_NMDAp[trg][syn_apicpr].delay=0
 				BG_NMDAp[trg][syn_apicpr].weight =  0.22 //SSS		
 				BG_NMDAp[trg][syn_apicpr].threshold=-10 
 			}
+*/
 		}//end bool
 	}
 }//end proc
@@ -396,7 +430,12 @@ objref nhPoissonStimPV[nPVcells*BG_PVSyn]
 proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
 	r = new Random(ID*$1 + 150)
-	PID = 0.5//r.uniform(0,1)
+	PID = r.uniform(0,1)
+
+	EXEC_CMD = ""
+	{sprint(EXEC_CMD,"{xopen(\"%sRateVectors/rateVect_%03d.hoc\")}",SIMGLIA,$1)}
+	{assert(execute1(EXEC_CMD))}
+	lambdaMax = rateVect.max() 
 
 	for trg=0, nPVcells-1 {
 		if(PARALLEL){
@@ -409,36 +448,33 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 		}
 		if (bool) { 
 			// to dend as in XENIA. (Was at the soma):
-			EXEC_CMD = ""
-			{sprint(EXEC_CMD,"{xopen(\"%sRateVectors/rateVect_%03d.hoc\")}",SIMGLIA,$1)}
-			{assert(execute1(EXEC_CMD))}
-
-			lambdaMax = rateVect.max() 
 			for syn=0, (BG_PVSyn-1) {
-				//PID = r.repick()
+				PID = r.repick()
 				PVcells.o(localID).dend ampaBGPV[trg][syn] = new GLUIN(PID) //no Dends available in the model! (???????)
 				PVcells.o(localID).dend nmdaBGPV[trg][syn] = new NMDA(PID)
 	
 				rUniformPV[trg + (nPVcells*syn)] = new Random(trg + (nPVcells*syn))
-				rUniformPV[trg + (nPVcells*syn)].uniform(0,1)
+				rUniformPV[trg + (nPVcells*syn)].uniform(0,0)
 				rPoissonPV[trg + (nPVcells*syn)] = new Random(trg + (nPVcells*syn))
-				rPoissonPV[trg + (nPVcells*syn)].poisson(lambdaMax)
+				rPoissonPV[trg + (nPVcells*syn)].uniform(trg+1,trg+1)//poisson(lambdaMax)
 				nhPoissonStimPV[trg + (nPVcells*syn)] = new NonHomPoissonStim()
 				nhPoissonStimPV[trg + (nPVcells*syn)].getRandObjPtrUniform(rUniformPV[trg + (nPVcells*syn)])
 				nhPoissonStimPV[trg + (nPVcells*syn)].getRandObjPtrPoisson(rPoissonPV[trg + (nPVcells*syn)])
 				nhPoissonStimPV[trg + (nPVcells*syn)].play(rateVect)
 				nhPoissonStimPV[trg + (nPVcells*syn)].lambdaMax = lambdaMax 
+				nhPoissonStimPV[trg + (nPVcells*syn)].cellid = trg+nPCcells 
+				nhPoissonStimPV[trg + (nPVcells*syn)].synid = syn 
 
 				BGPV_AMPA[trg][syn]=new NetCon(nhPoissonStimPV[trg + (nPVcells*syn)], ampaBGPV[trg][syn]) //vstim_pv[trg][syn]
 				BGPV_AMPA[trg][syn].delay=0
 				BGPV_AMPA[trg][syn].weight =   ampaweightin //SSS 
 				BGPV_AMPA[trg][syn].threshold=-10
 
-				BGPV_NMDA[trg][syn]=new NetCon(nhPoissonStimPV[trg + (nPVcells*syn)], nmdaBGPV[trg][syn])
+				/*BGPV_NMDA[trg][syn]=new NetCon(nhPoissonStimPV[trg + (nPVcells*syn)], nmdaBGPV[trg][syn])
 				BGPV_NMDA[trg][syn].delay=0
 				BGPV_NMDA[trg][syn].weight =   nmdaweightin //SSS 
 				BGPV_NMDA[trg][syn].threshold=-10
-
+				*/
 			}
 		}
 
@@ -742,9 +778,11 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 					localID = trg
 				}
 				if (bool) { 
-					// to dend as in XENIA. (Was at the soma):
+					// Markram2004: 60% basal, 30% a pical, 10% soma.
 					for syn=0, (PC2PV_MaxSyn-1) {
 						PID = r_PC2PV[PVgids.x[localID]-nPCcells].repick ()
+						//BIAS : Proximal to the soma:
+						PID = 0.01
 						delstimpcpv=abs(fp_PC2PV[PVgids.x[localID]-nPCcells].repick())
 						if(delstimpcpv<=dt){delstimpcpv=dt+0.01}
 						PVcells.o(localID).dend {ampaOnPV[src][trg][syn] = new GLUIN(PID)} //no Dends available in the model! (???????)

@@ -19,6 +19,7 @@ proc init() {
 //MUST BE INITIALIZED !!!
 ApicNo=0
 DendNo=0
+v_init_pc = -66
 
 create 	soma,dend[1], axon, apic[2]
 
@@ -27,6 +28,7 @@ soma{
 	nseg=3
 	L=75//80
 	diam=10.14  /* L and diam chosen to match surface area and internal*/
+	v = v_init_pc
 		    /*  resistance with a sphere of diam 23 microns */
 	//insert kdyn
 	insert pas
@@ -54,7 +56,7 @@ soma{
 	gcatbar_cat =  6e-06 
 
 	insert kdr
-	gkdrbar_kdr =  0.0054*4		 //*3 //SSS
+	gkdrbar_kdr =  0.0054*4		 // *3 //SSS
 
 	insert IKs
 	gKsbar_IKs = 6e-4 *1.71		*0.5// SSS //2.1
@@ -63,13 +65,13 @@ soma{
 	gkabar_kad = 7e-4 
 
 	insert iC
-	gkcbar_iC = 2.2e-3		//*10 //SSS 
+	gkcbar_iC = 2.2e-3		// *10 //SSS 
 
 	insert h 
-	gbar_h =   9e-06 *0.8		//*0.1//SSS
+	gbar_h =   9e-06 *0.8		// *0.1//SSS
 	
 	insert kca
-	gbar_kca = 0.025 *5.6		//*1.02 //SSS 
+	gbar_kca = 0.025 *5.6		// *1.02 //SSS 
 
 	insert ican
 	gbar_ican=gCAN
@@ -84,6 +86,8 @@ dend[0]{
 	nseg=5//9 //changed to 5 segments to accommodate uniformly spreaded synapses
 	L=150
 	diam=1 
+	v = v_init_pc
+
 	insert pas
       	cm = 2         		/* microF/cm2 */
 	g_pas =1.7e-04     	/* mho/cm2 */    
@@ -122,6 +126,8 @@ apic[0]{
 	nseg=17   
 	L=400.0
         diam=3.4
+	v = v_init_pc
+
 	insert pas
       	cm = 2//1.2       /* microF/cm2 */
 	g_pas = 8.5e-5*2  /* mho/cm2 */  
@@ -174,6 +180,8 @@ apic[1]{
 	nseg=5
 	L=400
 	diam=2.6
+	v = v_init_pc
+
 	insert pas
       	cm = 2//1.2         /* microF/cm2 */
 	g_pas = 8.5e-5*2   /* mho/cm2 */    
@@ -226,6 +234,8 @@ axon {
 	nseg=1
 	L=113.22
 	diam=1.1
+	v = v_init_pc
+
 	insert pas
       	cm = 1.2         /* microF/cm2 */
 	g_pas = 8.5e-5   /* mho/cm2 */    
@@ -279,7 +289,7 @@ PCgids=new Vector()
 proc createPyrs(){ local i,host,gid localobj cell,mynil
 	if(PARALLEL){
 		{PC.barrier()}
-		if(PC.id==0) {printf("initializing PCs...\n") }     
+		if(PC.id==0) {printf("initializing %d PCs...\n",nPCcells) }     
 		for i=0, nPCcells-1{ //(i=PC.id;i<nPcells;i+=PC.nhost) { 
 			host=i%PC.nhost
 			gid=ind2gid(i,0)
@@ -350,73 +360,4 @@ for i=0, PCcells.count()-1 {
 	}
 }
 
-//printf("Applying PC current balance\n")
-//if(SIMPLIFIED){
-	//xopen("../simplified/current-balance.hoc")
-//} else {
-{sprint(EXEC_CMD,"{xopen(\"%s../../lib/current-balance.hoc\")}",PATH)}
-assert(execute1(EXEC_CMD))
-//	assert(xopen ("../../lib/current-balance.hoc"))
-//}
-{current_balance(v_init)}
 
-
-
-/*
-//Creating new neurons
-nPcells = 75//7//200
-
-objref Pcells[nPcells]
-
-for i = 0, (nPcells-1) {
-Pcells[i] = new Pcell()
-}
-
-//Create a list with segments
-objref soma_list, dend0_list, dend1_list, dend2_list, axon_list, dend_list, pcell_list, cell0_list
-
-soma_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].soma soma_list.append()
-}
-
-dend0_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[0] dend0_list.append()
-}
-
-dend1_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[1] dend1_list.append()
-}
-
-dend2_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].dend[2] dend2_list.append()
-}
-
-axon_list = new SectionList()
-for i=0, (nPcells-1) {
-Pcells[i].axon axon_list.append()
-}
-
-dend_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].dend[0] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] dend_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] dend_list.append()}
-
-pcell_list = new SectionList()
-for i=0, (nPcells-1) {Pcells[i].soma pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[0] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[1] pcell_list.append()}
-for i=0, (nPcells-1) {Pcells[i].dend[2] pcell_list.append()}
-
-cell0_list=new SectionList()
-Pcells[0].soma cell0_list.append()
-Pcells[0].dend[0] cell0_list.append()
-Pcells[0].dend[1] cell0_list.append()
-Pcells[0].dend[2] cell0_list.append()
-
-xopen("../bash_templates/current-balance.hoc")
-
-current_balance(-66)*/

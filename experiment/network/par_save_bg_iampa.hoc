@@ -1,0 +1,35 @@
+objref cum_bg_iampa[nPCcells]
+proc par_save_bg_iampa(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
+	{ PC.barrier() } 
+	strdef ext
+	if ($4) {
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
+
+	for trg=0,nPCcells-1 {
+		trgPC = ind2gid(trg,0)
+		if (object_id(bg_iampa[trgPC][0])) {
+			cum_bg_iampa[trgPC] = new Vector(n,0)
+			for syn=0, BG_dendSyn-1 {
+				for k = 0, n-1{
+					cum_bg_iampa[trgPC].x[k] = cum_bg_iampa[trgPC].x[k] + bg_iampa[trgPC][syn].x[k]
+				}
+			}
+			vfilePC = new File()	
+			sprint(vfilePC_filename,"%s/bg_iampa_trgPC%03d.%s", $s1,trgPC,ext) 
+			vfilePC.wopen(vfilePC_filename)
+			
+			if ($4) {
+				for j=0, cum_bg_iampa[trgPC].size()-1 {
+					vfilePC.vwrite(&cum_bg_iampa[trgPC].x[j])
+				}
+			} else {
+				cum_bg_iampa[ind2gid(trg,0)].printf(vfilePC,"%8.4f\n")
+			}
+			vfilePC.close()
+		}
+	}
+}
+

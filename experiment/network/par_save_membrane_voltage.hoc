@@ -24,7 +24,8 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 	for s=0,recordedCells.size()-1{
 		//print "Saving Cell: ",recordedCells.x(s)
 		vfilePC = new File()	
-		sprint(vfilePC_filename,"%s/%03d_%03d_%03d.%s", $s1,recordedCells.x(s),RUN,$2,ext) 
+		//sprint(vfilePC_filename,"%s/%03d_%03d_%03d.%s", $s1,recordedCells.x(s),RUN,$2,ext) 
+		sprint(vfilePC_filename,"%s/v_soma_%03d.%s", $s1,recordedCells.x(s),ext) 
 		//print "Saving @ ", vfilePC_filename
 		vfilePC.wopen(vfilePC_filename)
 		fh = vfilePC.isopen()
@@ -36,12 +37,12 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 		}
 		if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 		if ($4) {
-			if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
+			//if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
 			for j=0, r_volts[s].size()-1 {
 				vfilePC.vwrite(&r_volts[s].x[j])
 			}
 		} else {
-			if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
+			//if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
 			r_volts[s].printf(vfilePC,"%8.4f\n")
 		}
 		vfilePC.close()
