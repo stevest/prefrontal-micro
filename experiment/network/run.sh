@@ -104,6 +104,7 @@ for BGe in $(seq 1 1); do
 	-c "RUN=$run" \
 	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
 	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \
+	-c "execute1\(\\\"'SNd = $sn'\\\"\)" \
 	-c "execute1\(\\\"'GITSHA1 = \\\"$gitsha1\\\"'\\\"\)" \
 	-c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" \
 	-c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" \

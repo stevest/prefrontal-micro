@@ -5,20 +5,20 @@ proc balance_compartments() {
 	finitialize()
 	forsec PCcell_list {
 		for (x) {
-			if (ismembrane("na_ion")) {e_pas(x)=v(x)+ina(x)/g_pas(x)} 
-			if (ismembrane("k_ion")) {e_pas(x)=e_pas(x)+ik(x)/g_pas(x)} 
-			if (ismembrane("ca_ion")) {e_pas(x)=e_pas(x)+ica(x)/g_pas(x)}
-			if (ismembrane("in_ion")) {e_pas(x)=e_pas(x)+in(x)/g_pas(x)} //ican
-			if (ismembrane("h")) {e_pas(x)=e_pas(x)+ihi(x)/g_pas(x)}
+			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
+			if (ismembrane("in_ion")) {e_passive(x)=e_passive(x)+in(x)/g_passive(x)} //ican
+			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
 		
 		}
 	}
 	forsec PVsoma_list {
 		for (x) {
-			if (ismembrane("na_ion")) {e_pas(x)=v(x)+ina(x)/g_pas(x)} 
-			if (ismembrane("k_ion")) {e_pas(x)=e_pas(x)+ik(x)/g_pas(x)} 
-			if (ismembrane("ca_ion")) {e_pas(x)=e_pas(x)+ica(x)/g_pas(x)}     
-			if (ismembrane("h")) {e_pas(x)=e_pas(x)+ihi(x)/g_pas(x)}
+			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}     
+			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
 		}
 	}
 

@@ -38,10 +38,10 @@ soma {
 	diam=29//SSS FIX IR! and FF!
 	v = v_init_pv
 
-	insert pas
+	insert passive
 	cm=1.2            //microF/cm2
-	g_pas =1/10000    //mho/cm2   
-	e_pas = v_initin   //(Kawaguchi k Kubota, 1993 --> -73+-3.9)
+	g_passive =1/10000    //mho/cm2   
+	e_passive = v_initin   //(Kawaguchi k Kubota, 1993 --> -73+-3.9)
 	v_initin= -73
 	Ra=150 
 
@@ -76,10 +76,10 @@ axon {
 	diam=1.5
 	v = v_init_pv
 	
-	insert pas
+	insert passive
 	cm=1.2            //microF/cm2
-	g_pas =1/10000  //mho/cm2   
-	e_pas = v_initin
+	g_passive =1/10000  //mho/cm2   
+	e_passive = v_initin
 	v_initin= -73
 	Ra=150 
 
@@ -97,10 +97,10 @@ dend {
 	diam=7
 	v = v_init_pv
 
-	insert pas
+	insert passive
 	cm=1.2            //microF/cm2
-	g_pas =1/10000    //mho/cm2   
-	e_pas = v_initin//(Kawaguchi k Kubota, 1993 --> -73+-3.9)
+	g_passive =1/10000    //mho/cm2   
+	e_passive = v_initin//(Kawaguchi k Kubota, 1993 --> -73+-3.9)
 	v_initin= -73
 	Ra=150
 

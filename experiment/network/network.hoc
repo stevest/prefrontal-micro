@@ -97,7 +97,7 @@ objref PCsw[nPCcells], PVsw[nPCcells], CBsw[nPCcells], CRsw[nPCcells]
 proc noise() { local i
 	i=0
 	forsec PCsoma_list {
-			PCns[i] = new Random(i+ID*$1) 
+			PCns[i] = new Random(i+SNd*$1) 
 			PCns[i].poisson(0.5)	//was (0.02)	
 			PCsw[i] = new membNoise(0.5)
 			PCsw[i].dur = tstop //duration of injection
@@ -109,7 +109,7 @@ proc noise() { local i
 
 	i=0
 	forsec PVsoma_list {
-			PVns[i] = new Random(i+ID*$1+1) 
+			PVns[i] = new Random(i+SNd*$1+1) 
 			PVns[i].poisson(0.5)	//was (0.02)	
 			PVsw[i] = new membNoise(0.5)
 			PVsw[i].dur=tstop //duration of injection
@@ -181,9 +181,9 @@ proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval
 	if(PARALLEL){ PC.barrier() }
 	//Configure RNG for reproducability over differently distributed parallel environments:
 	for kk=0,nPCcells-1{
-		r_stimPC[kk] = new Random(ID*$1 + 165 + kk )
-		rApic_stimPC[kk] = new Random(ID*$1 + 12 + kk)
-		rBasal_stimPC[kk] = new Random(ID*$1 + 67 + kk)
+		r_stimPC[kk] = new Random(SNd*$1 + 165 + kk )
+		rApic_stimPC[kk] = new Random(SNd*$1 + 12 + kk)
+		rBasal_stimPC[kk] = new Random(SNd*$1 + 67 + kk)
 		PID = 0.5//r_stimPC[kk].uniform(0,1)
 	}
 
@@ -236,7 +236,7 @@ strdef bgrecvec_filename
 AllBGsyns = BG_dendSyn+BG_apicSyn+BG_apicprSyn+BG_PVSyn
 objref bns[AllBGsyns], psn[AllBGsyns]
 for k = 0, AllBGsyns-1 {
-	psn[k] = new Random(ID*PC.id*AllBGsyns+k)
+	psn[k] = new Random(SNd*PC.id*AllBGsyns+k)
 	psn[k].poisson(0.002)
 	bns[k]  = new poissonStim(0.5)
 	bns[k].interval=1//SSS 
@@ -266,12 +266,12 @@ if(save_bg_iampa){
 }
 
 proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,RLA,localID,trgGID,StimDur,StimFreq,StimNo,SynapsesNo localobj r,rv,rlb,rla
-	r = new Random(ID*$1 + 300 + PC.id)
-	rv = new Random(ID*$1 +400)
+	r = new Random(SNd*$1 + 300 + PC.id)
+	rv = new Random(SNd*$1 +400)
 	RV = rv.uniform(1, StimDur)
 	PID = r.uniform(0,1)
-	rlb = new Random(ID*$1+160)
-	rla = new Random(ID*$1+560)
+	rlb = new Random(SNd*$1+160)
+	rla = new Random(SNd*$1+560)
 
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{xopen(\"%sRateVectors/rateVect_%03d.hoc\")}",SIMGLIA,$1)}
@@ -299,6 +299,7 @@ proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,R
 			for syn_dend=0, BG_dendSyn-1 {
 				//RLB = 0
 				//PID = (syn_dend+1)/(BG_dendSyn+1)// ?!?!? Why is that?
+				PID = 0.5//r.repick()
 				if(save_background_locations){
 					{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d].append(%f)}",trgGID,PID)}
 					{assert(execute1(EXEC_CMD))}
@@ -307,12 +308,11 @@ proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,R
 				PCcells.o(localID).soma {ampaBGd[trg][syn_dend]=new GLU(PID)}
 				PCcells.o(localID).soma {nmdaBGd[trg][syn_dend]=new nmda_segev(PID)}
 
-				PID = 0.5//r.repick()
 				//RLB = rlb.repick()
 				rUniform_dend[trg + (nPCcells*syn_dend)] = new Random(trg + (nPCcells*syn_dend))
-				rUniform_dend[trg + (nPCcells*syn_dend)].uniform(0,0)
+				rUniform_dend[trg + (nPCcells*syn_dend)].uniform(0,1)
 				rPoisson_dend[trg + (nPCcells*syn_dend)] = new Random(trg + (nPCcells*syn_dend))
-				rPoisson_dend[trg + (nPCcells*syn_dend)].uniform(trg+1,trg+1)//poisson(lambdaMax)
+				rPoisson_dend[trg + (nPCcells*syn_dend)].poisson(lambdaMax)
 				nhPoissonStim_dend[trg + (nPCcells*syn_dend)] = new NonHomPoissonStim()
 				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].getRandObjPtrUniform(rUniform_dend[trg+(syn_dend*nPCcells)])
 				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].getRandObjPtrPoisson(rPoisson_dend[trg+(syn_dend*nPCcells)])
@@ -326,8 +326,8 @@ proc backgroundActivity() { local trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,R
 				netstim_dend[trg + (nPCcells*syn_dend)].number = 1
 				netstim_dend[trg + (nPCcells*syn_dend)].noise = 0
 
-				BG_AMPAd[trg][syn_dend]=new NetCon(netstim_dend[trg + (nPCcells*syn_dend)], ampaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
-				//BG_AMPAd[trg][syn_dend]=new NetCon(nhPoissonStim_dend[trg + (nPCcells*syn_dend)], ampaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
+				//BG_AMPAd[trg][syn_dend]=new NetCon(netstim_dend[trg + (nPCcells*syn_dend)], ampaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
+				BG_AMPAd[trg][syn_dend]=new NetCon(nhPoissonStim_dend[trg + (nPCcells*syn_dend)], ampaBGd[trg][syn_dend]) //vstimd[trg][syn_dend]
 				BG_AMPAd[trg][syn_dend].delay=0
 				BG_AMPAd[trg][syn_dend].weight = ampaweight //SSS		
 				BG_AMPAd[trg][syn_dend].threshold=-10 
@@ -426,10 +426,11 @@ pvns.noise=1
 
 objref rUniformPV[nPVcells*BG_PVSyn], rPoissonPV[nPVcells*BG_PVSyn]
 objref nhPoissonStimPV[nPVcells*BG_PVSyn]
+objref netstim_dendpv[nPVcells*BG_PVSyn]
 //----------------------------------------------PV background activity-------------------------------------------------------//
 proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 	if(PARALLEL){ PC.barrier() }
-	r = new Random(ID*$1 + 150)
+	r = new Random(SNd*$1 + 150)
 	PID = r.uniform(0,1)
 
 	EXEC_CMD = ""
@@ -449,14 +450,14 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 		if (bool) { 
 			// to dend as in XENIA. (Was at the soma):
 			for syn=0, (BG_PVSyn-1) {
-				PID = r.repick()
+				PID = 0.5//r.repick()
 				PVcells.o(localID).dend ampaBGPV[trg][syn] = new GLUIN(PID) //no Dends available in the model! (???????)
 				PVcells.o(localID).dend nmdaBGPV[trg][syn] = new NMDA(PID)
 	
 				rUniformPV[trg + (nPVcells*syn)] = new Random(trg + (nPVcells*syn))
-				rUniformPV[trg + (nPVcells*syn)].uniform(0,0)
+				rUniformPV[trg + (nPVcells*syn)].uniform(0,1)
 				rPoissonPV[trg + (nPVcells*syn)] = new Random(trg + (nPVcells*syn))
-				rPoissonPV[trg + (nPVcells*syn)].uniform(trg+1,trg+1)//poisson(lambdaMax)
+				rPoissonPV[trg + (nPVcells*syn)].poisson(lambdaMax)
 				nhPoissonStimPV[trg + (nPVcells*syn)] = new NonHomPoissonStim()
 				nhPoissonStimPV[trg + (nPVcells*syn)].getRandObjPtrUniform(rUniformPV[trg + (nPVcells*syn)])
 				nhPoissonStimPV[trg + (nPVcells*syn)].getRandObjPtrPoisson(rPoissonPV[trg + (nPVcells*syn)])
@@ -464,6 +465,13 @@ proc backgroundActivityPV() { local PID,trg,syn,bool,localID,trgGID localobj r
 				nhPoissonStimPV[trg + (nPVcells*syn)].lambdaMax = lambdaMax 
 				nhPoissonStimPV[trg + (nPVcells*syn)].cellid = trg+nPCcells 
 				nhPoissonStimPV[trg + (nPVcells*syn)].synid = syn 
+
+				netstim_dendpv[trg + (nPVcells*syn)] = new NetStim()
+				netstim_dendpv[trg + (nPVcells*syn)].start = trg+1+200 //pws to bazw sto NHPoisson?
+				netstim_dendpv[trg + (nPVcells*syn)].number = 1
+				netstim_dendpv[trg + (nPVcells*syn)].noise = 0
+
+				//BGPV_AMPA[trg][syn]=new NetCon(netstim_dendpv[trg + (nPVcells*syn)], ampaBGPV[trg][syn]) //vstimd[trg][syn_dend]
 
 				BGPV_AMPA[trg][syn]=new NetCon(nhPoissonStimPV[trg + (nPVcells*syn)], ampaBGPV[trg][syn]) //vstim_pv[trg][syn]
 				BGPV_AMPA[trg][syn].delay=0
@@ -487,7 +495,7 @@ func clustbias(){ local rb,oldPID localobj rbo
 	//$1 = PID old
 	//$2 = runs serial number
 	oldPID = $1
-	//rbo = new Random(ID*$2+PC.id)
+	//rbo = new Random(SNd*$2+PC.id)
 	rb = $2//rbo.uniform(0,1)
 	//this function may be implemented weird: the (default/old) PID is clustering synapses in the same point on a specific dend,
 	//the new PID is deviating from clustering synapses by a random amount with weight 1-CLUSTBIAS.
@@ -537,17 +545,17 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	
 	//set parallel PID randomness
 	for kk=0,nPCcells-1{
-		r_PC2PC[kk] = new Random(ID*$1 + 350 + kk ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
-		RN_PC2PC[kk] = new Random(ID*$1 + 360 + kk)
-		fp_PC2PC[kk] = new Random(ID*$1 + 3 + kk)	
-		rDend_PC2PC[kk] = new Random(ID*$1 + 4 + kk) 
+		r_PC2PC[kk] = new Random(SNd*$1 + 350 + kk ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
+		RN_PC2PC[kk] = new Random(SNd*$1 + 360 + kk)
+		fp_PC2PC[kk] = new Random(SNd*$1 + 3 + kk)	
+		rDend_PC2PC[kk] = new Random(SNd*$1 + 4 + kk) 
 		rn = RN_PC2PC[kk].uniform(0,1)
 		PID = r_PC2PC[kk].uniform(0,1)
 		FIDp=fp_PC2PC[kk].normal(1.7,0.9)	//According to Thomson(2007)
 	}
 
 	//rDend = new Random($1+4 + PC.id ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
-	//rDend = new Random(ID*$1+4) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
+	//rDend = new Random(SNd*$1+4) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
 
 	//Create clustering connectivity lists for recurrent connections:
 	for i=0, PCcells.count()-1 {
@@ -693,8 +701,8 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 	if(PARALLEL){ PC.barrier() }
 	//set parallel PID randomness
 	for i=0, nPVcells-1 {
-		r_PV2PV[i] = new Random(ID*$1 + 250 + i )
-		fp_PV2PV[i] = new Random(ID*$1 - 100 + i )
+		r_PV2PV[i] = new Random(SNd*$1 + 250 + i )
+		fp_PV2PV[i] = new Random(SNd*$1 - 100 + i )
 		PID = r_PV2PV[i].uniform(0,1)
 		delstimpvpv = fp_PV2PV[i].normal(1.76,0.07) //latency from IN-IN, according to Bacci (2003)   
 	}
@@ -759,8 +767,8 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 
 	//set parallel PID randomness
 	for i=0, nPVcells-1 {
-		r_PC2PV[i] = new Random(ID*$1 + 150 + i )
-		fp_PC2PV[i] = new Random(ID*$1 * 2 + i)
+		r_PC2PV[i] = new Random(SNd*$1 + 150 + i )
+		fp_PC2PV[i] = new Random(SNd*$1 * 2 + i)
 		PID = r_PC2PV[i].uniform(0,1)
 		delstimpcpv = fp_PC2PV[i].normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999) 
 	}
@@ -808,9 +816,9 @@ proc connectPV2PC() {local delstimpvpc,PID,NoSynapsesSoma,NoSynapsesDend,BasalNo
 	if(PARALLEL){ PC.barrier() }
 	//set parallel PID randomness
 	for i=0, nPCcells-1 {
-		r_PV2PC[i] = new Random(ID*$1 + 180 + i )
-		fp_PV2PC[i] = new Random(ID*$1 * 8 + i)
-		rDend_PV2PC[i] = new Random(ID*$1 + 5 + i)
+		r_PV2PC[i] = new Random(SNd*$1 + 180 + i )
+		fp_PV2PC[i] = new Random(SNd*$1 * 8 + i)
+		rDend_PV2PC[i] = new Random(SNd*$1 + 5 + i)
 		PID = r_PV2PC[i].uniform(0,1)
 		delstimpvpc=fp_PV2PC[i].normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
 	}

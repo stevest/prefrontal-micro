@@ -31,10 +31,10 @@ soma{
 	v = v_init_pc
 		    /*  resistance with a sphere of diam 23 microns */
 	//insert kdyn
-	insert pas
+	insert passive
       	cm = 1.2         /* microF/cm2 */
-	g_pas = 6e-5   /* mho/cm2 */    
-	e_pas = -66
+	g_passive = 6e-5   /* mho/cm2 */    
+	e_passive = -66
 	Ra = 100         /* ohm-cm */
 
 	insert Naf
@@ -88,10 +88,10 @@ dend[0]{
 	diam=1 
 	v = v_init_pc
 
-	insert pas
+	insert passive
       	cm = 2         		/* microF/cm2 */
-	g_pas =1.7e-04     	/* mho/cm2 */    
-	e_pas = -66
+	g_passive =1.7e-04     	/* mho/cm2 */    
+	e_passive = -66
 	Ra = 100           	/* ohm-cm */
 
 	insert Naf
@@ -128,10 +128,10 @@ apic[0]{
         diam=3.4
 	v = v_init_pc
 
-	insert pas
+	insert passive
       	cm = 2//1.2       /* microF/cm2 */
-	g_pas = 8.5e-5*2  /* mho/cm2 */  
-	e_pas = -66
+	g_passive = 8.5e-5*2  /* mho/cm2 */  
+	e_passive = -66
 	Ra = 150          /* ohm-cm */
 
 	insert Naf
@@ -182,10 +182,10 @@ apic[1]{
 	diam=2.6
 	v = v_init_pc
 
-	insert pas
+	insert passive
       	cm = 2//1.2         /* microF/cm2 */
-	g_pas = 8.5e-5*2   /* mho/cm2 */    
-	e_pas = -66
+	g_passive = 8.5e-5*2   /* mho/cm2 */    
+	e_passive = -66
 	Ra = 150           /* ohm-cm */
  
 	insert Naf	
@@ -236,10 +236,10 @@ axon {
 	diam=1.1
 	v = v_init_pc
 
-	insert pas
+	insert passive
       	cm = 1.2         /* microF/cm2 */
-	g_pas = 8.5e-5   /* mho/cm2 */    
-	e_pas = -66
+	g_passive = 8.5e-5   /* mho/cm2 */    
+	e_passive = -66
 	Ra = 150         /* ohm-cm */
 
 	insert Naf

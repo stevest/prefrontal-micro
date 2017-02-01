@@ -29,7 +29,7 @@ PARAMETER {
 INITIAL {
 	nevents = 0
 	index = 0
-	myflag = 0
+	:myflag = 0
 	:printf("Initial voltage is: %f\n", v)
 	element()
 	if (index > 0) {
@@ -60,17 +60,17 @@ NET_RECEIVE (w) {
 			generate_poisson_events()
 			:printf("number of events generated is: %f\n",nevents)
 			:Thin Poisson:
-			:doThin()
+			doThin()
 			:printf("number of events after thinning are: %f\n",nevents)
 			if ( nevents > 0 ){
-				printverbatim()
+				:printverbatim()
 				:printf("@t: %f Sending event nevents=%g cellid=%g synID=%g\n", t, nevents,cellid,synid)
-				if ( myflag == 1 ){
-					printf("@t=%f cellid=%g nevents=%g myflag=%g\n",t,cellid,nevents,myflag)
+				:if ( myflag == 1 ){
+					:printf("@t=%f cellid=%g nevents=%g myflag=%g\n",t,cellid,nevents,myflag)
 					net_event(t)
-					myflag = myflag +1
+					:myflag = myflag +1
 					:myflag = 0
-				}
+				:}
 			}
 			: net_send(duration,flag)
 			net_send(1, 1)

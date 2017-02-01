@@ -22,6 +22,9 @@ if (name_declared("PARALLEL")!=5) { // PARALLEL has not been assigned a numerica
 }
 if(PARALLEL){
         {PC=new ParallelContext()}
+        if(PC.id==0){ printf("Microcircuit running in %d CORES !\n\n", PC.nhost()) }
+}else{
+         printf("Microcircuit running in 'SINGLE CORE' !\n\n")
 }
 strdef STDOUT, PPRINT_CMD
 //process to print only on node zero (if parallel):
@@ -54,12 +57,6 @@ proc pprint(){
 //{strFun.left(JOBNAME,strFun.len(JOBNAME)-1)}
 {sprint(STDOUT,"========================================================================================\n")}
 {pprint(STDOUT)}
-if(PARALLEL){
-        {PC=new ParallelContext()}
-        if(PC.id==0){ printf("Microcircuit running in %d CORES !\n\n", PC.nhost()) }
-}else{
-         printf("Microcircuit running in 'SINGLE CORE' !\n\n")
-}
 
 if(PARALLEL){
 
@@ -402,46 +399,45 @@ if(PARALLEL){
 	if(1){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_membrane_voltage.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_membrane_voltage(JOBDIR,CLUSTER_ID,ID, ISBINARY)
+		par_save_membrane_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
 		{pprint("par_save_membrane_voltage() is active.")}
 	}
-	//par_save_anyvar(JOBDIR,CLUSTER_ID,ID,0)
 	if(save_synaptic_locations){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_locations_PCrec.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_synaptic_locations_PCrec(JOBDIR,CLUSTER_ID,ID,0)
+		par_save_synaptic_locations_PCrec(JOBDIR,CLUSTER_ID,0)
 		{pprint("par_save_synaptic_locations_PCrec() is active.")}	
 	}
 	
 	if(save_stimulation_locations){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_stimulation_locations_PCrec.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_stimulation_locations_PCrec(JOBDIR,CLUSTER_ID,ID,0)
+		par_save_stimulation_locations_PCrec(JOBDIR,CLUSTER_ID,0)
 		{pprint("par_save_stimulation_locations_PCrec() is active.")}
 	}
 
 	if(save_background_locations){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_background_locations_PCrec.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_background_locations_PCrec(JOBDIR,CLUSTER_ID,ID,0)
+		par_save_background_locations_PCrec(JOBDIR,CLUSTER_ID,0)
 		{pprint("par_save_background_locations_PCrec() is active.")}
 	}
 
 	if(save_synaptic_delays){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_delays.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_synaptic_delays(JOBDIR,CLUSTER_ID,ID,ISBINARY)
+		par_save_synaptic_delays(JOBDIR,CLUSTER_ID,ISBINARY)
 		{pprint("par_save_synaptic_delays() is active.")}
 	}
 
 	if(save_bg_iampa){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_bg_iampa.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_bg_iampa(JOBDIR,CLUSTER_ID,ID,0)
+		par_save_bg_iampa(JOBDIR,CLUSTER_ID,0)
 		{pprint("par_save_bg_iampa() is active.")}
 	}
 	if(save_inmda){
-		par_save_inmda(JOBDIR,CLUSTER_ID,ID,ISBINARY)
+		par_save_inmda(JOBDIR,CLUSTER_ID,ISBINARY)
 		{pprint("par_save_inmda() is active.")}
 	}
 
@@ -452,7 +448,6 @@ if(PARALLEL){
 	run()
 	runtime = startsw() - runtime
 	printf("Runtime: %10.4g\n", runtime)
-	//save_membrane_voltage(JOBDIR,CLUSTER_ID,ID)
 }
 
 {sprint(PPRINT_CMD,"Runtime: %10.4g minutes.\n", runtime/60)}

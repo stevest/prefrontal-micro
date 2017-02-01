@@ -2,7 +2,7 @@ objref cum_bg_iampa[nPCcells]
 proc par_save_bg_iampa(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
 	{ PC.barrier() } 
 	strdef ext
-	if ($4) {
+	if ($3) {
 		ext = "bin"
 	} else {
 		ext = "txt"
@@ -21,7 +21,7 @@ proc par_save_bg_iampa(){local i,s,q,srcPC,trgPC  localobj vfilePC// Record GID
 			sprint(vfilePC_filename,"%s/bg_iampa_trgPC%03d.%s", $s1,trgPC,ext) 
 			vfilePC.wopen(vfilePC_filename)
 			
-			if ($4) {
+			if ($3) {
 				for j=0, cum_bg_iampa[trgPC].size()-1 {
 					vfilePC.vwrite(&cum_bg_iampa[trgPC].x[j])
 				}

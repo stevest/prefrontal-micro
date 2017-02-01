@@ -7,10 +7,10 @@ save_stimulation_locations = 0
 save_background_locations = 0 
 save_synaptic_delays = 0 
 save_inmda = 0 
-save_bg_iampa = 1 
+save_bg_iampa = 0 
 // Experimental setup
 //tstop=10 //defined externaly
-steps_per_ms=50
+steps_per_ms=10
 dt=1/steps_per_ms
 n=int(tstop/dt)
 celsius=34

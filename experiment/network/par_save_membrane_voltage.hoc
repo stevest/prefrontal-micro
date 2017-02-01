@@ -16,7 +16,7 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 */
 	{ PC.barrier() } 
 	strdef ext
-	if ($4) {
+	if ($3) {
 		ext = "bin"
 	} else {
 		ext = "txt"
@@ -36,7 +36,7 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 			fctr = fctr + 1
 		}
 		if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
-		if ($4) {
+		if ($3) {
 			//if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
 			for j=0, r_volts[s].size()-1 {
 				vfilePC.vwrite(&r_volts[s].x[j])
@@ -59,7 +59,7 @@ proc par_save_membrane_voltage() {local i,s,j,fctr localobj vfilePC
 				fctr = fctr + 1
 			}
 			if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
-			if ($4) {
+			if ($3) {
 				for j=0, r_dvolts[s].size()-1 {
 					vfilePC.vwrite(&r_dvolts[s].x[j])
 				}
