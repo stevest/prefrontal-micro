@@ -1,0 +1,19 @@
+// This HOC file was generated with MATLAB
+nPCcells=1
+nPVcells=1
+nAllCells=2
+steps_per_ms=10
+// Object decleration:
+objref C, W
+C = new Matrix(nAllCells, nAllCells)
+W = new Matrix(nPCcells, nPCcells)
+
+// Import parameters: (long-long text following!)
+C.x[0][0]=0.000000
+C.x[0][1]=0.000000
+C.x[1][0]=0.000000
+C.x[1][1]=0.000000
+
+W.x[0][0]=0.000000
+
+//EOF
