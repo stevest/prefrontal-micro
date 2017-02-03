@@ -11,7 +11,7 @@ ASSIGNED {
 	v		(mV)
 	index
 	lambda 
-	space
+	:space
 	delay
 	randObjPtrUniform
 	randObjPtrPoisson
@@ -20,6 +20,7 @@ ASSIGNED {
 	cellid
 	synid
 	myflag
+	vecsize
 }
 
 PARAMETER { 
@@ -29,7 +30,8 @@ PARAMETER {
 INITIAL {
 	nevents = 0
 	index = 0
-	:myflag = 0
+	myflag = 0
+	vecsize = 0
 	:printf("Initial voltage is: %f\n", v)
 	element()
 	if (index > 0) {
@@ -40,7 +42,6 @@ INITIAL {
 }
 
 BREAKPOINT {
-	:printf("BLAH DE BLAH\n")
 	:printf("Initial voltage is: %f\n", v)
 }
 
@@ -52,6 +53,7 @@ NET_RECEIVE (w) {
 	: flag == 1 means it was triggered from within 
 	if (flag == 1) {
 		:printf("net message has flag == 1\n")
+		vecsize = 0
 		element()
 		:printf("lambda taken from rate vector is: %f\n", lambda)
 		if (index > 0) {
@@ -66,7 +68,7 @@ NET_RECEIVE (w) {
 				:printverbatim()
 				:printf("@t: %f Sending event nevents=%g cellid=%g synID=%g\n", t, nevents,cellid,synid)
 				:if ( myflag == 1 ){
-					:printf("@t=%f cellid=%g nevents=%g myflag=%g\n",t,cellid,nevents,myflag)
+					:printf("@t=%f cellid=%g nevents=%g lambda=%g randno=%g vecsize=%g\n",t,cellid,nevents,lambda,randNo,vecsize)
 					net_event(t)
 					:myflag = myflag +1
 					:myflag = 0
@@ -81,10 +83,12 @@ NET_RECEIVE (w) {
 VERBATIM
 extern double* vector_vec();
 extern int vector_capacity();
+extern int is_vector_arg();
 extern void* vector_arg();
 /* necessary lines for neuron not to get stub functions from nrnnoiv.c */
 double nrn_random_pick(void* r);
 void* nrn_random_arg(int argpos);
+void* space;
 ENDVERBATIM
 
 PROCEDURE printverbatim() {
@@ -102,18 +106,31 @@ PROCEDURE printverbatim() {
 	ENDVERBATIM
 }
 
-PROCEDURE element() { LOCAL vv, i
+PROCEDURE element() {
 VERBATIM	
-  { void* vv; int i, size; double* px;
+  { 
+	void* vv;
+	int i, size,flag;
+	double* px;
 	i = (int)index;
+	size = 0;
+	lambda = 0;
+	flag = 0;
 	// For positive indices of input vector
 	if (i >= 0) {
 		//Get vector pointer
 		vv = *((void**)(&space));
+		//check if ptr is NULL:
+		//printf("vv is %p\n",vv);
 		if (vv) {
 			size = vector_capacity(vv);
+			//printf("vv=%p\n", vv);
+			//printf("space=%p\n", space);
+			//printf("size=%d\n", size);
+			//printf("cellid=%d\n", (int)cellid);
 			px = vector_vec(vv);
 			if (i < size) {
+				//printf("t=%d vv=%p size=%d cellid=%d lambda=%f\n", (int)t, vv, size, (int)cellid, px[i]);
 				// Lambda in current t is taken from vector
 				lambda = px[i];
 				index += 1.;
@@ -128,14 +145,31 @@ VERBATIM
 ENDVERBATIM
 }
 
-PROCEDURE play() { LOCAL vv
+PROCEDURE play() { 
 VERBATIM
 	void** vv;
+	/* Vector function definitions in: ivoc/ivocvect.cpp */
+	int size, sizev, flag;
+
+	flag = 0;
+	size = 0;
 	vv = (void**)(&space);
 	*vv = (void*)0;
 	if (ifarg(1)) {
 		//printf(".play() initialized with vector\n");
+		flag = is_vector_arg(1);
+		/* vector_arg() returns Vect* */
 		*vv = vector_arg(1);
+		size = vector_capacity(*((void**)(&space)));
+		sizev = vector_capacity(*vv);
+		//printf("isvect=%d vv=%p size=%d sizev=%d cellid=%d\n", flag, *vv, size, sizev, (int)cellid);
+		//printf("isvect=%d\n",flag);
+		//printf("space=%p\n",space);
+		//printf("vv=%p\n",*vv);
+		//printf("cellid=%f\n", cellid);
+		//printf("sizevv=%d sizespace=%d\n",size, size);
+	}else{
+		hoc_execerror("Vector object ref not set correctly"," only via hoc Random");
 	}
 	{
 		//int size;
