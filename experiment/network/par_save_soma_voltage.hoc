@@ -1,0 +1,37 @@
+proc par_save_soma_voltage() {local i,s,j,fctr localobj vfilePC
+	strdef ext
+	if ($3) {
+		ext = "bin"
+	} else {
+		ext = "txt"
+	}
+	//print "@=",PC.id, "soma recordedCells.size=",recordedCells.size()
+	for s=0,recordedCells.size()-1{
+		if (object_id(r_volts[s])) {
+			//print "@=",PC.id," Saving soma=",s
+			vfilePC = new File()	
+			sprint(vfilePC_filename,"%s/v_soma_%03d.%s", $s1,recordedCells.x(s),ext) 
+			vfilePC.wopen(vfilePC_filename)
+			fh = vfilePC.isopen()
+			fctr = 0
+			while (!fh) {
+				vfilePC.wopen(vfilePC_filename)
+				fh = vfilePC.isopen()
+				fctr = fctr + 1
+			}
+			if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+			if ($3) {
+				//if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
+				for j=0, r_volts[s].size()-1 {
+					vfilePC.vwrite(&r_volts[s].x[j])
+				}
+			} else {
+				//if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
+				r_volts[s].printf(vfilePC,"%8.4f\n")
+			}
+			vfilePC.close()
+		}else{
+			//print "r_volts[",s,"] does not exist!"
+		}
+	}
+} //End save membrane voltage proc

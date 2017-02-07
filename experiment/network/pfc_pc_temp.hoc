@@ -3,6 +3,7 @@
 //strdef PATH,EXEC_CMD
 //PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
 begintemplate PCcell
+external DEND_NSEG
 
 objref all, somatic, axonal, basal, apical
 
@@ -83,7 +84,7 @@ soma{
 
 dend[0]{
 	//basal dendrites
-	nseg=5//9 //changed to 5 segments to accommodate uniformly spreaded synapses
+	nseg=DEND_NSEG//9 //changed to 5 segments to accommodate uniformly spreaded synapses
 	L=150
 	diam=1 
 	v = v_init_pc
@@ -123,7 +124,7 @@ dend[0]{
 
 apic[0]{
 //proximal dendrites
-	nseg=17   
+	nseg=15   
 	L=400.0
         diam=3.4
 	v = v_init_pc
@@ -177,7 +178,7 @@ apic[0]{
 }
 
 apic[1]{
-	nseg=5
+	nseg=15
 	L=400
 	diam=2.6
 	v = v_init_pc

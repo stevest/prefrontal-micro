@@ -94,10 +94,11 @@ objref BG_NMDAp[nPCcells][BG_apicprSyn]
 objref PCns[nPCcells], PVns[nPCcells], CBns[nPCcells], CRns[nPCcells]
 objref PCsw[nPCcells], PVsw[nPCcells], CBsw[nPCcells], CRsw[nPCcells]
 
-proc noise() { local i
+proc noise() { local i,GID
 	i=0
 	forsec PCsoma_list {
-			PCns[i] = new Random(i+SNd*$1) 
+			GID = PCgids.x(i)
+			PCns[i] = new Random(GID+(nPCcells*$1)*SNd) 
 			PCns[i].poisson(0.5)	//was (0.02)	
 			PCsw[i] = new membNoise(0.5)
 			PCsw[i].dur = tstop //duration of injection
@@ -109,7 +110,8 @@ proc noise() { local i
 
 	i=0
 	forsec PVsoma_list {
-			PVns[i] = new Random(i+SNd*$1+1) 
+			GID = PVgids.x(i)
+			PVns[i] = new Random(GID+(nPVcells*$1)*SNd) 
 			PVns[i].poisson(0.5)	//was (0.02)	
 			PVsw[i] = new membNoise(0.5)
 			PVsw[i].dur=tstop //duration of injection
@@ -177,53 +179,53 @@ if(save_stimulation_locations){
 	{assert(execute1(EXEC_CMD))}
 }
 objref r_stimPC[nPCcells], rApic_stimPC[nPCcells], rBasal_stimPC[nPCcells] 
-proc stimulation() { local i,j,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID  localobj r,rApic,rBasal,ri,rvect
+proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID  localobj r,rApic,rBasal,ri,rvect
 	if(PARALLEL){ PC.barrier() }
 	//Configure RNG for reproducability over differently distributed parallel environments:
 	for kk=0,nPCcells-1{
 		r_stimPC[kk] = new Random(SNd*$1 + 165 + kk )
 		rApic_stimPC[kk] = new Random(SNd*$1 + 12 + kk)
 		rBasal_stimPC[kk] = new Random(SNd*$1 + 67 + kk)
-		PID = 0.5//r_stimPC[kk].uniform(0,1)
+		PID = r_stimPC[kk].uniform(0,1)
 	}
 
-	for i=0, nPCcells - 1  { 
-		if(1){//if(PcellStimList.x(i)){
-		trgGID = ind2gid(i,0) //ONLY FOR PC CELLS!
+	for trg=0, nPCcells - 1  { 
+		if(1){//if(PcellStimList.x(trg)){
+			trgGID = ind2gid(trg,0) //ONLY FOR PC CELLS!
 			if(PARALLEL){
 				bool = PC.gid_exists(trgGID)
 				localID = gid2local(PCgids,trgGID) //target cell
 			}else{
 				bool=1
-				localID = i
+				localID = trg
 			}
 
-			if( bool ){ //&& PcellStimList.x(i)
+			if( bool ){ //&& PcellStimList.x(trg)
 				if(save_stimulation_locations){
 					{sprint(EXEC_CMD,"{stimpidPC2PC[%d] = new Vector()}",trgGID)}
 					{assert(execute1(EXEC_CMD))}
 				}
 				// Apical input:
-				for j=0, (Stim_MaxSyn_apic-1) {
-					//PID=r_stimPC[i].repick()
-					rApicIdx = int(rApic_stimPC[i].uniform(0,PCcells.o(localID).ApicNo-1))
+				for syn=0, (Stim_MaxSyn_apic-1) {
+					PID=r_stimPC[trg].repick()
+					rApicIdx = int(rApic_stimPC[trg].uniform(0,PCcells.o(localID).ApicNo-1))
 					if(save_stimulation_locations){
 						{sprint(EXEC_CMD,"{stimpidPC2PC[%d].append(%f)}",trgGID,PID)}
 						{assert(execute1(EXEC_CMD))}
 					}
 					rApicIdx = 0 //PROXIMAL!
-					PCcells.o(localID).apic[rApicIdx] {ampapr[i][j] = new GLU(PID)}
-					PCcells.o(localID).apic[rApicIdx] {nmdapr[i][j] = new nmda_segev(PID)}
+					PCcells.o(localID).apic[rApicIdx] {ampapr[trg][syn] = new GLU(PID)}
+					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn] = new nmda_segev(PID)}
 
-					ncAMPA[i][j] = new NetCon(sns, ampapr[i][j]) //vstim_stim[i][j]
-					ncAMPA[i][j].delay=1000
-					ncAMPA[i][j].weight = ampaweightpr// *15//SSS
-					ncAMPA[i][j].threshold=-10 
+					ncAMPA[trg][syn] = new NetCon(sns, ampapr[trg][syn]) //vstim_stim[trg][syn]
+					ncAMPA[trg][syn].delay=1000
+					ncAMPA[trg][syn].weight = ampaweightpr// *15//SSS
+					ncAMPA[trg][syn].threshold=-10 
 
-					ncNMDA[i][j] = new NetCon(sns, nmdapr[i][j])
-					ncNMDA[i][j].delay=1000
-					ncNMDA[i][j].weight = nmdaweightpr// *15//SSS
-					ncNMDA[i][j].threshold=-10
+					ncNMDA[trg][syn] = new NetCon(sns, nmdapr[trg][syn])
+					ncNMDA[trg][syn].delay=1000
+					ncNMDA[trg][syn].weight = nmdaweightpr// *15//SSS
+					ncNMDA[trg][syn].threshold=-10
 				}
 
 			} //if bool
@@ -256,7 +258,8 @@ objref rateVect
 objref netstim_dend[nPCcells*BG_dendSyn]
 
 if(save_background_locations){
-	{sprint(EXEC_CMD,"{objref bgstimpidPC2PC[%d]}",nPCcells)}
+	//which PID in which dendrite (basal, apical, apical pr)
+	{sprint(EXEC_CMD,"{objref bgstimpid[%d][%d]}",3,nPCcells)}
 	{assert(execute1(EXEC_CMD))}
 }
 
@@ -326,26 +329,27 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 			RLA = rla.uniform(0,PCcells.o(localID).ApicNo-1)
 
 			if(save_background_locations){
-				{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d] = new Vector()}",trgGID)}
+				{sprint(EXEC_CMD,"{bgstimpid[0][%d] = new Vector()}",trgGID)}
+				{assert(execute1(EXEC_CMD))}
+				{sprint(EXEC_CMD,"{bgstimpid[1][%d] = new Vector()}",trgGID)}
+				{assert(execute1(EXEC_CMD))}
+				{sprint(EXEC_CMD,"{bgstimpid[2][%d] = new Vector()}",trgGID)}
 				{assert(execute1(EXEC_CMD))}
 			}
+//print "BG basal synapses are: ",BG_dendSyn
+			RLB = 0 // Basals!!
 			for syn_dend=0, BG_dendSyn-1 {
-				//RLB = 0
-				//PID = (syn_dend+1)/(BG_dendSyn+1)// ?!?!? Why is that?
 				PID = r.repick()
 				if(save_background_locations){
-					{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d].append(%f)}",trgGID,PID)}
+					{sprint(EXEC_CMD,"{bgstimpid[0][%d].append(%f)}",trgGID,PID)}
 					{assert(execute1(EXEC_CMD))}
 				}
-				RLB = 0 // Basals!!
-				PCcells.o(localID).soma {ampaBGd[trg][syn_dend]=new GLU(PID)}
-				PCcells.o(localID).soma {nmdaBGd[trg][syn_dend]=new nmda_segev(PID)}
-
-				//RLB = rlb.repick()
+				PCcells.o(localID).dend {ampaBGd[trg][syn_dend]=new GLU(PID)}
+				PCcells.o(localID).dend {nmdaBGd[trg][syn_dend]=new nmda_segev(PID)}
 
 				artgid = nAllCells + trg + (nPCcells*syn_dend)
-				BG_AMPAd[trg][syn_dend] = makeSynapse(PCcells,0,artgid,ampaBGd[trg][syn_dend],-10,1,ampaweight)
-				BG_NMDAd[trg][syn_dend] = makeSynapse(PCcells,0,artgid,nmdaBGd[trg][syn_dend],-10,1,0.25)
+				BG_AMPAd[trg][syn_dend] = makeSynapse(PCcells,0,artgid,ampaBGd[trg][syn_dend],-10,1,bg_ampa_weight_d)
+				BG_NMDAd[trg][syn_dend] = makeSynapse(PCcells,0,artgid,nmdaBGd[trg][syn_dend],-10,1,bg_nmda_weight_d)
 
 				if(save_bg_iampa){
 						{sprint(EXEC_CMD,"{bg_iampa[%d][%d] = new Vector()}",trg,syn_dend)}
@@ -354,42 +358,36 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 						{assert(execute1(EXEC_CMD))}
 				}
 			}
-
-			for syn_apic=0, BG_apicSyn-1 {
-				//RLA = 0
-				//PID = (syn_apic+1)/(BG_apicSyn+1)
-				PID = r.repick()
-				if(save_background_locations){
-					{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d].append(%f)}",trgGID,PID)}
-					{assert(execute1(EXEC_CMD))}
-				}
-				RLA = 1 //distal!!
-				PCcells.o(localID).apic[RLA] ampaBGa[trg][syn_apic]=new GLU(PID)
-				PCcells.o(localID).apic[RLA] nmdaBGa[trg][syn_apic]=new nmda_segev(PID)
-
-				//RLA = rla.repick()
-
-				artgid = nAllCells + trg + (nPCcells*syn_apic)
-				BG_AMPAa[trg][syn_apic] = makeSynapse(PCcells,0,artgid,ampaBGa[trg][syn_apic],-10,1,ampaweightpr)
-				BG_NMDAa[trg][syn_apic] = makeSynapse(PCcells,0,artgid,nmdaBGa[trg][syn_apic],-10,1,0.2)
-
-			}
-
+//print "BG apical proximal synapses are: ",BG_apicprSyn
 			for syn_apicpr=0, BG_apicprSyn-1 {
-				//RLA = 0
-				//PID = (syn_apicpr+1)/(BG_apicprSyn+1)
+				RLA = 0 //proximal!!
 				PID = r.repick()
 				if(save_background_locations){
-					{sprint(EXEC_CMD,"{bgstimpidPC2PC[%d].append(%f)}",trgGID,PID)}
+					{sprint(EXEC_CMD,"{bgstimpid[1][%d].append(%f)}",trgGID,PID)}
 					{assert(execute1(EXEC_CMD))}
 				}
-				RLA = 0 //proximal!!
 				PCcells.o(localID).apic[RLA] ampaBGp[trg][syn_apicpr]=new GLU(PID)
 				PCcells.o(localID).apic[RLA] nmdaBGp[trg][syn_apicpr]=new nmda_segev(PID)
 
 				artgid = nAllCells + trg + (nPCcells*syn_apicpr)
-				BG_AMPAp[trg][syn_apicpr] = makeSynapse(PCcells,0,artgid,ampaBGp[trg][syn_apicpr],-10,1,ampaweightpr)
-				BG_NMDAp[trg][syn_apicpr] = makeSynapse(PCcells,0,artgid,nmdaBGp[trg][syn_apicpr],-10,1,0.22)
+				BG_AMPAp[trg][syn_apicpr] = makeSynapse(PCcells,0,artgid,ampaBGp[trg][syn_apicpr],-10,1,bg_ampa_weight_pr)
+				BG_NMDAp[trg][syn_apicpr] = makeSynapse(PCcells,0,artgid,nmdaBGp[trg][syn_apicpr],-10,1,bg_nmda_weight_pr)
+
+			}
+//print "BG apical distal synapses are: ",BG_apicSyn
+			RLA = 1 //distal!!
+			for syn_apic=0, BG_apicSyn-1 {
+				PID = r.repick()
+				if(save_background_locations){
+					{sprint(EXEC_CMD,"{bgstimpid[2][%d].append(%f)}",trgGID,PID)}
+					{assert(execute1(EXEC_CMD))}
+				}
+				PCcells.o(localID).apic[RLA] ampaBGa[trg][syn_apic]=new GLU(PID)
+				PCcells.o(localID).apic[RLA] nmdaBGa[trg][syn_apic]=new nmda_segev(PID)
+
+				artgid = nAllCells + trg + (nPCcells*syn_apic)
+				BG_AMPAa[trg][syn_apic] = makeSynapse(PCcells,0,artgid,ampaBGa[trg][syn_apic],-10,1,bg_ampa_weight_a)
+				BG_NMDAa[trg][syn_apic] = makeSynapse(PCcells,0,artgid,nmdaBGa[trg][syn_apic],-10,1,bg_nmda_weight_a)
 
 			}
 		}//end bool
@@ -442,7 +440,7 @@ proc backgroundActivityPV() { local artgid,PID,trg,syn,bool,localID,trgGID local
 				artgid = nAllCells + nPCcells*(BG_dendSyn+BG_apicSyn+BG_apicprSyn) + trg + (nPVcells*syn)
 				//associate artgid with current node:
 				PC.set_gid2node(artgid,PC.id)
-				print "Associating artgid=",artgid," with PC.id=",PC.id
+				//print "Associating artgid=",artgid," with PC.id=",PC.id
 				//associate ARTIFICIAL_CELL output to artgid:
 				PC.cell(artgid,new NetCon(nhPoissonStimPV[trg + (nPVcells*syn)], mynil),1)
 

@@ -1,20 +1,22 @@
-proc par_save_background_locations_PCrec(){ 
-	{ PC.barrier() } 
+proc par_save_background_locations_PCrec(){  local i
 	strdef ext
-	if ($4) {
-	ext = "bin"
+	if ($3) {
+		ext = "bin"
 	} else {
-	ext = "txt"
+		ext = "txt"
 	}
-	for src=0, nPCcells-1{
-		{PC.barrier()}
-		if (object_id(bgstimpidPC2PC[src]) != 0){
-			str = ""
-			sprint(str,"Background Stim locations src %d:",src)
-			for ii=0,bgstimpidPC2PC[src].size()-1{
-				sprint(str,"%s %f",str, bgstimpidPC2PC[src].x[ii])
+	for trg=0, nPCcells-1{
+		//For all basal,apical proximal, apical distal
+		for i=0,2{
+			if (object_id(bgstimpid[i][trg]) != 0){
+				{PC.barrier()}
+				str = ""
+				sprint(str,"Background Stim locations trg %d= dendid=%d",trg,i)
+				for ii=0,bgstimpid[i][trg].size()-1{
+					sprint(str,"%s %f",str, bgstimpid[i][trg].x[ii])
+				}
+				print str
 			}
-			print str
 		}
 	}
 }

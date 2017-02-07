@@ -3,6 +3,7 @@
 DEBUG=1
 ISBINARY=0
 ID=12
+DEND_NSEG = 5
 strdef pprintStr
 strdef PATH, PPRINT_CMD
 //PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
@@ -75,7 +76,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 4000 
+tstop = 2000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -171,6 +172,13 @@ if(DEBUG){pprint("Load interneuron templates.")}
 
 //overwrite with NASSI's values:
 //-------------------Set synaptic weights
+bg_nmda_weight_d = 0.25
+bg_nmda_weight_a = 0.2
+bg_nmda_weight_pr = 0.22
+bg_ampa_weight_d = 0.00019
+bg_ampa_weight_a = 0.00024
+bg_ampa_weight_pr = 0.00024
+
 ampaweightpr=	0.00024			//Initial stimulus
 nmdaweightpr=	0.22			//Initial stimulus
 ampaweight=	0.00019		//According to Wang(2008)
@@ -182,18 +190,18 @@ autogabaweight=	0.006205				//According to Bacci (2003)
 PC2PV_MaxSyn = 4 //7is the June working
 PV2PC_MaxSyn = 3 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
 //------------------Set # of synapses
-synapses_backb=300//16//18//60//100
-synapses_backpr=300//16//18//60//100
-synapses_backa=300//16//18//60//100
-synapses_backinh=500
-synapses_inh=1
+//synapses_backb=300//16//18//60//100
+//synapses_backpr=300//16//18//60//100
+//synapses_backa=300//16//18//60//100
+//synapses_backinh=500
+//synapses_inh=1
 
 //override complex background spiketrains:
 //Background activity like Haider
 //PC ~1Hz, PV ~14Hz
-BG_dendSyn = BGE//2 synapses as of 1/10/15 
-BG_apicSyn = BGE//2 synapses as of 1/10/15
-BG_apicprSyn = BGE//2 synapses as of 1/10/15
+BG_dendSyn = 5//BGE//2 synapses as of 1/10/15 
+BG_apicSyn = 80//BGE//2 synapses as of 1/10/15
+BG_apicprSyn = 80//2 synapses as of 1/10/15
 BG_PVSyn = BGI //2 synapses as of
 BG_all = BG_dendSyn + BG_apicSyn + BG_apicprSyn
 
@@ -228,9 +236,9 @@ if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Load network parameters.")}
 
-//sadp_soma()
-//sadp_dend()
-//sadp_apical()  //mplokara kai stous apical
+sadp_soma()
+sadp_dend()
+sadp_apical()  //mplokara kai stous apical
 {sprint(EXEC_CMD,"{xopen(\"%srecord_par.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
 
@@ -258,7 +266,7 @@ objref timevec, idvec, recncs, tobj, nil, total_activity
 strdef foutput
 
 if(PARALLEL){
-	if(1){report_gidvecs()}
+	if(0){report_gidvecs()}
 	if (PC.id == 0) {
 		{sprint(syscmd,"mkdir -p multi_core")}
 		{system(syscmd)}
@@ -349,7 +357,8 @@ if(0){
 if(PARALLEL){
 	recordedCells = new Vector()
 	for pyr=0,offsets.x[3]-1{ // record all cells!
-	  par_rec_membrane_voltage(pyr)
+	  par_rec_soma_voltage(pyr)
+	  par_rec_dend_voltage(pyr)
 	}
 	//for lala=0,offsets.x[1]-1{ // record all cells!
 	  //par_rec_anyvar(lala)
@@ -397,10 +406,16 @@ if(PARALLEL){
 	{ PC.barrier()	}
 	
 	if(1){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_membrane_voltage.hoc\")}",PATH)}
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_soma_voltage.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_membrane_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
-		{pprint("par_save_membrane_voltage() is active.")}
+		par_save_soma_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
+		{pprint("par_save_soma_voltage() is active.")}
+	}
+	if(1){
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_voltage.hoc\")}",PATH)}
+		if(1){assert(execute1(EXEC_CMD))}
+		par_save_dend_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
+		{pprint("par_save_dend_voltage() is active.")}
 	}
 	if(save_synaptic_locations){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_locations_PCrec.hoc\")}",PATH)}

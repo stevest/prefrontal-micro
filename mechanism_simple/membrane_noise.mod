@@ -57,7 +57,7 @@ BREAKPOINT {
 } 
 
 VERBATIM
-	/* /!\ necessary lines for neuron not to get stub functions from nrnnoiv.c */
+	/* necessary lines for neuron not to get stub functions from nrnnoiv.c */
 	double nrn_random_pick(void* r);
 	void* nrn_random_arg(int argpos);
 ENDVERBATIM 

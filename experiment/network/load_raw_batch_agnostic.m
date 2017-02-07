@@ -32,4 +32,28 @@ for fn = 1:length(files_v_soma)
 end
 fprintf('Files v_soma deleted!\n');
 
+files_v_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'v_dend')),rf)));
+vdend = cell(length(files_v_soma),1);
+tic;
+for fn = 1:length(files_v_dend)
+	%filter the dend segment!
+	tmp = strsplit(files_v_dend{fn}, {'_','.'} );
+	seg = str2double(tmp{3})+1;
+	dend = str2double(tmp{4})+1;
+    filename = fullfile(pathto,files_v_dend{fn});
+    vtrace = load(filename);
+    % dt equals 0.1:
+    vtrace = vtrace(1:10:end);
+    vdend{dend,seg} = vtrace;
+end
+fprintf('Time: %f secs\n',toc);
+outputfile = fullfile(pathto,'vdend.mat');
+save(outputfile, 'vdend');
+% remove files to save space and sanity:
+for fn = 1:length(files_v_dend)
+    filename = fullfile(pathto,files_v_dend{fn});
+    delete(filename);	
+end
+fprintf('Files v_dend deleted!\n');
+
 end

@@ -45,7 +45,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="312" ##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="48" ##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="6"
 # 0=Random, 1=Structured
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
@@ -53,10 +53,14 @@ exp="1"
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 sn="10"
 clustbias="1"
-excitbias="1"
+excitbias="6"
 inhibias="1"
+## How many clusters I do identify 
 Cl="7"
-Fs="1"
+## How much (normalized) the weights are squashed into a narrow uniform distribution
+## Zero means original lognormal weights dist; One means quantized 0.5 weights (connectivity of pairs
+## 	stays the same.
+Fs="0"
 startRun="0"
 endRun="0"
 VARPID="0.5"
@@ -78,13 +82,13 @@ jobstdout="$jobstdout\\\n=======================================================
 for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
 run="0"
-for BGe in $(seq 1 1); do
-	for BGi in $(seq 1 1); do
+for BGe in $(seq 7 7); do
+	for BGi in $(seq 5 5); do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
-		jobname="control_excx${excitbias}_inhx${inhibias}_BGE${BGe}_BGI${BGi}_Ss4c${cluster}_SN${sn}_r"
+		jobname="test_excx${excitbias}_inhx${inhibias}_BGE${BGe}_BGI${BGi}_Fs${Fs}_Cl${Cl}_Ss4c${cluster}_SN${sn}_r"
 	else
-		jobname="control_excx${excitbias}_inhx${inhibias}_BGE${BGe}_BGI${BGi}_Rs4c${cluster}_SN${sn}_r"
+		jobname="control_excx${excitbias}_inhx${inhibias}_BGE${BGe}_BGI${BGi}_Fs${Fs}_Cl${Cl}_Rs4c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
@@ -100,7 +104,7 @@ for BGe in $(seq 1 1); do
 	## Submit as Job in Sun Grid Engine:
 	if [ "$schedule" == "1" ]; then
 	echo -e "${INFO}SCHEDULER VERSION IS COMMENCING ${NOC}"
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 1-$nodes -p -3 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p -3 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
 	-c "RUN=$run" \
 	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
 	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \
