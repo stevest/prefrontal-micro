@@ -89,6 +89,21 @@ objref BG_NMDAa[nPCcells][BG_apicSyn]
 objref BG_AMPAp[nPCcells][BG_apicprSyn]
 objref BG_NMDAp[nPCcells][BG_apicprSyn]
 
+// Record events artificial neurons:
+/*
+objref ERvectors[nPCcells]
+objref ERneurons[nPCcells]
+proc events_recorder() {
+	if (PC.id == 0) {
+		for k=0, nPCcells-1 {
+			ERvectors[k] = new Vector()
+			ERneurons[k] = new ERneuron()
+			ERneurons[k].recordto(ERvectors[k])
+		}
+	}
+}
+*/
+
 //----------------------------------------------Insert noise-----------------------------------------------------------//
 //INSERT MOD FILE FOR SINE WAVE
 objref PCns[nPCcells], PVns[nPCcells], CBns[nPCcells], CRns[nPCcells]
@@ -158,12 +173,15 @@ proc par_gap_create_now() {localobj c, g
 		par_gaps.append(g)
 		PC.target_var(g, &g.vgap, $3)
 		PC.source_var(&v(.5), $2)
-		g.g = $4
-	}
+		g.g = $4 }
 }
 
 //---------------------------Initial stimulation (proximal dendrite)(Kuroda, 1998, Constantinides, 2001)---------------//
-
+//Had issues with parallel execution of NetStim. Lets hope that his gets executed 
+// for all the stimulated cells.
+//Particularly the NetStim will be created and connected with netcon, but no activity will follow!
+//Still havent came to a conclusion about the erroneus behaviour or any fix, appart from 
+// instantiating NetStim outside any proc!
 objref sns
 sns  = new NetStim(0.5)
 sns.interval=20//14.28//12.5//SSS 
@@ -179,7 +197,13 @@ if(save_stimulation_locations){
 	{assert(execute1(EXEC_CMD))}
 }
 objref r_stimPC[nPCcells], rApic_stimPC[nPCcells], rBasal_stimPC[nPCcells] 
-proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID  localobj r,rApic,rBasal,ri,rvect
+objref stim_artcell[nPCcells*Stim_MaxSyn_apic]
+objref STIMgids, STIMcells
+//keep the GIDs of the stimulation artificial cells
+//ALL NetStim artificial cells MUST lie in node 0!
+STIMgids = new Vector()
+STIMcells = new List()
+proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID,artgid  localobj r,rApic,rBasal,ri,rvect,mynil,artcell
 	if(PARALLEL){ PC.barrier() }
 	//Configure RNG for reproducability over differently distributed parallel environments:
 	for kk=0,nPCcells-1{
@@ -188,9 +212,34 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 		rBasal_stimPC[kk] = new Random(SNd*$1 + 67 + kk)
 		PID = r_stimPC[kk].uniform(0,1)
 	}
+	for trg=0, nPCcells-1 {
+		if(PARALLEL){
+			bool = (PC.id==0)
+		}else{
+			bool=1
+		}
+		if (bool) { 
+			for syn=0, (Stim_MaxSyn_apic-1) {
+				artcell = new NetStim()
+				artcell.interval = 20
+				artcell.number = 50
+				artcell.start = 0
+				artcell.noise = 0.2
+				//artificial cell gids:
+				//MAKE SURE NO GIDS ARE THE SAME!
+				artgid = trg + syn*nPCcells + nPCcells + nPVcells 
+				//associate artgid with current node (first node):
+				PC.set_gid2node(artgid,PC.id)
+				//print "Associating artgid=",artgid," with PC.id=",PC.id
+				//associate ARTIFICIAL_CELL output to artgid:
+				PC.cell(artgid,new NetCon(artcell, mynil),1)
+				STIMcells.append(artcell)
+			}
+		}
+	}
 
 	for trg=0, nPCcells - 1  { 
-		if(1){//if(PcellStimList.x(trg)){
+		if(PcellStimList.x(trg)){
 			trgGID = ind2gid(trg,0) //ONLY FOR PC CELLS!
 			if(PARALLEL){
 				bool = PC.gid_exists(trgGID)
@@ -205,6 +254,7 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 					{sprint(EXEC_CMD,"{stimpidPC2PC[%d] = new Vector()}",trgGID)}
 					{assert(execute1(EXEC_CMD))}
 				}
+		print "@=",PC.id," stimulating pyramidal=",trgGID
 				// Apical input:
 				for syn=0, (Stim_MaxSyn_apic-1) {
 					PID=r_stimPC[trg].repick()
@@ -216,16 +266,24 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 					rApicIdx = 0 //PROXIMAL!
 					PCcells.o(localID).apic[rApicIdx] {ampapr[trg][syn] = new GLU(PID)}
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn] = new nmda_segev(PID)}
+					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn].mybeta = 0.0}
+					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn].cellid = trgGID}
 
+					artgid = trg + syn*nPCcells + nPCcells + nPVcells 
+
+					ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1000,ampaweight_stimulus)
+					ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1000,nmdaweight_stimulus)
+/*
 					ncAMPA[trg][syn] = new NetCon(sns, ampapr[trg][syn]) //vstim_stim[trg][syn]
 					ncAMPA[trg][syn].delay=1000
-					ncAMPA[trg][syn].weight = ampaweightpr// *15//SSS
+					ncAMPA[trg][syn].weight = ampaweight_stimulus// *15//SSS
 					ncAMPA[trg][syn].threshold=-10 
 
 					ncNMDA[trg][syn] = new NetCon(sns, nmdapr[trg][syn])
 					ncNMDA[trg][syn].delay=1000
-					ncNMDA[trg][syn].weight = nmdaweightpr// *15//SSS
+					ncNMDA[trg][syn].weight = nmdaweight_stimulus// *15//SSS
 					ncNMDA[trg][syn].threshold=-10
+*/
 				}
 
 			} //if bool
@@ -267,7 +325,14 @@ if(save_bg_iampa){
 	{sprint(EXEC_CMD,"{objref bg_iampa[%d][%d]}",nPCcells,BG_dendSyn)}
 	{assert(execute1(EXEC_CMD))}
 }
-
+objref ns1
+ns1=new NetStim()
+ns1.interval=10
+ns1.number=40
+ns1.start=0
+ns1.noise=0
+//myr = new Random(0)
+//myr.normal(0, 0.3)
 proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,RV,RLB,RLA,localID,trgGID,StimDur,StimFreq,StimNo,SynapsesNo localobj mynil,r,rv,rlb,rla
 	r = new Random(SNd*$1 + 300 + PC.id)
 	rv = new Random(SNd*$1 +400)
@@ -302,7 +367,7 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 				nhPoissonStim_dend[trg + (nPCcells*syn_dend)].play(rateVect)
 
 				//artificial cell gids:
-				artgid = nAllCells + trg + (nPCcells*syn_dend)
+				artgid = nPCcells+nPVcells+(nPCcells*Stim_MaxSyn_apic) + trg + (nPCcells*syn_dend)
 				//associate artgid with current node:
 				PC.set_gid2node(artgid,PC.id)
 				//print "Associating artgid=",artgid," with PC.id=",PC.id
@@ -336,7 +401,7 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 				{sprint(EXEC_CMD,"{bgstimpid[2][%d] = new Vector()}",trgGID)}
 				{assert(execute1(EXEC_CMD))}
 			}
-//print "BG basal synapses are: ",BG_dendSyn
+
 			RLB = 0 // Basals!!
 			for syn_dend=0, BG_dendSyn-1 {
 				PID = r.repick()
@@ -347,9 +412,13 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 				PCcells.o(localID).dend {ampaBGd[trg][syn_dend]=new GLU(PID)}
 				PCcells.o(localID).dend {nmdaBGd[trg][syn_dend]=new nmda_segev(PID)}
 
-				artgid = nAllCells + trg + (nPCcells*syn_dend)
+				//artgid = nAllCells + trg + (nPCcells*syn_dend)
+				artgid = nPCcells+nPVcells+(nPCcells*Stim_MaxSyn_apic) + trg + (nPCcells*syn_dend)
 				BG_AMPAd[trg][syn_dend] = makeSynapse(PCcells,0,artgid,ampaBGd[trg][syn_dend],-10,1,bg_ampa_weight_d)
 				BG_NMDAd[trg][syn_dend] = makeSynapse(PCcells,0,artgid,nmdaBGd[trg][syn_dend],-10,1,bg_nmda_weight_d)
+//print "@=",PC.id," trgGID=",trgGID," Even if delcared above, ns1 is: ",object_id(ns1)," and interval is: ",ns1.interval
+				//BG_AMPAd[trg][syn_dend] = new NetCon(ns1, ampaBGd[trg][syn_dend],-10,1,bg_ampa_weight_d)
+				//BG_NMDAd[trg][syn_dend] = new NetCon(ns1, nmdaBGd[trg][syn_dend],-10,1,bg_nmda_weight_d)
 
 				if(save_bg_iampa){
 						{sprint(EXEC_CMD,"{bg_iampa[%d][%d] = new Vector()}",trg,syn_dend)}
@@ -358,7 +427,7 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 						{assert(execute1(EXEC_CMD))}
 				}
 			}
-//print "BG apical proximal synapses are: ",BG_apicprSyn
+
 			for syn_apicpr=0, BG_apicprSyn-1 {
 				RLA = 0 //proximal!!
 				PID = r.repick()
@@ -369,12 +438,13 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 				PCcells.o(localID).apic[RLA] ampaBGp[trg][syn_apicpr]=new GLU(PID)
 				PCcells.o(localID).apic[RLA] nmdaBGp[trg][syn_apicpr]=new nmda_segev(PID)
 
-				artgid = nAllCells + trg + (nPCcells*syn_apicpr)
+				//artgid = nAllCells + trg + (nPCcells*syn_apicpr)
+				artgid = nPCcells+nPVcells+(nPCcells*Stim_MaxSyn_apic)+(nPCcells*BG_dendSyn) + trg + (nPCcells*syn_apicpr)
 				BG_AMPAp[trg][syn_apicpr] = makeSynapse(PCcells,0,artgid,ampaBGp[trg][syn_apicpr],-10,1,bg_ampa_weight_pr)
 				BG_NMDAp[trg][syn_apicpr] = makeSynapse(PCcells,0,artgid,nmdaBGp[trg][syn_apicpr],-10,1,bg_nmda_weight_pr)
 
 			}
-//print "BG apical distal synapses are: ",BG_apicSyn
+
 			RLA = 1 //distal!!
 			for syn_apic=0, BG_apicSyn-1 {
 				PID = r.repick()
@@ -385,7 +455,8 @@ proc backgroundActivity() { local artgid,trg,syn_dend, syn_apic,syn_apicpr,PID,R
 				PCcells.o(localID).apic[RLA] ampaBGa[trg][syn_apic]=new GLU(PID)
 				PCcells.o(localID).apic[RLA] nmdaBGa[trg][syn_apic]=new nmda_segev(PID)
 
-				artgid = nAllCells + trg + (nPCcells*syn_apic)
+				//artgid = nAllCells + trg + (nPCcells*syn_apic)
+				artgid = nPCcells+nPVcells+(nPCcells*Stim_MaxSyn_apic)+(nPCcells*BG_dendSyn)+(nPCcells*BG_apicprSyn) + trg + (nPCcells*syn_apic)
 				BG_AMPAa[trg][syn_apic] = makeSynapse(PCcells,0,artgid,ampaBGa[trg][syn_apic],-10,1,bg_ampa_weight_a)
 				BG_NMDAa[trg][syn_apic] = makeSynapse(PCcells,0,artgid,nmdaBGa[trg][syn_apic],-10,1,bg_nmda_weight_a)
 
@@ -461,7 +532,7 @@ proc backgroundActivityPV() { local artgid,PID,trg,syn,bool,localID,trgGID local
 		}
 		if (bool) { 
 			for syn=0, (BG_PVSyn-1) {
-				PID = 0.5//r.repick()
+				PID = r.repick()
 				PVcells.o(localID).dend ampaBGPV[trg][syn] = new GLUIN(PID) //no Dends available in the model! (???????)
 				PVcells.o(localID).dend nmdaBGPV[trg][syn] = new NMDA(PID)
 	
@@ -613,6 +684,10 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							}
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+							//if (trgGID == 85) {
+								PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn].mybeta = NMDA_BETA}
+							//}
+							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn].cellid = trgGID}
 							if(save_inmda){
 								//if( PcellStimList.x(trg)  ){ 			
 									{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}

@@ -45,22 +45,30 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="48" ##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="312" ##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="6"
 # 0=Random, 1=Structured
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 exp="1"
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 sn="10"
-clustbias="1"
-excitbias="6"
-inhibias="1"
+clustbias="0.0"
+##excitbias="1"
+inhibias="0.2"
+gababfactor="10"
+BGe="20"
+BGi="1"
+## NMDA beta is a factor that shifts the lognormal function to the left 
+## if negative (minus sign is inside its mod file) so greater values
+## enhance gNMDA.
+nmdabeta="0"
+dendnseg="5"
 ## How many clusters I do identify 
 Cl="7"
 ## How much (normalized) the weights are squashed into a narrow uniform distribution
 ## Zero means original lognormal weights dist; One means quantized 0.5 weights (connectivity of pairs
 ## 	stays the same.
-Fs="0"
+Fs="1"
 startRun="0"
 endRun="0"
 VARPID="0.5"
@@ -68,7 +76,6 @@ custom_jobs=(41 42)
 #naming convention in ten characters:
 
 mechanisms="mechanism_simple"
-
 
 if [ "$parallel" == "1" ]; then
 
@@ -82,13 +89,13 @@ jobstdout="$jobstdout\\\n=======================================================
 for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
 run="0"
-for BGe in $(seq 7 7); do
-	for BGi in $(seq 5 5); do
+for excitbias in $(seq 20 20); do
+	for inhibias in $(seq 0.7 0.7); do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
-		jobname="test_excx${excitbias}_inhx${inhibias}_BGE${BGe}_BGI${BGi}_Fs${Fs}_Cl${Cl}_Ss4c${cluster}_SN${sn}_r"
+		jobname="test_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NB$(printf '%.3f' $nmdabeta)_Ss4c${cluster}_SN${sn}_r"
 	else
-		jobname="control_excx${excitbias}_inhx${inhibias}_BGE${BGe}_BGI${BGi}_Fs${Fs}_Cl${Cl}_Rs4c${cluster}_SN${sn}_r"
+		jobname="test_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NB$(printf '%.3f' $nmdabeta)_Rs4c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
@@ -124,6 +131,9 @@ for BGe in $(seq 7 7); do
 	-c "CL=$Cl" \
 	-c "BGE=$BGe" \
 	-c "BGI=$BGi" \
+	-c "NMDA_BETA=$nmdabeta" \
+	-c "DEND_NSEG=$dendnseg" \
+	-c "GABABFACTOR=$gababfactor" \
 	-c "VARPID=$VARPID" \
 	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 

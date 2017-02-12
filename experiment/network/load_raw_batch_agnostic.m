@@ -1,4 +1,4 @@
-function [batch]=load_raw_batch_agnostic(pathto,varargin)
+function [vsoma]=load_raw_batch_agnostic(pathto,varargin)
 % Load experiment batch..
 % ...GIVEN that one run is inside the pathto folder.
 % One run is equivalent to one MPI batch job (in its own folder!).
@@ -11,27 +11,30 @@ if isempty(r)
     return;
 end
 rf = {r(~[r.isdir]).name};
-% Get only .bin files:
+
+% Handle pyramidal somatic voltage:
 files_v_soma = sort(rf(cellfun(@(x) ~isempty(strfind(x,'v_soma')),rf)));
-batch = cell(length(files_v_soma),1);
+vsoma = cell(length(files_v_soma),1);
 tic;
 for fn = 1:length(files_v_soma)
     filename = fullfile(pathto,files_v_soma{fn});
     vtrace = load(filename);
     % dt equals 0.1:
     vtrace = vtrace(1:10:end);
-    batch{fn} = vtrace;
+    vsoma{fn} = vtrace;
 end
 fprintf('Time: %f secs\n',toc);
-outputfile = fullfile(pathto,'batch.mat');
-save(outputfile, 'batch');
+outputfile = fullfile(pathto,'vsoma.mat');
+save(outputfile, 'vsoma');
 % remove files to save space and sanity:
+tic;
 for fn = 1:length(files_v_soma)
     filename = fullfile(pathto,files_v_soma{fn});
     delete(filename);	
 end
-fprintf('Files v_soma deleted!\n');
+fprintf('Files v_soma deleted (Time: %f secs)!\n',toc);
 
+% Handle pyramidal dendritic voltage:
 files_v_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'v_dend')),rf)));
 vdend = cell(length(files_v_soma),1);
 tic;
@@ -49,11 +52,98 @@ end
 fprintf('Time: %f secs\n',toc);
 outputfile = fullfile(pathto,'vdend.mat');
 save(outputfile, 'vdend');
+tic;
 % remove files to save space and sanity:
 for fn = 1:length(files_v_dend)
     filename = fullfile(pathto,files_v_dend{fn});
     delete(filename);	
 end
-fprintf('Files v_dend deleted!\n');
+fprintf('Files v_dend deleted (Time: %f secs)!\n',toc);
+
+% Handle pyramidal to opyramidal synaptic locations:
+files_pid_pyramidal = sort(rf(cellfun(@(x) ~isempty(strfind(x,'pidpyramidal')),rf)));
+pidpyramidal = cell(length(files_v_soma),length(files_v_soma));
+tic;
+for fn = 1:length(files_pid_pyramidal)
+	%get files per node id:
+    filename = fullfile(pathto,files_pid_pyramidal{fn});
+    % Parse the old spike train data:
+    fid = fopen( filename, 'r' );
+    fcont = textscan( fid, '%s', 'Delimiter', '\n' );
+    totalRows = size(fcont{1},1);
+    fclose( fid );
+    for crn = 1:totalRows
+        cr = fcont{1}{crn,1};
+        if strfind(cr,'src=')
+            crdump = strsplit(cr, {'src=','trg=',' '} );
+            src = str2double(crdump{2})+1;
+            trg = str2double(crdump{3})+1;
+            continue;
+        end
+        % each normal line MUST be just a float!
+        pid = str2double(cr);
+        % check for empty lines:
+        if pid >= 0 && ~isnan(pid)
+            if ~exist('src','var') || ~exist('trg','var')
+                warning('src/trg nonexisting in line %d, file %s !',crn,filename);
+            else
+                pidpyramidal{src,trg} = [pidpyramidal{src,trg} pid];
+            end
+        end
+    end
+end
+fprintf('Time: %f secs\n',toc);
+outputfile = fullfile(pathto,'pidpyramidal.mat');
+save(outputfile, 'pidpyramidal');
+% remove files to save space and sanity:
+tic;
+for fn = 1:length(files_pid_pyramidal)
+    filename = fullfile(pathto,files_pid_pyramidal{fn});
+    delete(filename);	
+end
+fprintf('Files files_pid_pyramidal deleted (Time: %f secs)!\n',toc);
+
+% Handle pyramidal to opyramidal delays:
+files_delay_pyramidal = sort(rf(cellfun(@(x) ~isempty(strfind(x,'delaypyramidal')),rf)));
+delaypyramidal = cell(length(files_v_soma),length(files_v_soma));
+tic;
+for fn = 1:length(files_delay_pyramidal)
+	%get files per node id:
+    filename = fullfile(pathto,files_delay_pyramidal{fn});
+    % Parse the old spike train data:
+    fid = fopen( filename, 'r' );
+    fcont = textscan( fid, '%s', 'Delimiter', '\n' );
+    totalRows = size(fcont{1},1);
+    fclose( fid );
+    for crn = 1:totalRows
+        cr = fcont{1}{crn,1};
+        if strfind(cr,'src=')
+            crdump = strsplit(cr, {'src=','trg=',' '} );
+            src = str2double(crdump{2})+1;
+            trg = str2double(crdump{3})+1;
+            continue;
+        end
+        % each normal line MUST be just a float!
+        delay = str2double(cr);
+        % check for empty lines:
+        if delay >= 0 && ~isnan(delay)
+            delaypyramidal{src,trg} = [delaypyramidal{src,trg} delay];
+        else
+            if isfloat(delay) && ~isnan(delay)
+                warning('Negative delay read from file for cellid %d!!',trg);
+            end
+        end
+    end
+end
+fprintf('Time: %f secs\n',toc);
+outputfile = fullfile(pathto,'delaypyramidal.mat');
+save(outputfile, 'delaypyramidal');
+% remove files to save space and sanity:
+tic;
+for fn = 1:length(files_delay_pyramidal)
+    filename = fullfile(pathto,files_delay_pyramidal{fn});
+    delete(filename);	
+end
+fprintf('Files files_delay_pyramidal deleted (Time: %f secs)!\n',toc);
 
 end

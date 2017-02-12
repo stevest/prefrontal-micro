@@ -1,22 +1,32 @@
-proc par_save_synaptic_locations_PCrec(){ local fh, fctr localobj vfilePC 
-
-	{ PC.barrier() } 
-	strdef ext
-	if ($4) {
-	ext = "bin"
-	} else {
-	ext = "txt"
-	}
+proc par_save_synaptic_locations_PCrec(){ local src,trg,j,fctr localobj vfilePC
+	//writing only in txt format!
 	//save PC2PC synaptic locations
+	//save in the same file for enhanced reading performance by MATLAB:
+	vfilePC = new File()	
+	sprint(vfilePC_filename,"%s/pidpyramidal_%03d.txt", $s1,PC.id) 
+	vfilePC.wopen(vfilePC_filename)
+	fh = vfilePC.isopen()
+	fctr = 0
+	while (!fh) {
+		vfilePC.wopen(vfilePC_filename)
+		fh = vfilePC.isopen()
+		fctr = fctr + 1
+	}
+	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	//save all src/trg pairs of this node:
 	for trg=0, nPCcells-1{
 		for src=0, nPCcells-1{
-			{PC.barrier()}
 			if(object_id(pidPC2PC[src][trg])!= 0){
+				vfilePC.printf("src=%d trg=%d\n",src,trg)	
+				pidPC2PC[src][trg].printf(vfilePC,"%8.4f\n")
+/*
 				print "Synaptic locations src: ",src," ,target: ",trg," : "
 				for ii=0,pidPC2PC[src][trg].size()-1{
 					print pidPC2PC[src][trg].x[ii], " "
 				}
+*/
 			}
 		}
 	}
+	vfilePC.close()
 }

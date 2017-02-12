@@ -3,7 +3,7 @@
 DEBUG=1
 ISBINARY=0
 ID=12
-DEND_NSEG = 5
+// OVVERIDES CAREFULL DO NOT COMMIT!
 strdef pprintStr
 strdef PATH, PPRINT_CMD
 //PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
@@ -76,7 +76,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 2000 
+tstop = 4000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -172,13 +172,15 @@ if(DEBUG){pprint("Load interneuron templates.")}
 
 //overwrite with NASSI's values:
 //-------------------Set synaptic weights
-bg_nmda_weight_d = 0.25
+bg_nmda_weight_d = 0.25 
 bg_nmda_weight_a = 0.2
 bg_nmda_weight_pr = 0.22
 bg_ampa_weight_d = 0.00019
 bg_ampa_weight_a = 0.00024
 bg_ampa_weight_pr = 0.00024
 
+ampaweight_stimulus = 0.00024 *5 
+nmdaweight_stimulus = 0.22  *5 
 ampaweightpr=	0.00024			//Initial stimulus
 nmdaweightpr=	0.22			//Initial stimulus
 ampaweight=	0.00019		//According to Wang(2008)
@@ -199,13 +201,14 @@ PV2PC_MaxSyn = 3 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota,
 //override complex background spiketrains:
 //Background activity like Haider
 //PC ~1Hz, PV ~14Hz
-BG_dendSyn = 5//BGE//2 synapses as of 1/10/15 
-BG_apicSyn = 80//BGE//2 synapses as of 1/10/15
-BG_apicprSyn = 80//2 synapses as of 1/10/15
-BG_PVSyn = BGI //2 synapses as of
+BG_dendSyn = BGE//2 synapses as of 1/10/15 
+BG_apicSyn = BGE//2 synapses as of 1/10/15
+BG_apicprSyn = BGE//2 synapses as of 1/10/15
+BG_PVSyn = BGI//2 synapses as of
 BG_all = BG_dendSyn + BG_apicSyn + BG_apicprSyn
 
-Stim_MaxSyn_apic = 90 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
+//giati bgazei error ean to kanw 300? exei na kanei me to import?
+Stim_MaxSyn_apic = 10 //synapses sto meeting 27/4/15,,,//40//27//90			//initial stimulation
 Stim_MaxSyn_basal=0//120	//initial stimulation
 
 /*
@@ -217,7 +220,7 @@ gababweights.x[3]=4.65e-4		//0.8
 //gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-gabaweight_pv2pc_b = gabaweightb   *0.1//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = gabaweightb   *GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 /*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
 nmdaweights.x[1]=0.35		//1.5
@@ -282,7 +285,7 @@ if(PARALLEL){
 	//assert(xopen("recordandsave/save_data.hoc"))
 }
 
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{stimulation(%d,%d)}",0,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -299,7 +302,7 @@ if(1){
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivityPV(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -310,7 +313,7 @@ if(1){
 
 //if RUN is a constant Randoms do not change (synapse location etc..)
 //connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%f)}",0,0,0.585)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -320,7 +323,7 @@ if(0){
 }
 //GABAbFactor = 10.7//Gvec.x[Gidx]
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -328,7 +331,7 @@ if(0){
 	{assert(execute1(EXEC_CMD))}
 	//connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
 }
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -336,7 +339,7 @@ if(0){
 	{assert(execute1(EXEC_CMD))}
 	//connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -411,7 +414,7 @@ if(PARALLEL){
 		par_save_soma_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
 		{pprint("par_save_soma_voltage() is active.")}
 	}
-	if(1){
+	if(0){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_voltage.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
 		par_save_dend_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
