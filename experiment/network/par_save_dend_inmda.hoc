@@ -1,0 +1,35 @@
+//objref cuminmdaPC2PC[nPCcells][nPCcells]
+objref cuminmdaPC2PC[nPCcells],target_norm_inmda[nPCcells]
+proc par_save_dend_inmda(){local i,s,q,k,srcPC,trgPC  localobj vfilePC,tmpvect,ninmda, Wvect
+
+	for trg=0, nPCcells-1 {
+		trgPC = ind2gid(trg,0)
+		cuminmdaPC2PC[trgPC] = new Vector(n,0)
+		Wvect = new Vector()
+		for src=0, nPCcells-1 {
+			srcPC = ind2gid(src,0)
+			if (object_id(inmdaPC2PC[srcPC][trgPC][0])) {
+				//print "trg=",trgPC," exist in machine=",PC.id," with W=",W.x[srcPC][trgPC]
+				Wvect.append(W.x[srcPC][trgPC])
+				for syn=0, PC2PC_MaxSyn-1 {// for all target neurons on this node
+					//print "inmda vector min=",inmdaPC2PC[srcPC][trgPC][syn].min() 
+					for k = 0, n-1{
+						cuminmdaPC2PC[trgPC].x[k] = cuminmdaPC2PC[trgPC].x[k] + (inmdaPC2PC[srcPC][trgPC][syn].x[k] * W.x[srcPC][trgPC])
+					}
+				}
+			}
+		}
+		if( Wvect.sum() != 0){
+			//print "trg=",trgPC," Wvect.sum=",Wvect.sum()
+			for k = 0, n-1{
+				cuminmdaPC2PC[trgPC].x[k] /= Wvect.sum()
+			}	
+			vfilePC = new File()	
+			sprint(vfilePC_filename,"%s/inmda_dend_%03d.txt", $s1, trgPC) 
+			vfilePC.wopen(vfilePC_filename)
+			cuminmdaPC2PC[trgPC].printf(vfilePC,"%8.4f\n")
+			vfilePC.close()
+		}
+	}
+}
+

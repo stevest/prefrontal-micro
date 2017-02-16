@@ -266,13 +266,13 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 					rApicIdx = 0 //PROXIMAL!
 					PCcells.o(localID).apic[rApicIdx] {ampapr[trg][syn] = new GLU(PID)}
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn] = new nmda_segev(PID)}
-					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn].mybeta = 0.0}
+					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn].myflag = 0}
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn].cellid = trgGID}
 
 					artgid = trg + syn*nPCcells + nPCcells + nPVcells 
 
-					ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1000,ampaweight_stimulus)
-					ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1000,nmdaweight_stimulus)
+					ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,500,ampaweight_stimulus)
+					ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,500,nmdaweight_stimulus)
 /*
 					ncAMPA[trg][syn] = new NetCon(sns, ampapr[trg][syn]) //vstim_stim[trg][syn]
 					ncAMPA[trg][syn].delay=1000
@@ -558,7 +558,6 @@ func clustbias(){ local rb,oldPID localobj rbo
 	//So, smaller values of CLUSTBIAS mean more deviation from clustering the synapses.
 	//when CLUSTBIAS==0: new PID == Random(0,1) (non clustered synapses)
 	//when CLUSTBIAS==1: new PID == old PID (clustered synapses - default)
-
 	return ((rb-oldPID)* (1-CLUSTBIAS)) + oldPID 
 }
 
@@ -601,7 +600,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	
 	//set parallel PID randomness
 	for kk=0,nPCcells-1{
-		r_PC2PC[kk] = new Random(SNd*$1 + 350 + kk ) //ta palia runs (10/8 kai prin) den eixan to PC.id!!
+		r_PC2PC[kk] = new Random(SNd + 350 + kk )// No pseudorandom PID variability between runs.
 		RN_PC2PC[kk] = new Random(SNd*$1 + 360 + kk)
 		fp_PC2PC[kk] = new Random(SNd*$1 + 3 + kk)	
 		rDend_PC2PC[kk] = new Random(SNd*$1 + 4 + kk) 
@@ -625,6 +624,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 			//PID = (1/PC2PC_MaxSyn)/2 + ((1/PC2PC_MaxSyn)*syn)
 			//print " uniform spreaded synapse#",syn," is @ PID = ",PID
 			clusterPID[PCgids.x[i]].append(PID)
+			//clusterPID[PCgids.x[i]].append(0.9)// SOS CHANGE PC2PC PID ALWAYS DISTALLY!
 		}
 		//PID=r.repick()
 	}
@@ -671,6 +671,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							//rDendidx = int(rDend.uniform(0,PCcells.o(localID).DendNo-1) )
 							clusterDend[trgGID].x(syn) = 0
 							PID = clustbias(clusterPID[trgGID].x[syn],RN_PC2PC[trg].repick())
+		//print "@",PC.id," PC=",trgGID," syn=",syn," from=",clusterPID[trgGID].x[syn]," to=",PID
 							//PID = VARPID //bias MCMC
 							FIDp = abs(fp_PC2PC[trg].repick())
 							if( FIDp <= dt ){ FIDp = dt + 0.01 }
@@ -685,7 +686,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
 							//if (trgGID == 85) {
-								PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn].mybeta = NMDA_BETA}
+								PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn].myflag = NMDA_FLAG}
 							//}
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn].cellid = trgGID}
 							if(save_inmda){
@@ -701,7 +702,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 								//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,arg  *  W.x[srcGID][trgGID] ) 
 								//print "Jolted ", src, " ", trg," with weight ", arg
 							//} else {
-								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS)
+								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-20,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
 								//print "Connected ", src, " ", trg," with weight ",0.25
 							//}
 						}

@@ -1,0 +1,178 @@
+strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING
+PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+objref PC
+PC = new ParallelContext()
+PARALLEL  = 0
+
+steps_per_ms=10
+dt=1/steps_per_ms
+n=int(tstop/dt)
+celsius=34
+DEND_NSEG = 5
+
+tstop = 500 
+nPCcells = 1
+
+v_init = -66 
+objref cv
+cv=new CVode(0)
+if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
+if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
+if(!cv.cache_efficient(1)){print "ERRORRRR!"}
+
+
+{xopen("../define_objects.hoc")}
+{xopen("pfc_pc_temp.hoc")}
+
+//Balance each cell compartment to the prefered voltage and comply with NEURON initialization routines.
+proc balance_compartments() {
+	//Do not call finitialize with v_init argument, because it sets it in all cells
+	// created up to this point!
+	finitialize()
+	forsec PCcell_list {
+		for (x) {
+			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
+			if (ismembrane("in_ion")) {e_passive(x)=e_passive(x)+in(x)/g_passive(x)} //ican
+			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+		
+		}
+	}
+	fcurrent()
+	if (cv.active()) {
+		cv.re_init()
+	}       else {
+		fcurrent()
+	}
+	frecord_init()
+}
+
+//-------------------Set synaptic weights
+ampaweight=	0.00019		//0.00019//According to Wang(2008)
+
+/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
+nmdaweights.x[1]=0.35		//1.5
+nmdaweights.x[2]=0.47		//1.9
+nmdaweights.x[3]=0.585		//2.3*/
+nmdaweight = 0.25//0.05
+
+taur_cad = 50//36 //SSS
+
+objref nmdaVect
+nmdaVect = new Vector()
+nmdaVect.append(nmdaweight)
+for i=1,40-1{
+	nmdaVect.append(nmdaVect.x[i-1]+0.05)
+}
+
+objref r, PCv, vsoma
+objref PCvd, PCvdd, PCvddd
+
+synapses = 2 
+
+objref NS[synapses]
+objref isir
+isir = new Random()
+isir.normal(0,3)
+NSnoise = 0 
+
+NS[0]=new NetStim()
+NS[0].interval=1//isir.repick()
+NS[0].number=1
+NS[0].start=50
+NS[0].noise=NSnoise
+for k=1,synapses-1{
+	print "Creating NS: ",k
+	NS[k]=new NetStim()
+	NS[k].interval=1//isir.repick()
+	NS[k].number=1
+	NS[k].start=NS[k-1].start + isir.repick()
+	NS[k].noise=NSnoise
+}
+print "NS final is: ",NS[synapses-1].number
+
+r = new Random(0)
+r.normal(0, 0.3)
+
+objref rl
+rl = new Random()
+rl.uniform(0,1)
+
+objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
+orgloc = 70 //location indendrite (distance from soma in um)
+loc = orgloc
+
+objref wfVect
+wfVect = new Vector()
+//wfVect.append(1)
+for i=1,80-1{
+	wfVect.append(i*8)
+}
+nmdafactor = 2 
+		for wf = 0, wfVect.size()-1 {
+			print "---------------------"
+			print wfVect.x[wf]//, nmdaVect.x[nw]
+			PID=0.9//rl.repick()
+			for syn=0,synapses-1{
+				print " Placing synapse : ",syn
+				PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
+				PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
+				nc1[syn]=new NetCon(NS[syn], ampapr[syn])
+				nc1[syn].delay=1
+				nc1[syn].weight=ampaweight * wfVect.x[wf]//*nw*0.1
+				nc2[syn]=new NetCon(NS[syn], nmdapr[syn])
+				nc2[syn].delay=1
+				nc2[syn].weight=nmdaweight * wfVect.x[wf] * nmdafactor 
+			}
+			
+			PCv = new Vector()
+			PCv.record(&PCcells.o(0).soma.v(.5)) 
+			PCvd = new Vector()
+			PCvd.record(&PCcells.o(0).dend.v(0.1)) 
+			PCvdd = new Vector()
+			PCvdd.record(&PCcells.o(0).dend.v(0.5)) 
+			PCvddd = new Vector()
+			PCvddd.record(&PCcells.o(0).dend.v(0.9)) 
+
+			balance_compartments()
+			run()
+			vsoma = new File()		
+
+			sprint(STRING,"DATA/nmda_w%07.3f_pid%.3f.txt", wfVect.x[wf], PID)
+			print STRING
+			vsoma.wopen(STRING)
+			for j=0, PCv.size()-1 {
+				vsoma.printf ("%f\n",PCv.x[j])
+			}
+			vsoma.close()
+/*
+			vsoma = new File()		
+			sprint(STRING,"DATA/dend/nmda_loc_%d_syn_%d_nmdaw_%g_ISI_%d_dend_%g.txt", loc, syn,nmdaVect.x[nw], ISI, 0.1)
+			vsoma.wopen(STRING)
+			for j=0, PCvd.size()-1 {
+				vsoma.printf ("%f\n",PCvd.x[j])
+			}
+			vsoma.close()
+			vsoma = new File()		
+			sprint(STRING,"DATA/dend/nmda_loc_%d_syn_%d_nmdaw_%g_ISI_%d_dend_%g.txt", loc, syn,nmdaVect.x[nw], ISI, 0.5)
+			vsoma.wopen(STRING)
+			for j=0, PCvdd.size()-1 {
+				vsoma.printf ("%f\n",PCvdd.x[j])
+			}
+			vsoma.close()
+			vsoma = new File()		
+			sprint(STRING,"DATA/dend/nmda_loc_%d_syn_%d_nmdaw_%g_ISI_%d_dend_%g.txt", loc, syn,nmdaVect.x[nw], ISI, 0.9)
+			vsoma.wopen(STRING)
+			for j=0, PCvddd.size()-1 {
+				vsoma.printf ("%f\n",PCvddd.x[j])
+			}
+			vsoma.close()
+*/
+		}
+		//loc += 10
+	//}
+	//syn += 20
+//}

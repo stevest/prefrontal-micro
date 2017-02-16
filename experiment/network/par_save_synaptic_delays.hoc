@@ -1,7 +1,7 @@
 proc par_save_synaptic_delays(){ local src,trg,j,fctr localobj vfilePC
 	//Saving only in txt format!
 	vfilePC = new File()	
-	sprint(vfilePC_filename,"%s/delaypyramidal__%03d.txt", $s1,PC.id) 
+	sprint(vfilePC_filename,"%s/delay_pyramidal__%03d.txt", $s1,PC.id) 
 	vfilePC.wopen(vfilePC_filename)
 	fh = vfilePC.isopen()
 	fctr = 0

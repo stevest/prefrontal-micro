@@ -25,8 +25,8 @@ NEURON {
 	NONSPECIFIC_CURRENT inmda 
 	RANGE e ,gmax,inmda
 	RANGE gnmda
-	RANGE mybeta , cellid
-	GLOBAL n,tau1,gama,tau2
+	RANGE myflag, n, mybeta , cellid
+	GLOBAL tau1,gama,tau2
 }
 
 
@@ -73,6 +73,7 @@ PARAMETER {
 	n=0.25		(/mM) :was 0.25
 	mybeta = 0.0
 	cellid = 0
+	myflag = 0
 
 }
 
@@ -116,12 +117,18 @@ BREAKPOINT {
 
 	SOLVE state METHOD cnexp
 : Move the logistic function to enhance NMDAg: 
-	gnmda=(A-B)/(1+n*exp(-gama*v - mybeta))
+	if (myflag > 0){
+		gnmda=(A-B)/(0.00084 * v + 0.052)
+	} else {
+		gnmda=(A-B)/(1+n*exp(-gama*v - mybeta))
+	}
 
 	inmda = (1e-3) * gnmda * (v-e)
 
 	ica = inmda/10
-	:printf("@=%f cellid=%g mybeta=%f\n",t,cellid,mybeta)
+	:if (cellid == 70){
+	:	printf("@=%f cellid=%g ni=%f AB=%f exp=%f\n",t,cellid,n, (A-B),(1+n*exp(-gama*v - mybeta)) )
+	:}
 }
 
 

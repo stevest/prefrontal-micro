@@ -3,7 +3,7 @@ proc par_save_synaptic_locations_PCrec(){ local src,trg,j,fctr localobj vfilePC
 	//save PC2PC synaptic locations
 	//save in the same file for enhanced reading performance by MATLAB:
 	vfilePC = new File()	
-	sprint(vfilePC_filename,"%s/pidpyramidal_%03d.txt", $s1,PC.id) 
+	sprint(vfilePC_filename,"%s/pid_pyramidal_%03d.txt", $s1,PC.id) 
 	vfilePC.wopen(vfilePC_filename)
 	fh = vfilePC.isopen()
 	fctr = 0

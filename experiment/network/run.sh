@@ -1,6 +1,4 @@
-#!/usr/bin/sh ##Make sure that before each run git repo is clean, so ##one can track each run to its source code:
-## ANSI escape codes:
-ERR='\033[0;31m'
+#!/usr/bin/sh ##Make sure that before each run git repo is clean, so ##one can track each run to its source code: ## ANSI escape codes: ERR='\033[0;31m'
 WARN='\033[0;33m'
 INFO='\033[0;32m'
 NOC='\033[0m'
@@ -52,16 +50,18 @@ cluster="6"
 exp="1"
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 sn="10"
-clustbias="0.0"
-##excitbias="1"
-inhibias="0.2"
-gababfactor="10"
+clustbias="1"
+excitbias="25"
+inhibias="0.1"
+nmdabias="2.0"
+gababfactor="1"
 BGe="20"
 BGi="1"
+stimmagnitude="15"
 ## NMDA beta is a factor that shifts the lognormal function to the left 
 ## if negative (minus sign is inside its mod file) so greater values
 ## enhance gNMDA.
-nmdabeta="0"
+nmdaflag="0"
 dendnseg="5"
 ## How many clusters I do identify 
 Cl="7"
@@ -88,14 +88,14 @@ jobstdout="$jobstdout\\\n=======================================================
 
 for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
-run="0"
-for excitbias in $(seq 20 20); do
-	for inhibias in $(seq 0.7 0.7); do
+#run="0"
+for stimmagnitude in $(seq 40 40); do
+	for run in $(seq 0 0); do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
-		jobname="test_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NB$(printf '%.3f' $nmdabeta)_Ss4c${cluster}_SN${sn}_r"
+		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
 	else
-		jobname="test_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NB$(printf '%.3f' $nmdabeta)_Rs4c${cluster}_SN${sn}_r"
+		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Rs4c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
@@ -127,11 +127,13 @@ for excitbias in $(seq 20 20); do
 	-c "CLUSTBIAS=$clustbias" \
 	-c "EXCITBIAS=$excitbias" \
 	-c "INHIBIAS=$inhibias" \
+	-c "NMDABIAS=$nmdabias" \
+	-c "ST=$stimmagnitude" \
 	-c "FS=$Fs" \
 	-c "CL=$Cl" \
 	-c "BGE=$BGe" \
 	-c "BGI=$BGi" \
-	-c "NMDA_BETA=$nmdabeta" \
+	-c "NMDA_FLAG=$nmdaflag" \
 	-c "DEND_NSEG=$dendnseg" \
 	-c "GABABFACTOR=$gababfactor" \
 	-c "VARPID=$VARPID" \
