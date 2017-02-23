@@ -6,24 +6,16 @@
 begintemplate PVcell
 external PARALLEL
 
-public position, x, y, z
 public soma, axon, dend
 create soma, axon, dend
 
-proc position() { local i // adapted from Migliore 2010
-  soma for i = 0, n3d()-1 {
-    pt3dchange(i, $1-x+x3d(i), $2-y+y3d(i), $3-z+z3d(i), diam3d(i))
-  }
-  x = $1  y = $2  z = $3
-}
 
 proc init() {
-x = y = z = 0 // only change via position
 v_init_pv = -73
 
-if(PARALLEL){gid=$1}
+//if(PARALLEL){gid=$1}
 
-create soma, axon, dend
+//create soma, axon, dend
 soma_nafin=0.045  
 soma_kdrin=0.018  
 soma_Kslowin=0.000725*0.1
@@ -35,14 +27,13 @@ soma_kctin=0.0001
 soma {
 	nseg=1
 	L=27
-	diam=29//SSS FIX IR! and FF!
+	diam=29
 	v = v_init_pv
 
 	insert passive
 	cm=1.2            //microF/cm2
 	g_passive =1/10000    //mho/cm2   
-	e_passive = v_initin   //(Kawaguchi k Kubota, 1993 --> -73+-3.9)
-	v_initin= -73
+	e_passive = v_init_pv   //(Kawaguchi k Kubota, 1993 --> -73+-3.9)
 	Ra=150 
 
      insert Nafx
@@ -52,16 +43,15 @@ soma {
      gkdrbar_kdrin= soma_kdrin
 
      insert IKs	
-     gKsbar_IKs= soma_Kslowin
-
+     gKsbar_IKs= soma_Kslowin 
      insert hin
      gbar_hin=soma_hin
 
-     insert kap
+	insert kap
      gkabar_kap=soma_kapin
 
      insert can
-     gcalbar_can=soma_canin
+     gcabar_can=soma_canin
 
      insert iC 
      gkcbar_iC=soma_kctin
@@ -79,8 +69,7 @@ axon {
 	insert passive
 	cm=1.2            //microF/cm2
 	g_passive =1/10000  //mho/cm2   
-	e_passive = v_initin
-	v_initin= -73
+	e_passive = v_init_pv
 	Ra=150 
 
 	insert Nafx
@@ -100,8 +89,7 @@ dend {
 	insert passive
 	cm=1.2            //microF/cm2
 	g_passive =1/10000    //mho/cm2   
-	e_passive = v_initin//(Kawaguchi k Kubota, 1993 --> -73+-3.9)
-	v_initin= -73
+	e_passive = v_init_pv//(Kawaguchi k Kubota, 1993 --> -73+-3.9)
 	Ra=150
 
 	insert Nafx
@@ -140,7 +128,6 @@ proc createPVs(){local i,host,gid localobj cell,mynil
 		      if(host==PC.id){
 			 PVgids.append(gid)  
 			cell = new PVcell(gid)
-			//cell.position((i+.5)*len/nPVcells, -100, 0)  // equal spacing of interneurons. Ignores clustering effects     
 			PC.set_gid2node(gid,PC.id)
 			cell.axon {//synapse_source(gid)//,&v(1))
 			  PC.cell(gid,new NetCon(&v(1), mynil),1)
@@ -164,9 +151,14 @@ createPVs()
 //Create list with segments
 objref PVsoma_list
 PVsoma_list = new SectionList()
+objref PVcell_list
+PVcell_list = new SectionList()
 
 
 for i=0,PVcells.count()-1 {		
 	PVcells.o(i).soma PVsoma_list.append() 
+	PVcells.o(i).soma PVcell_list.append() 
+	PVcells.o(i).dend PVcell_list.append() 
+	PVcells.o(i).axon PVcell_list.append() 
 }
 

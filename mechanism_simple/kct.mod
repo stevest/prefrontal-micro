@@ -11,7 +11,7 @@ ENDCOMMENT
 NEURON {
 	THREADSAFE
 	SUFFIX iC
-	USEION k READ ko, ki WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
+	USEION k READ ek WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
 	USEION ca READ cai   
 	RANGE  gkcbar,ik, ost
 }
@@ -48,7 +48,7 @@ STATE { cst ost ist }
 
 BREAKPOINT { 
 	SOLVE kin METHOD sparse
-	ek=25*log(ko/ki)		:Changed, added, 23/04/2010, Nassi
+	:ek=25*log(ko/ki)		:Changed, added, 23/04/2010, Nassi
 	ik = gkcbar * ost *( v - ek ) 
 }
 

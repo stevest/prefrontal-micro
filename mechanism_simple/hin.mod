@@ -24,7 +24,7 @@ PARAMETER {              : parameters that can be entered when function is calle
 	:ehi     = -10   (mV) :WILL BE IGNORED AND SET BY NEURON
 	K      = 10.0   (mV)	:8.5
 	gbar   = 0     (mho/cm2)  : initialize conductance to zero
-	HIN_vhalf  = -90   (mV)       : half potential
+	vhalf  = -90   (mV)       : half potential
 }	
 
 
@@ -35,8 +35,8 @@ STATE {                : the unknown parameters to be solved in the DEs
 ASSIGNED {             : parameters needed to solve DE
 	v 
 	ihi (mA/cm2)
-	HIN_ninf
-	HIN_taun (ms)
+	ninf
+	taun (ms)
 	g
 
 	ehi
@@ -47,7 +47,7 @@ ASSIGNED {             : parameters needed to solve DE
 
 INITIAL {               : initialize the following parameter using states()
 	rates()	
-	n = HIN_ninf
+	n = ninf
 	g = gbar*n
 	ihi = g*(v-ehi)
 }
@@ -61,16 +61,18 @@ BREAKPOINT {
 
 DERIVATIVE states {
 	rates()
-    n' = (HIN_ninf - n)/HIN_taun
+        n' = (ninf - n)/taun
 }
 
 PROCEDURE rates() {  
-	if (v > -10) {
-		HIN_taun = 1
+ 
+ 	if (v > -10) {
+	   taun = 1
 	} else {
-		HIN_taun = 2*(1/(exp((v+145)/-17.5)+exp((v+16.8)/16.5)) + 10) :h activation tau +5
+           taun = 2*(1/(exp((v+145)/-17.5)+exp((v+16.8)/16.5)) + 10) :h activation tau +5
+
 	}  
-	HIN_ninf = 1 - (1 / (1 + exp((HIN_vhalf - v)/K)))                  :steady state value
+         ninf = 1 - (1 / (1 + exp((vhalf - v)/K)))                  :steady state value
 }
 
 

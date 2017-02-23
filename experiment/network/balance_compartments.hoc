@@ -1,4 +1,10 @@
 //Balance each cell compartment to the prefered voltage and comply with NEURON initialization routines.
+// calling NEURON's finitialize() with an argument causes ALL compartments created so far to be initialized
+//in that voltage! A more subtle approach should be to initialize the compartments during creation
+//to the desired voltage and then call finitialize() with no arguments.
+//Though,calling AFTER A RUN finitialize again produces weird results. So make sure you update the voltages
+//for EACH COMPARTMENT before each run.
+
 proc balance_compartments() {
 	//Do not call finitialize with v_init argument, because it sets it in all cells
 	// created up to this point!
@@ -13,7 +19,7 @@ proc balance_compartments() {
 		
 		}
 	}
-	forsec PVsoma_list {
+	forsec PVcell_list {
 		for (x) {
 			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
 			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 

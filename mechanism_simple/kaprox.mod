@@ -6,7 +6,7 @@ TITLE K-A channel from Klee Ficker and Heinemann
 NEURON {
 	THREADSAFE
 	SUFFIX kap
-	USEION k READ ko, ki WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
+	USEION k READ ek WRITE ik		:Changed from READ ek, 23/04/2010,Nassi
 	RANGE gkabar, ik
 	GLOBAL ninf,linf,taul,taun,lmin
 }
@@ -64,7 +64,7 @@ INITIAL {		:initialize the following parameter using rates()
 
 BREAKPOINT {
 	SOLVE states METHOD cnexp
-	ek=25*log(ko/ki)			:Changed, added, 23/04/2010, Nassi
+	:ek=25*log(ko/ki)			:Changed, added, 23/04/2010, Nassi
 	ik = gkabar*n*l*(v-ek)
 }
 

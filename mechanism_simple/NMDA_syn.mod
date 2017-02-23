@@ -117,17 +117,17 @@ BREAKPOINT {
 
 	SOLVE state METHOD cnexp
 : Move the logistic function to enhance NMDAg: 
-	if (myflag > 0){
-		gnmda=(A-B)/(0.00084 * v + 0.052)
-	} else {
+	:if (myflag > 0){
+		:gnmda=(A-B)/(0.00084 * v + 0.052)
+	:} else {
 		gnmda=(A-B)/(1+n*exp(-gama*v - mybeta))
-	}
+	:}
 
 	inmda = (1e-3) * gnmda * (v-e)
 
-	ica = inmda/10
-	:if (cellid == 70){
-	:	printf("@=%f cellid=%g ni=%f AB=%f exp=%f\n",t,cellid,n, (A-B),(1+n*exp(-gama*v - mybeta)) )
+	ica = inmda * 0.01
+	:if (cellid == 236){
+		:printf("@=%f cellid=%g ni=%f AB=%f exp=%f\n",t,cellid,n, (A-B),(1+n*exp(-gama*v - mybeta)) )
 	:}
 }
 
@@ -156,7 +156,15 @@ NET_RECEIVE (weight) {
 
 	:state_discontinuity( B, B+ gmax)
 
-	B = B + gmax}
+	B = B + gmax
+VERBATIM
+	if ( (cellid == 236) && (myflag ==3) ){
+		printf("@=%f cellid=%g\n",t,cellid );
+	}
+
+ENDVERBATIM
+}
+
 
 
 

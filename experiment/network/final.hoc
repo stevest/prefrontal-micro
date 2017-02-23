@@ -76,7 +76,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 3000 
+tstop = 800//3000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -186,11 +186,11 @@ nmdaweightpr=	0.22			//Initial stimulus
 ampaweight=	0.00019		//According to Wang(2008)
 gabaweight=	0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
 gabaweightb=1.05e-4
-ampaweightin=	7.5e-4			//according to Wang,Gao,2009
-nmdaweightin=	3.2e-4			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+ampaweightin=	7.5e-4 * 1//according to Wang,Gao,2009
+nmdaweightin=	3.2e-4 * 1//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 autogabaweight=	0.006205				//According to Bacci (2003) 
 PC2PV_MaxSyn = 4 //7is the June working
-PV2PC_MaxSyn = 3 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
+PV2PC_MaxSyn = 4 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
 //------------------Set # of synapses
 //synapses_backb=300//16//18//60//100
 //synapses_backpr=300//16//18//60//100
@@ -285,7 +285,7 @@ if(PARALLEL){
 	//assert(xopen("recordandsave/save_data.hoc"))
 }
 
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{stimulation(%d,%d)}",0,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -323,7 +323,7 @@ if(1){
 }
 //GABAbFactor = 10.7//Gvec.x[Gidx]
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",RUN,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -331,7 +331,7 @@ if(1){
 	{assert(execute1(EXEC_CMD))}
 	//connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",RUN,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -339,7 +339,7 @@ if(1){
 	{assert(execute1(EXEC_CMD))}
 	//connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",RUN,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)

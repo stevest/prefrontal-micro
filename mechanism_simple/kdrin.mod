@@ -28,8 +28,8 @@ STATE {
 
 ASSIGNED {
 	ik (mA/cm2)
-	KDRIN_inf
-	KDRIN_tau (ms)
+	inf
+	tau (ms)
 	gk (mho/cm2)
 	ek (mV)
 	ki (mM)
@@ -40,7 +40,7 @@ ASSIGNED {
 
 INITIAL {
 	rate(v)
-	n = KDRIN_inf
+	n = inf
 }
 
 BREAKPOINT {
@@ -53,31 +53,31 @@ BREAKPOINT {
 
 DERIVATIVE states {
 	rate(v)
-	n' = (KDRIN_inf-n)/KDRIN_tau
+	n' = (inf-n)/tau
 }
 
 UNITSOFF
 
-FUNCTION KDRIN_alf(v){ LOCAL KDRIN_va 
+FUNCTION alf(v){ LOCAL va 
 	
-	   KDRIN_va=v-13
-	if (fabs(KDRIN_va)<1e-04){
-	   KDRIN_va=KDRIN_va+0.0001
-		KDRIN_alf= (-0.018*KDRIN_va)/(-1+exp(-(KDRIN_va/25)))
+	   va=v-13
+	if (fabs(va)<1e-04){
+	   va=va+0.0001
+		alf= (-0.018*va)/(-1+exp(-(va/25)))
 	} else {
-	  	KDRIN_alf = (-0.018*(v-13))/(-1+exp(-((v-13)/25)))
+	  	alf = (-0.018*(v-13))/(-1+exp(-((v-13)/25)))
 	}
 }
 
 
-FUNCTION KDRIN_bet(v) { LOCAL KDRIN_vb 
+FUNCTION bet(v) { LOCAL vb 
 	
-	  KDRIN_vb=v-23
-	if (fabs(KDRIN_vb)<1e-04){
-	  KDRIN_vb=KDRIN_vb+0.0001
-		KDRIN_bet= (0.0054*KDRIN_vb)/(-1+exp(KDRIN_vb/12))
+	  vb=v-23
+	if (fabs(vb)<1e-04){
+	  vb=vb+0.0001
+		bet= (0.0054*vb)/(-1+exp(vb/12))
 	} else {
-	  	KDRIN_bet = (0.0054*(v-23))/(-1+exp((v-23)/12))
+	  	bet = (0.0054*(v-23))/(-1+exp((v-23)/12))
 	}
 }	
 
@@ -86,13 +86,13 @@ FUNCTION KDRIN_bet(v) { LOCAL KDRIN_vb
 
 
 
-PROCEDURE rate(v (mV)) {LOCAL q10, KDRIN_sum, KDRIN_aa, KDRIN_ab
+PROCEDURE rate(v (mV)) {LOCAL q10, sum, aa, ab
 	
-	KDRIN_aa=KDRIN_alf(v) KDRIN_ab=KDRIN_bet(v) 
+	aa=alf(v) ab=bet(v) 
 	
-	KDRIN_sum = KDRIN_aa+KDRIN_ab
-	KDRIN_inf = KDRIN_aa/KDRIN_sum
-	KDRIN_tau = 1/(KDRIN_sum)
+	sum = aa+ab
+	inf = aa/sum
+	tau = 1/(sum)
 	
 	
 }

@@ -28,8 +28,13 @@ if(!cv.cache_efficient(1)){print "ERRORRRR!"}
 proc balance_compartments() {
 	//Do not call finitialize with v_init argument, because it sets it in all cells
 	// created up to this point!
+	forsec PVcell_list {
+		for (x) {
+			v(x) = -73
+		}
+	}
 	finitialize()
-	forsec PVsoma_list {
+	forsec PVcell_list {
 		for (x) {
 			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
 			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
@@ -38,14 +43,41 @@ proc balance_compartments() {
 		}
 	}
 	fcurrent()
+/*
 	if (cv.active()) {
 		cv.re_init()
 	}       else {
 		fcurrent()
 	}
 	frecord_init()
+*/
 }
 
+// This function is used to balance the membrane potential to v_init (= -70 mV)
+// written by Yiota Poirazi, July 2001, poirazi@LNC.usc.edu
+
+proc current_balancein() {
+
+  finitialize(-73)
+  //fcurrent()
+
+  printf("Balancing each compartment to %d mV\n", -73)
+
+  forsec PVcell_list{
+   for (x) {
+    	if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+   	if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+      	if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
+       if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+    }
+  }
+fcurrent()
+}
+
+
+
+//current_balancein()
+//balance_compartments()
 //-------------------Set synaptic weights
 
 objref r, PVv, vsoma
@@ -78,12 +110,13 @@ WF = iters+1
 ampaweightin=	7.5e-4 * WF			//according to Wang,Gao,2009
 nmdaweightin=	3.2e-4 * WF //SOS MAKE PV FASTER!			//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 	print "---------------------"
-	print WF 
+	print "AMPAw=",ampaweightin
+	print "NMDAw=",nmdaweightin 
 	PID=0.1
 	for syn=0,synapses-1{
-		print "adding synapse with WF=",WF
-		PVcells.o(0).dend ampapr[syn] = new GLUIN(PID)
-		PVcells.o(0).dend nmdapr[syn] = new NMDA(PID)
+		//print "adding synapse with WF=",WF
+		PVcells.o(0).soma ampapr[syn] = new GLUIN(PID)
+		PVcells.o(0).soma nmdapr[syn] = new NMDA(PID)
 		nc1[syn]=new NetCon(NS[0], ampapr[syn])
 		nc1[syn].delay=1
 		nc1[syn].weight=ampaweightin
@@ -92,6 +125,9 @@ nmdaweightin=	3.2e-4 * WF //SOS MAKE PV FASTER!			//ratio inmda/iampa for intern
 		nc2[syn].weight=nmdaweightin
 	}
 	
+
+//current_balancein()
+balance_compartments()
 	PVv = new Vector()
 	PVv.record(&PVcells.o(0).soma.v(.5)) 
 	/*
@@ -102,7 +138,6 @@ nmdaweightin=	3.2e-4 * WF //SOS MAKE PV FASTER!			//ratio inmda/iampa for intern
 	PCvddd = new Vector()
 	PCvddd.record(&PCcells.o(0).dend.v(0.9)) 
 	*/
-	balance_compartments()
 	run()
 	vsoma = new File()		
 

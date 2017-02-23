@@ -1,20 +1,24 @@
-proc par_save_stimulation_locations_PCrec(){ 
-	{ PC.barrier() } 
-	strdef ext
-	if ($4) {
-	ext = "bin"
-	} else {
-	ext = "txt"
+proc par_save_stimulation_locations_PCrec(){  local src,trg,j,fctr localobj vfilePC
+	//writing only in txt format!
+	//save stimulation (apical) synaptic locations
+	//save in the same file for enhanced reading performance by MATLAB:
+	vfilePC = new File()	
+	sprint(vfilePC_filename,"%s/pid_stim_pyramidal_%03d.txt", $s1,PC.id) 
+	vfilePC.wopen(vfilePC_filename)
+	fh = vfilePC.isopen()
+	fctr = 0
+	while (!fh) {
+		vfilePC.wopen(vfilePC_filename)
+		fh = vfilePC.isopen()
+		fctr = fctr + 1
 	}
-	for src=0, nPCcells-1{
-		{PC.barrier()}
-		if (object_id(stimpidPC2PC[src]) != 0){
-			str = ""
-			sprint(str,"Stimulation locations src %d:",src)
-			for ii=0,stimpidPC2PC[src].size()-1{
-				sprint(str,"%s %f",str, stimpidPC2PC[src].x[ii])
-			}
-			print str
+	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	//save all src/trg pairs of this node:
+	for trg=0, nPCcells-1{
+		if(object_id(stimpidPC2PC[trg])!= 0){
+			vfilePC.printf("trg=%d\n",trg)	
+			stimpidPC2PC[trg].printf(vfilePC,"%8.4f\n")
 		}
 	}
+	vfilePC.close()
 }

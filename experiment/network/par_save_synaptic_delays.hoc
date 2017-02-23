@@ -28,4 +28,33 @@ proc par_save_synaptic_delays(){ local src,trg,j,fctr localobj vfilePC
 		}
 	}
 	vfilePC.close()
+
+	vfilePC = new File()	
+	sprint(vfilePC_filename,"%s/delay_interneurons__%03d.txt", $s1,PC.id) 
+	vfilePC.wopen(vfilePC_filename)
+	fh = vfilePC.isopen()
+	fctr = 0
+	while (!fh) {
+		vfilePC.wopen(vfilePC_filename)
+		fh = vfilePC.isopen()
+		fctr = fctr + 1
+	}
+	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	for src=0, nPVcells-1{
+		for trg=0, nPCcells-1{
+			if (object_id(delayPV2PC[src][trg]) != 0){
+				vfilePC.printf("src=%d trg=%d\n",src,trg)	
+				delayPV2PC[src][trg].printf(vfilePC,"%8.4f\n")
+	/*
+				str = ""
+				sprint(str,"Delays src %d, trg %d:",src,trg)
+				for ii=0,delayPC2PC[src][trg].size()-1{
+					sprint(str,"%s %f",str, delayPC2PC[src][trg].x[ii])
+				}
+				print str
+	*/
+			}
+		}
+	}
+	vfilePC.close()
 }
