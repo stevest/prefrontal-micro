@@ -76,7 +76,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 800//3000 
+tstop = 1//3000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -359,9 +359,12 @@ if(0){
 
 if(PARALLEL){
 	recordedCells = new Vector()
-	for pyr=0,offsets.x[3]-1{ // record all cells!
+	for pyr=0,nPCcells-1{ // record all cells!
 	  par_rec_soma_voltage(pyr)
 	  par_rec_dend_voltage(pyr)
+	}
+	for pvs=0,nPVcells-1{ // record all cells!
+	  par_rec_soma_voltage(pvs)
 	}
 	//for lala=0,offsets.x[1]-1{ // record all cells!
 	  //par_rec_anyvar(lala)

@@ -33,7 +33,7 @@ simhome="${simhome}/"
 simglia="/home/cluster/stefanos/Documents/Glia"
 simglia="${simglia}/"
 ## Define neuron repo. This is the git repo inside ~/Libraries.
-nrn_repository="nrn"
+nrn_repository="nrn_fork"
 echo "Currently at directory:"
 echo $simhome
 echo `pwd`
@@ -41,7 +41,7 @@ echo "Using NEURON from repository: ${nrn_repository}."
 
 parallel="1"
 ## Use scheduler or directly run with mpi:
-schedule="1"
+schedule="0"
 #All nodes are:312 
 nodes="312" ##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="6"
@@ -152,10 +152,11 @@ echo `which nrniv`
 /opt/openmpi/bin/mpirun -np 1 \
 	-x PATH \
 	-x LD_LIBRARY_PATH \
-	/home/stefanos/Documents/SourceTree/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
 	-c "RUN=$run" \
 	-c 'execute1("strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA")' \
 	-c 'execute1("SN = \"'$sn'\"")' \
+	-c 'execute1("SNd = '$sn'")' \
 	-c 'execute1("GITSHA1 = \"'$gitsha1'\"")' \
 	-c 'execute1("JOBNAME = \"'$uniquejobname'\"")' \
 	-c 'execute1("JOBDIR = \"'$outputDir'\"")' \
@@ -167,12 +168,17 @@ echo `which nrniv`
 	-c "CLUSTBIAS=$clustbias" \
 	-c "EXCITBIAS=$excitbias" \
 	-c "INHIBIAS=$inhibias" \
+	-c "NMDABIAS=$nmdabias" \
+	-c "ST=$stimmagnitude" \
 	-c "FS=$Fs" \
 	-c "CL=$Cl" \
 	-c "BGE=$BGe" \
 	-c "BGI=$BGi" \
+	-c "NMDA_FLAG=$nmdaflag" \
+	-c "DEND_NSEG=$dendnseg" \
+	-c "GABABFACTOR=$gababfactor" \
 	-c "VARPID=$VARPID" \
-	/home/stefanos/Documents/SourceTree/prefrontal-micro/experiment/network/final.hoc
+	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc
 	fi
 	
 done

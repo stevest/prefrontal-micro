@@ -254,7 +254,7 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 					{sprint(EXEC_CMD,"{stimpidPC2PC[%d] = new Vector()}",trgGID)}
 					{assert(execute1(EXEC_CMD))}
 				}
-		print "@=",PC.id," stimulating pyramidal=",trgGID
+		//print "@=",PC.id," stimulating pyramidal=",trgGID
 				// Apical input:
 				for syn=0, (Stim_MaxSyn_apic-1) {
 					PID=r_stimPC[trg].repick()
@@ -661,10 +661,13 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							{assert(execute1(EXEC_CMD))}
 						}
 						if(save_synaptic_locations){
+if ( src>= 250) {
+print "ERROR trg>250!"
+}
+//print "nPCcells=",nPCcells," pidPC2PC src=",src," trg=",trg," object_id=",object_id(pidPC2PC[src][trg])
 							{sprint(EXEC_CMD,"{pidPC2PC[%d][%d] = new Vector()}",src,trg)}
 							{assert(execute1(EXEC_CMD))}
-print EXEC_CMD
-print "pidPC2PC src=",src," trg=",trg," object_id=",object_id(pidPC2PC[src][trg])
+//print EXEC_CMD
 						}
 						for syn=0, (PC2PC_MaxSyn-1) { //for current syn
 							//PID=r.repick()
@@ -687,7 +690,7 @@ print "pidPC2PC src=",src," trg=",trg," object_id=",object_id(pidPC2PC[src][trg]
 //print "src=",src," trg=",trg," syn=",syn," Objectid: ", object_id(nmdaOnPC[src][trg][syn])
 
 							if ( (srcGID == 36) && (trgGID =236) ){
-								//print "SYGKEKRIMENTO KYTTARO! src=",srcGID," trgGID=",trgGID
+								print "SYGKEKRIMENTO KYTTARO! src=",srcGID," trgGID=",trgGID
 							}
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn].myflag = NMDA_FLAG}
 							PCcells.o(localID).dend[clusterDend[trgGID].x(syn)] {nmdaOnPC[src][trg][syn].cellid = trgGID}

@@ -12,7 +12,7 @@ strdef str, vfilePC_filename, EXEC_CMD
 //$ cmp sorted_serout.txt sorted_parout.txt
 
 // see this here on the topic of storing membrane voltage in a parallel context: http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=1987
-objref r_volts[nPCcells],r_msec,r_dmsec
+objref r_volts[nAllCells],r_msec,r_dmsec
 objref r_dvolts[nPCcells][DEND_NSEG]
 //objref r_dvolts[offsets.x[offsets.size()-1]]
 // each recorded range variable must have a separate tvec which will be different for different cells
@@ -21,45 +21,32 @@ recordedCells = new Vector()
 objref recordedDends
 recordedDends = new Vector()
 // recording routines for the parallel context
-proc par_rec_soma_voltage(){local i,s,q,trgGID,trg,lid  // use gid as parameter
+proc par_rec_soma_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
 	trgGID = $1
 	if (PC.gid_exists(trgGID)) { 
-		//if(DEBUG){printf("Recording cell %d voltage on node %d\n", $1,PC.id)}
-		lid=recordedCells.size()
-		//You also need to save PV cells!
-		//for lid = 0, PCgids.size()-1 {
-		//lid = gid2local(PCgids,trgGID) //target cell	
-		//if (lid >= 0) {
-		r_volts[lid]=new Vector(n)
+		r_volts[trgGID]=new Vector(n)
 		r_msec = new Vector(n)
 		//Also a known bug:
 		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
 		for q=0,n-1 {r_msec.x[q]=q*dt }
-		PC.gid2cell(trgGID).soma {cv.record(&v(0.5),r_volts[lid],r_msec,0)}
+		PC.gid2cell(trgGID).soma {cv.record(&v(0.5),r_volts[trgGID],r_msec,0)}
 		recordedCells.append(trgGID)
 		//}
 	}
 }
 
-proc par_rec_dend_voltage(){local i,s,q,trgGID,trg,lid  // use gid as parameter
+proc par_rec_dend_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
 	trgGID = $1
 	if (PC.gid_exists(trgGID)) { 
 		r_dmsec = new Vector(n)
 		for q=0,n-1 {r_dmsec.x[q]=q*dt }
-		//for lid = 0, PCgids.size()-1 {
-			//lid = gid2local(PCgids,trgGID) //target cell	
-			lid = recordedDends.size()
-			initial = (1/DEND_NSEG)/2
-			//print "Initial step is ",initial
-			for cseg = 0,DEND_NSEG-1 {
-				r_dvolts[lid][cseg]=new Vector(n)
-				csegloc = initial + (1/DEND_NSEG)*cseg
-
-				//print "@=",PC.id," Recording dend=",trgGID," in seg  ",cseg," location=",csegloc," trgGID=",trgGID
-				//print "@=",PC.id," csegloc",csegloc,"(1/Dendnseg)",(1/DEND_NSEG),"*cseg",cseg,"==",initial+(1/DEND_NSEG)*cseg," trgGID=",trgGID
-				PC.gid2cell(trgGID).dend {cv.record(&v(csegloc),r_dvolts[lid][cseg],r_dmsec,0)}
-			}
-			recordedDends.append(trgGID)
+		initial = (1/DEND_NSEG)/2
+		for cseg = 0,DEND_NSEG-1 {
+			r_dvolts[trgGID][cseg]=new Vector(n)
+			csegloc = initial + (1/DEND_NSEG)*cseg
+			PC.gid2cell(trgGID).dend {cv.record(&v(csegloc),r_dvolts[trgGID][cseg],r_dmsec,0)}
+		}
+		recordedDends.append(trgGID)
 	}
 }
 
