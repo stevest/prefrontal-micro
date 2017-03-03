@@ -305,6 +305,8 @@ proc createPyrs(){ local i,host,gid localobj cell,mynil
 				PCcells.append(cell)  
 			}    
 		}
+		//validation:
+		assert(PCgids.size() == PCcells.count())
 	}else{
 		for i = 0, (nPCcells-1) {
 			cell = new PCcell()

@@ -4,13 +4,13 @@ DEBUG=1
 ISBINARY=0
 ID=12
 // OVVERIDES CAREFULL DO NOT COMMIT!
-strdef pprintStr
-strdef PATH, PPRINT_CMD
+strdef PATH, PPRINT_CMD, EXEC_CMD, temp, STDOUT, PPRINT_CMD,pprintStr
 //PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
 PATH = SIMHOME
 inittime=startsw()
 //{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
-//define a basic assert function:
+//The assert argument:
+//An assert is there to help you, by alerting you to errors that must never occur in the first place.
 proc assert(){ 
 	if(!$1){	
 		print "Assertion error. Exiting..."
@@ -27,7 +27,6 @@ if(PARALLEL){
 }else{
          printf("Microcircuit running in 'SINGLE CORE' !\n\n")
 }
-strdef STDOUT, PPRINT_CMD
 //process to print only on node zero (if parallel):
 proc pprint(){
         //if (name_declared("PC")==2){
@@ -68,7 +67,6 @@ if(PARALLEL){PC.barrier}
 if(1){pprint("Load NEURON environment.")}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
-strdef EXEC_CMD
 EXEC_CMD = ""
 if (EXPERIMENT) { //if Structured...
 	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)}
@@ -76,7 +74,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 1//3000 
+tstop = 3000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -99,17 +97,6 @@ if(1){pprint("Load Main Parameters.")}
 //---For many experiments
 strdef syscmd, data_dir, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr
 
-//if(1){assert(sprint(data_dir,"%s",EXP))}
-//if(1){assert(sprint(syscmd,"mkdir -p %s/%s",exp_dir,data_dir))}
-/*if(1){assert(sprint(syscmd,"mkdir -p %s",JOBDIR))}
-{pprint("Creating Experiment Directory...")}
-{pprint(syscmd)}
-if(!system(syscmd)){
-	{sprint(pprintStr,"Directory %s already exists, AND THAT IS CONCERNING.Exiting.",JOBDIR)}
-	pprint(pprintStr)
-	exit(1)
- }
- */
 if(PARALLEL){PC.barrier}
 //parse stimulation parameters
 objref PcellStimList
@@ -122,53 +109,29 @@ if(EXPERIMENT){ //if Structured...
 		//if(DEBUG){pprint(PPRINT_CMD)}
 
 	}
+//validate stimulation:
+assert( PcellStimList.sum() == PcellStimListSTR[CLUSTER_ID].size() )
 } else {
 	for i=0,PcellStimListRND[CLUSTER_ID].size()-1{
 		PcellStimList.x[PcellStimListRND[CLUSTER_ID].x[i]] = 1
 
 	}
+//validate stimulation:
+assert( PcellStimList.sum() == PcellStimListRND[CLUSTER_ID].size() )
 }
+if(DEBUG){pprint("Stimulation is OK.")}
+
+
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Parse Stimulation Parameters.")}
 
-objref PcellIDlist
-PcellIDlist = new Vector(nPCcells,1)
-
-//if(PARALLEL){PC.barrier}
-//if(DEBUG){pprint("Choose morphologies.")}
-
-if(PARALLEL){
-} else {
-	if(!xopen("../../lib/basic-graphics.hoc")){print "ERROR	Failed to import parameters!"}
-}
-{sprint(EXEC_CMD,"{xopen(\"%s../define_objects.hoc\")}",PATH)}
-if(1){assert(execute1(EXEC_CMD))}
-//if(!xopen("../define_objects.hoc")){print "ERROR	Failed to import parameters!"}
-if(PARALLEL){PC.barrier}
-if(DEBUG){pprint("Define Objects.")}
-
 {sprint(EXEC_CMD,"{xopen(\"%spfc_pc_temp.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-if(object_id(PCcells)){
-	if(PCcells.count()>0){
-	//print "PC 0 after creation voltage is: ", PCcells.o(0).soma.v
-	}
-}
-
-if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Load cell templates.")}
 
 {sprint(EXEC_CMD,"{xopen(\"%spv.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-if(object_id(PVcells)){
-	if(PVcells.count()>0){
-	//print "PV 0 after creation voltage is: ", PVcells.o(0).soma.v
-	}
-}
-
-if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Load interneuron templates.")}
-//fADP for morphology #3:
 
 //overwrite with NASSI's values:
 //-------------------Set synaptic weights
@@ -228,64 +191,26 @@ nmdaweights.x[2]=0.47		//1.9
 nmdaweights.x[3]=0.585		//2.3*/
 nmdaweight = 0.585
 //ampaweight=	0.00019	//NASSI
-taur_cad = 50//36 //SSS
 
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Define network parameters.")}
-fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
 {sprint(EXEC_CMD,"{xopen(\"%snetwork.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-
-if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Load network parameters.")}
 
-sadp_soma()
-sadp_dend()
-sadp_apical()  //mplokara kai stous apical
 {sprint(EXEC_CMD,"{xopen(\"%srecord_par.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
 
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Load record routines.")}
-strdef s
-proc report_gidvecs() { local i, rank
-	// reports distribution of cells across hosts
-	PC.barrier()  // wait for all hosts to get to this point
-	if (PC.id==0) printf("\ngidvecs on %d host(s)\n",PC.nhost)
-	for rank=0, PC.nhost-1 {  // host 0 first, then 1, 2, etc.
-		if (rank==PC.id) {
-			//printf("@host %d: %dPC, %dPV, %dCB, %dCR\n",PC.id,PCcells.count(), PVcells.count(), CBcells.count(), CRcells.count() )
-			system("hostname",s)
-			print "On host: ",s
-			PCgids.printf()      
-		}
-	{ PC.barrier() } // wait for all hosts to get to this point
-	}
-}
 
-strdef temp
 objref timevec, idvec, recncs, tobj, nil, total_activity
 
-strdef foutput
-
 if(PARALLEL){
-	if(0){report_gidvecs()}
-	if (PC.id == 0) {
-		{sprint(syscmd,"mkdir -p multi_core")}
-		{system(syscmd)}
-	}
-	{ PC.barrier()	}
 	{ PC.set_maxstep(steps_per_ms) }
-}else{
-	{sprint(EXEC_CMD,"{xopen(\"%srecordandsave/record.hoc\")}",PATH)}
-	if(1){assert(execute1(EXEC_CMD))}
-	{sprint(EXEC_CMD,"{xopen(\"%srecordandsave/save_data.hoc\")}",PATH)}
-	if(1){assert(execute1(EXEC_CMD))}
-	//assert(xopen("recordandsave/record.hoc"))
-	//assert(xopen("recordandsave/save_data.hoc"))
 }
 
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{stimulation(%d,%d)}",0,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -294,7 +219,7 @@ if(0){
 	{pprint(PPRINT_CMD)}
 }
 //ATTENTION TO WEIGHT OF BG SYNAPSES!! CORRECTED FOR FEWER SYNAPSES!!!! SSS
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivity(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -316,14 +241,14 @@ if(0){
 if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%f)}",RUN,0,0.585)}
-	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
-	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
+	sprint(PPRINT_CMD,"%s executed OK.\n",EXEC_CMD)
+	{pprint(PPRINT_CMD)}
 	//connectPC2PC(0,0,0.585)// synaptic location Random seed, axon conductanse delay Random seed
 }
 //GABAbFactor = 10.7//Gvec.x[Gidx]
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",RUN,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -331,7 +256,7 @@ if(0){
 	{assert(execute1(EXEC_CMD))}
 	//connectPV2PV(0,0)// ssynaptic location Random seed, axon conductanse delay Random seed
 }
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",RUN,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -339,7 +264,7 @@ if(0){
 	{assert(execute1(EXEC_CMD))}
 	//connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",RUN,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -363,12 +288,9 @@ if(PARALLEL){
 	  par_rec_soma_voltage(pyr)
 	  par_rec_dend_voltage(pyr)
 	}
-	for pvs=0,nPVcells-1{ // record all cells!
+	for pvs=nPCcells,nPCcells+nPVcells-1{ // record all cells!
 	  par_rec_soma_voltage(pvs)
 	}
-	//for lala=0,offsets.x[1]-1{ // record all cells!
-	  //par_rec_anyvar(lala)
-	//}
 
 	{pprint("----------------------------------------------------------------------------------------")}
 	{pprint("Commencing Parallel run!")}
@@ -380,27 +302,8 @@ if(PARALLEL){
 	//stdinit() //not such function after devel version 7.4
 	{sprint(EXEC_CMD,"{xopen(\"%sbalance_compartments.hoc\")}",PATH)}
 	if(1){assert(execute1(EXEC_CMD))}
-	if(object_id(PCcells)>0){
-		if(PCcells.count()>0){
-		//print "PC 0 voltage is: ", PCcells.o(0).soma.v
-		}
-	}
-	if(object_id(PVcells)>0){
-		if(PVcells.count()>0){
-		//print "PV 0 voltage is: ", PVcells.o(0).soma.v
-	}
-	}
+	fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
 	balance_compartments()
-	if(object_id(PCcells)>0){
-	if(PCcells.count()>0){
-		//print "PC 0 voltage after balance is: ", PCcells.o(0).soma.v
-	}
-	}
-	if(object_id(PVcells)>0){
-	if(PVcells.count()>0){
-		//print "PV 0 voltage after balance is: ", PVcells.o(0).soma.v
-	}
-	}
 	inittime = startsw() - inittime
 	{sprint(PPRINT_CMD,"Compartment Initialization (stdinit()) time: %10.4g minutes.\n", inittime/60)}
 	{pprint(PPRINT_CMD)}
@@ -466,13 +369,6 @@ if(PARALLEL){
 		//{pprint("par_save_inmda() is active.")}
 	}
 
-}else{
-	//rec_membrane_voltage()
-	runtime=startsw()
-	//Messes up the initialization voltage! Do not use run()!
-	run()
-	runtime = startsw() - runtime
-	printf("Runtime: %10.4g\n", runtime)
 }
 
 {sprint(PPRINT_CMD,"Runtime: %10.4g minutes.\n", runtime/60)}

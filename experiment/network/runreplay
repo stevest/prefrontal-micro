@@ -1,2 +1,2 @@
-../../mechanism_simple/x86_64/special -nobanner replay2pyramidal.hoc 
+../../mechanism_simple/x86_64/special -nobanner -c "CELL = 236" replay2pyramidal.hoc  
 

@@ -1,17 +1,11 @@
 proc par_save_dend_voltage() {local i,s,j,fctr localobj vfilePC
-	
-	strdef ext
-	if ($3) {
-		ext = "bin"
-	} else {
-		ext = "txt"
-	}
 	//print "@=",PC.id, "dend recordedCells.size=",recordedCells.size()
 	for s=0,recordedCells.size()-1{
+		trgGID = recordedCells.x[s]
 		for cseg = 0, DEND_NSEG-1 {
-			if (object_id(r_dvolts[s][cseg])) {
+			if (object_id(r_dvolts[trgGID][cseg])) {
 				vfilePC = new File()	
-				sprint(vfilePC_filename,"%s/v_dend_%02d_%03d.%s", $s1, cseg,recordedCells.x(s), ext) 
+				sprint(vfilePC_filename,"%s/v_dend_%02d_%03d.%s", $s1, cseg,trgGID, ext) 
 				//print "@=",PC.id," Saving dend=",recordedCells.x(s)," loc=",cseg," ",vfilePC_filename
 				vfilePC.wopen(vfilePC_filename)
 				fh = vfilePC.isopen()
@@ -22,15 +16,7 @@ proc par_save_dend_voltage() {local i,s,j,fctr localobj vfilePC
 					fctr = fctr + 1
 				}
 				if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
-				if ($3) {
-					//if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
-					for j=0, r_dvolts[s][cseg].size()-1 {
-						vfilePC.vwrite(&r_dvolts[s][cseg].x[j])
-					}
-				} else {
-					//if (DEBUG){print "Saving vector r_volts of size: ", r_volts[s].size()}
-					r_dvolts[s][cseg].printf(vfilePC,"%8.4f\n")
-				}
+				r_dvolts[trgGID][cseg].printf(vfilePC,"%8.4f\n")
 				vfilePC.close()
 			}else{
 				//print "@=",PC.id," r_dvolts[",s,"] does not exist!"

@@ -1,10 +1,11 @@
 proc par_save_soma_voltage() {local i,s,j,fctr localobj vfilePC
 	//print "@=",PC.id, "soma recordedCells.size=",recordedCells.size()
 	for s=0,recordedCells.size()-1{
-		if (object_id(r_volts[s])) {
+		trgGID = recordedCells.x[s]
+		if (object_id(r_volts[trgGID])) {
 			//print "@=",PC.id," Saving soma=",s
 			vfilePC = new File()	
-			sprint(vfilePC_filename,"%s/v_soma_%03d.txt", $s1,recordedCells.x(s)) 
+			sprint(vfilePC_filename,"%s/v_soma_%03d.txt", $s1,trgGID) 
 			vfilePC.wopen(vfilePC_filename)
 			fh = vfilePC.isopen()
 			fctr = 0
@@ -14,7 +15,7 @@ proc par_save_soma_voltage() {local i,s,j,fctr localobj vfilePC
 				fctr = fctr + 1
 			}
 			if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
-			r_volts[s].printf(vfilePC,"%8.4f\n")
+			r_volts[trgGID].printf(vfilePC,"%8.4f\n")
 			vfilePC.close()
 		}else{
 			//print "r_volts[",s,"] does not exist!"

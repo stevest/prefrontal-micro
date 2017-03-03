@@ -16,6 +16,8 @@ proc balance_compartments() {
 			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
 			if (ismembrane("in_ion")) {e_passive(x)=e_passive(x)+in(x)/g_passive(x)} //ican
 			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+//disable ican:
+			if (ismembrane("ican")) { gbar_ican(x)= gbar_ican(x)  *fadp }
 		
 		}
 	}

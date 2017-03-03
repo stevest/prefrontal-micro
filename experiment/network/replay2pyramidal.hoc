@@ -1,13 +1,15 @@
 strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING, SIMPATH
 SIMPATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network"
-PATH = "/home/cluster/stefanos/Documents/Glia/distally_EB25.000_IB5.000_ST40_BGE20_BGI1_GBF15.000_Fs1.000_Cl7_NDS5_NMDAFLAG0.000_CLB1.000_Ss4c6_SN10_r0"
-if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+PATH = "/home/cluster/stefanos/Documents/Glia/distally_EB25.000_IB5.000_ST40_GBF15.000_Ss4c6_SN10_r0"
+//if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
 
 objref PC
 PC = new ParallelContext()
 PARALLEL  = 0
 
 tstop = 3000 
+
 steps_per_ms=10
 dt=1/steps_per_ms
 n=int(tstop/dt)
@@ -16,6 +18,7 @@ DEND_NSEG = 5
 EXCITBIAS =25 
 INHIBIAS = 5 
 NMDABIAS = 2
+ST = 40
 
 
 v_init = -66 
@@ -29,8 +32,6 @@ if(!cv.cache_efficient(1)){print "ERRORRRR!"}
 print EXEC_CMD
 execute1(EXEC_CMD)
 
-taur_cad = 50//36 //SSS
-{xopen("../define_objects.hoc")}
 //Create only one cell (called inside pfc_pc_temp.hoc)
 nPCcells = 1
 {xopen("pfc_pc_temp.hoc")}
@@ -50,6 +51,8 @@ proc balance_compartments() {
 			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
 			if (ismembrane("in_ion")) {e_passive(x)=e_passive(x)+in(x)/g_passive(x)} //ican
 			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+
+			if (ismembrane("ican")) { gbar_ican(x)= gbar_ican(x)  *0.0 }
 		
 		}
 	}
@@ -86,7 +89,7 @@ artcell.interval = 20
 artcell.number = 50
 artcell.start = 0
 artcell.noise = 0//.2
-
+/*
 proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,localID,trgGID,artgid  localobj rvect,mynil
 	trg = $1 //the cell you want to replicate
 	trgGID = trg
@@ -98,8 +101,10 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,localID,trgGID,artgid  
 			rApicIdx = 0 //PROXIMAL!
 			PCcells.o(localID).apic[rApicIdx] {ampapr[trg][syn] = new GLU(PID)}
 			PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn] = new nmda_segev(PID)}
-			//PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn].myflag = 0}
-			//PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn].cellid = trgGID}
+			artgid = trg + syn*nPCcells + nPCcells + nPVcells 
+			nmdapr[trg][syn].srcgid = artgid
+			nmdapr[trg][syn].cellid = trgGID
+			nmdapr[trg][syn].sid = syn
 
 			ncAMPA[trg][syn] = new NetCon(artcell, ampapr[trg][syn]) //vstim_stim[trg][syn]
 			ncAMPA[trg][syn].delay=500
@@ -112,130 +117,188 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,localID,trgGID,artgid  
 			ncNMDA[trg][syn].threshold=-10
 		}
 	}
+}
+*/
+objref PCstvs[ST*nPCcells + nPCcells + nPVcells][nPCcells][100]
+proc replay_stimulation(){
+	localID = 0
+	trgGID = $1 //the cell we replay
+	//for src = 0, nPCcells-1{
+// cells might be connected but have no incomming spikes:
+		if(object_id(stimpidPC2PC[trgGID]) ){
+			for syn=0, stimpidPC2PC[trgGID].size()-1 { //for current syn
+				PID = stimpidPC2PC[trgGID].x[syn]
+				PCcells.o(localID).apic[0] {ampapr[trgGID][syn] = new GLU(PID)}
+				PCcells.o(localID).apic[0] {nmdapr[trgGID][syn] = new nmda_segev(PID)}
+
+				artgid = trgGID + syn*nPCcells + nPCcells + nPVcells 
+
+				nmdapr[trgGID][syn].srcgid =artgid 
+				nmdapr[trgGID][syn].sid = syn
+				nmdapr[trgGID][syn].cellid =trgGID 
+
+				PCstvs[artgid][trgGID][syn] = new VecStim()
+				PCstvs[artgid][trgGID][syn].delay = 0
+				PCstvs[artgid][trgGID][syn].play(NMDA_stim_vector[artgid][trgGID])
+
+				ncAMPA[trgGID][syn] = new NetCon(PCstvs[artgid][trgGID][syn], ampapr[trgGID][syn]) //vstim_stim[trgGID][syn]
+				ncAMPA[trgGID][syn].delay=500
+				ncAMPA[trgGID][syn].weight = ampaweight_stimulus// *15//SSS
+				ncAMPA[trgGID][syn].threshold=-10 
+
+				ncNMDA[trgGID][syn] = new NetCon(PCstvs[artgid][trgGID][syn], nmdapr[trgGID][syn])
+				ncNMDA[trgGID][syn].delay=500
+				ncNMDA[trgGID][syn].weight = nmdaweight_stimulus// *15//SSS
+				ncNMDA[trgGID][syn].threshold=-10
+			}
+		}
+	//}
 } //end proc
-objref PCvs[nPCcells][nPCcells]
+
+objref PCvs[nPCcells][nPCcells][100]
 objref ampaOnPC[nPCcells][nPCcells][maxnumber]
 objref nmdaOnPC[nPCcells][nPCcells][maxnumber]
 objref conampaPC2PC[nPCcells][nPCcells][maxnumber]
 objref connmdaPC2PC[nPCcells][nPCcells][maxnumber]
-proc replayonpc(){
+proc replayonpc(){ local localID, srcGID, trgGID
 	localID = 0
-	trg = $1 //the cell we replay
-	for src = 0, nPCcells-1{
-// cells might be connected but have no incomming spikes:
-		if(object_id(pidPC2PC[src][trg]) && object_id(PCvecstim[src][trg])){
-print "replaying PC src=",src," trg=",trg," syns=",pidPC2PC[src][trg].size()
-			for syn=0, pidPC2PC[src][trg].size()-1 { //for current syn
-				PID = pidPC2PC[src][trg].x[syn]
-				FIDp = delayPC2PC[src][trg].x[syn]
-				PCcells.o(localID).dend[0] {ampaOnPC[src][trg][syn] = new GLU(PID)}
-				PCcells.o(localID).dend[0] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}
-				PCvs[src][trg] = new VecStim()
-				PCvs[src][trg].delay = 0
-				PCvs[src][trg].play(PCvecstim[src][trg])
+	trgGID = $1 //the cell we replay
+	for srcGID = 0, nPCcells-1{
+		if(object_id(pidPC2PC[srcGID][trgGID]) && object_id(NMDA_net_vector[srcGID][trgGID])){
+			for syn=0, pidPC2PC[srcGID][trgGID].size()-1 { //for current syn
+				PID = pidPC2PC[srcGID][trgGID].x[syn]
+				FIDp = delayPC2PC[srcGID][trgGID].x[syn]
+				PCcells.o(localID).dend[0] {ampaOnPC[srcGID][trgGID][syn] = new GLU(PID)}
+				PCcells.o(localID).dend[0] {nmdaOnPC[srcGID][trgGID][syn] = new nmda_segev(PID)}
 
-				conampaPC2PC[src][trg][syn] = new NetCon(PCvs[src][trg], ampaOnPC[src][trg][syn]) //vstim_stim[trg][syn]
-				conampaPC2PC[src][trg][syn].delay=FIDp
-				conampaPC2PC[src][trg][syn].weight = ampaweight *  W.x[src][trg] * EXCITBIAS 
-				conampaPC2PC[src][trg][syn].threshold=-20 
+				nmdaOnPC[srcGID][trgGID][syn].srcgid = srcGID
+				nmdaOnPC[srcGID][trgGID][syn].sid = syn
+				nmdaOnPC[srcGID][trgGID][syn].cellid =trgGID 
 
-				connmdaPC2PC[src][trg][syn] = new NetCon(PCvs[src][trg], nmdaOnPC[src][trg][syn])
-				connmdaPC2PC[src][trg][syn].delay=FIDp
-				connmdaPC2PC[src][trg][syn].weight = 0.25  *  W.x[src][trg] * EXCITBIAS * NMDABIAS 
-				connmdaPC2PC[src][trg][syn].threshold=-20
+				PCvs[srcGID][trgGID][syn] = new VecStim()
+				PCvs[srcGID][trgGID][syn].delay = 0
+				PCvs[srcGID][trgGID][syn].play(NMDA_net_vector[srcGID][trgGID])
+
+				conampaPC2PC[srcGID][trgGID][syn] = new NetCon(PCvs[srcGID][trgGID][syn], ampaOnPC[srcGID][trgGID][syn]) //vstim_stim[trgGID][syn]
+				conampaPC2PC[srcGID][trgGID][syn].delay=FIDp
+				conampaPC2PC[srcGID][trgGID][syn].weight = ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS 
+				conampaPC2PC[srcGID][trgGID][syn].threshold=-20 
+
+				connmdaPC2PC[srcGID][trgGID][syn] = new NetCon(PCvs[srcGID][trgGID][syn], nmdaOnPC[srcGID][trgGID][syn])
+				connmdaPC2PC[srcGID][trgGID][syn].delay=FIDp
+				connmdaPC2PC[srcGID][trgGID][syn].weight = 0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS 
+				connmdaPC2PC[srcGID][trgGID][syn].threshold=-20
 			}
 		}
 	}
 }
 
-objref PVvs[nPVcells][nPCcells]
-objref gabaOnPC_A[nPVcells][nPCcells][maxnumber]
-objref gabaOnPC_B[nPVcells][nPCcells][maxnumber]
-objref congabaPV2PC_A[nPVcells][nPCcells][maxnumber]
-objref congabaPV2PC_B[nPVcells][nPCcells][maxnumber]
-proc connectPV2PC() {local delstimpvpc,PID,rDendidx,rApicidx,src,trg,syn,localID
+objref PVvs[nAllCells][nPCcells][100]
+objref gabaOnPC_A[nAllCells][nPCcells][maxnumber]
+objref gabaOnPC_B[nAllCells][nPCcells][maxnumber]
+objref congabaPV2PC_A[nAllCells][nPCcells][maxnumber]
+objref congabaPV2PC_B[nAllCells][nPCcells][maxnumber]
+proc connectPV2PC() {local delstimpvpc,PID,rDendidx,rApicidx,srcGID,trgGID,syn,localID
 	//-----------------------------Connect
-	trg = $1
+	trgGID = $1
 	localID = 0
-	for src=0, nPVcells-1 {
+	for srcGID=nPCcells, nPCcells+nPVcells-1 {
 		//----------------------------Insert synapses at soma
-		if(object_id(pidPV2PC[src][trg]) && object_id(PVvecstim[src][trg])){
-print "replaying PV src=",src," trg=",trg," syns=",pidPV2PC[src][trg].size()
+		if(object_id(pidPV2PC[srcGID][trgGID]) && object_id(GABAa_net_vector[srcGID][trgGID])){
+print "replaying PV srcGID=",srcGID," trgGID=",trgGID," syns=",pidPV2PC[srcGID][trgGID].size()
 			for syn=0,1-1 { 
-				PID = pidPV2PC[src][trg].x[syn]
-				PCcells.o(localID).soma gabaOnPC_A[src][trg][syn] = new GABAa(PID) //carefull not to overwrite array!
-				PCcells.o(localID).soma gabaOnPC_B[src][trg][syn] = new GABAb(PID)
+				PID = pidPV2PC[srcGID][trgGID].x[syn]
+				PCcells.o(localID).soma gabaOnPC_A[srcGID][trgGID][syn] = new GABAa(PID) //carefull not to overwrite array!
+				PCcells.o(localID).soma gabaOnPC_B[srcGID][trgGID][syn] = new GABAb(PID)
+				gabaOnPC_A[srcGID][trgGID][syn].cellid = trgGID
+				gabaOnPC_A[srcGID][trgGID][syn].srcgid = srcGID
+				gabaOnPC_A[srcGID][trgGID][syn].sid = syn
 
-				delstimpvpc=delayPV2PC[src][trg].x[syn]
+				delstimpvpc=delayPV2PC[srcGID][trgGID].x[syn]
 
-				PVvs[src][trg] = new VecStim()
-				PVvs[src][trg].delay = 0
-				PVvs[src][trg].play(PVvecstim[src][trg])
+				PVvs[srcGID][trgGID][syn] = new VecStim()
+				PVvs[srcGID][trgGID][syn].delay = 0
+				PVvs[srcGID][trgGID][syn].play(GABAa_net_vector[srcGID][trgGID])
 
-				congabaPV2PC_A[src][trg][syn] = new NetCon(PVvs[src][trg], gabaOnPC_A[src][trg][syn]) //vstim_stim[trg][syn]
-				congabaPV2PC_A[src][trg][syn].delay=delstimpvpc
-				congabaPV2PC_A[src][trg][syn].weight = gabaweight_pv2pc_a*INHIBIAS
-				congabaPV2PC_A[src][trg][syn].threshold=-20 
+				congabaPV2PC_A[srcGID][trgGID][syn] = new NetCon(PVvs[srcGID][trgGID][syn], gabaOnPC_A[srcGID][trgGID][syn]) //vstim_stim[trgGID][syn]
+				congabaPV2PC_A[srcGID][trgGID][syn].delay=delstimpvpc
+				congabaPV2PC_A[srcGID][trgGID][syn].weight = gabaweight_pv2pc_a*INHIBIAS
+				congabaPV2PC_A[srcGID][trgGID][syn].threshold=-20 
 
-				congabaPV2PC_B[src][trg][syn] = new NetCon(PVvs[src][trg], gabaOnPC_B[src][trg][syn])
-				congabaPV2PC_B[src][trg][syn].delay=delstimpvpc
-				congabaPV2PC_B[src][trg][syn].weight = gabaweight_pv2pc_b*INHIBIAS
-				congabaPV2PC_B[src][trg][syn].threshold=-20
+				congabaPV2PC_B[srcGID][trgGID][syn] = new NetCon(PVvs[srcGID][trgGID][syn], gabaOnPC_B[srcGID][trgGID][syn])
+				congabaPV2PC_B[srcGID][trgGID][syn].delay=delstimpvpc
+				congabaPV2PC_B[srcGID][trgGID][syn].weight = gabaweight_pv2pc_b*INHIBIAS
+				congabaPV2PC_B[srcGID][trgGID][syn].threshold=-20
 			}
 					//----------------------------Insert synapses at dendrites
 			for syn=1,4-1 { 
-				PID = pidPV2PC[src][trg].x[syn]
+				PID = pidPV2PC[srcGID][trgGID].x[syn]
 				rDendidx = 0 //dendrites!
-				PCcells.o(localID).dend[rDendidx] gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
-				PCcells.o(localID).dend[rDendidx] gabaOnPC_B[src][trg][syn] = new GABAb(PID)
-				delstimpvpc=delayPV2PC[src][trg].x[syn]
+				PCcells.o(localID).dend[rDendidx] gabaOnPC_A[srcGID][trgGID][syn] = new GABAa(PID) //was @ soma initially...
+				PCcells.o(localID).dend[rDendidx] gabaOnPC_B[srcGID][trgGID][syn] = new GABAb(PID)
+				gabaOnPC_A[srcGID][trgGID][syn].cellid = trgGID
+				gabaOnPC_A[srcGID][trgGID][syn].srcgid = srcGID
+				gabaOnPC_A[srcGID][trgGID][syn].sid = syn
 
-				PVvs[src][trg] = new VecStim()
-				PVvs[src][trg].delay = 0
-				PVvs[src][trg].play(PVvecstim[src][trg])
+				delstimpvpc=delayPV2PC[srcGID][trgGID].x[syn]
 
-				congabaPV2PC_A[src][trg][syn] = new NetCon(PVvs[src][trg], gabaOnPC_A[src][trg][syn]) //vstim_stim[trg][syn]
-				congabaPV2PC_A[src][trg][syn].delay=delstimpvpc
-				congabaPV2PC_A[src][trg][syn].weight = gabaweight_pv2pc_a*0.33*INHIBIAS
-				congabaPV2PC_A[src][trg][syn].threshold=-20 
+				PVvs[srcGID][trgGID][syn] = new VecStim()
+				PVvs[srcGID][trgGID][syn].delay = 0
+				PVvs[srcGID][trgGID][syn].play(GABAa_net_vector[srcGID][trgGID])
 
-				congabaPV2PC_B[src][trg][syn] = new NetCon(PVvs[src][trg], gabaOnPC_B[src][trg][syn])
-				congabaPV2PC_B[src][trg][syn].delay=delstimpvpc
-				congabaPV2PC_B[src][trg][syn].weight = gabaweight_pv2pc_b*0.33*INHIBIAS
-				congabaPV2PC_B[src][trg][syn].threshold=-20
+				congabaPV2PC_A[srcGID][trgGID][syn] = new NetCon(PVvs[srcGID][trgGID][syn], gabaOnPC_A[srcGID][trgGID][syn]) //vstim_stim[trgGID][syn]
+				congabaPV2PC_A[srcGID][trgGID][syn].delay=delstimpvpc
+				congabaPV2PC_A[srcGID][trgGID][syn].weight = gabaweight_pv2pc_a*0.33*INHIBIAS
+				congabaPV2PC_A[srcGID][trgGID][syn].threshold=-20 
+
+				congabaPV2PC_B[srcGID][trgGID][syn] = new NetCon(PVvs[srcGID][trgGID][syn], gabaOnPC_B[srcGID][trgGID][syn])
+				congabaPV2PC_B[srcGID][trgGID][syn].delay=delstimpvpc
+				congabaPV2PC_B[srcGID][trgGID][syn].weight = gabaweight_pv2pc_b*0.33*INHIBIAS
+				congabaPV2PC_B[srcGID][trgGID][syn].threshold=-20
 			}
 		}
 	}
 }  //end procedure initPV2PC
 
 print "---------------------"
-replaycellid = 236
 print "stimulating..."
-stimulation(replaycellid)
+replay_stimulation(CELL)
 print "replaying..."
-replayonpc(replaycellid)
-connectPV2PC(replaycellid)
+replayonpc(CELL)
+connectPV2PC(CELL)
 print "Done procs.."
 
 PCv = new Vector()
-PCv.record(&PCcells.o(0).soma.v(.5)) 
+PCv.record(&PCcells.o(0).soma.v(0.5)) 
 print "recording PC"
 //PCi = new Vector()
 //PCi.record(&vcobj.i) 
+/*
 PCvd = new Vector()
 PCvd.record(&PCcells.o(0).dend.v(0.1)) 
 PCvdd = new Vector()
 PCvdd.record(&PCcells.o(0).dend.v(0.5)) 
 PCvddd = new Vector()
 PCvddd.record(&PCcells.o(0).dend.v(0.9)) 
+*/
 
 balance_compartments()
 print "balancing compartments"
+/*
+trg = CELL //the cell we replay
+for src = 0, nPCcells-1{
+	if(object_id(pidPC2PC[src][trg]) && object_id(NMDA_net_vector[src][trg])){
+		for syn=0, pidPC2PC[src][trg].size()-1 { //for current syn
+print "FUKING NETCON EXISTS?", object_id(conampaPC2PC[src][trg][syn])
+//print "just fucking placed synapse",nmdaOnPC[src][trg][syn].sid," on trg=",nmdaOnPC[src][trg][syn].cellid," src=",nmdaOnPC[src][trg][syn].srcgid,"DEL=",conampaPC2PC[src][trg][syn].delay
+		}
+	}
+}
+*/
 run()
 print "simulation is DONE. Saving..."
 vsoma = new File()		
-
-sprint(STRING,"DATA/vsoma.txt")
+sprint(STRING,"DATA/vsoma2.txt")
 print STRING
 vsoma.wopen(STRING)
 for j=0, PCv.size()-1 {

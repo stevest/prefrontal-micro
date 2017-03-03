@@ -25,7 +25,7 @@ NEURON {
 	NONSPECIFIC_CURRENT inmda 
 	RANGE e ,gmax,inmda
 	RANGE gnmda
-	RANGE myflag, n, mybeta , cellid
+	RANGE srcgid, sid, myflag, n, mybeta , cellid
 	GLOBAL tau1,gama,tau2
 }
 
@@ -73,7 +73,9 @@ PARAMETER {
 	n=0.25		(/mM) :was 0.25
 	mybeta = 0.0
 	cellid = 0
-	myflag = 0
+	srcgid = -1
+	myflag = -1
+	sid = -1
 
 }
 
@@ -149,19 +151,10 @@ DERIVATIVE state {
 
 NET_RECEIVE (weight) {
 	gmax=weight
-
-	:state_discontinuity( A, A+ gmax)
-
 	A = A + gmax
-
-	:state_discontinuity( B, B+ gmax)
-
 	B = B + gmax
 VERBATIM
-	if ( (cellid == 236) && (myflag ==3) ){
-		printf("@=%f cellid=%g\n",t,cellid );
-	}
-
+//		printf("@NMDA=%f cellid=%g srcgid=%g sid=%g\n",t,cellid, srcgid, sid );
 ENDVERBATIM
 }
 

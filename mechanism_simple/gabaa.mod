@@ -65,7 +65,7 @@ NEURON {
 	RANGE R, g, gmax 
 	NONSPECIFIC_CURRENT i
 	GLOBAL Cmax, Cdur, Alpha, Beta, Erev, Rinf, Rtau
-	RANGE i
+	RANGE i, cellid, myflag, sid, srcgid
 }
 
 UNITS {
@@ -82,6 +82,10 @@ PARAMETER {
 	Alpha	= 5	(/ms mM)	: forward (binding) rate
 	Beta	= 0.18	(/ms)		: backward (unbinding) rate
 	Erev	= -80	(mV)		: reversal potential
+	cellid = 0
+	sid = -1
+	myflag = -1 
+	srcgid = -1
 }
 
 
@@ -139,6 +143,9 @@ NET_RECEIVE(weight, on, nspike, r0, t0 (ms)) {
 		}
 		: come again in Cdur with flag = current value of nspike
 		net_send(Cdur, nspike)
+		VERBATIM
+//			printf("@GABAa=%f cellid=%g srcgid=%g sid=%g\n",t,cellid, srcgid, sid );
+		ENDVERBATIM
         }
 	if (flag == nspike) { : if this associated with last spike then turn off
 		r0 = weight*Rinf + (r0 - weight*Rinf)*exp(-(t - t0)/Rtau)

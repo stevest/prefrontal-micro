@@ -53,7 +53,7 @@ PARAMETER {
 	:celsius	= 36    (degC) :WILL BE IGNORED AND SET BY NEURON
 	:en      = -20   (mV)            	: reversal potential :WILL BE IGNORED AND SET BY NEURON
 	cai     	(mM)           		: initial [Ca]i
-	gbar    = 0.00025(mho/cm2)
+	gbar    = 0.0(mho/cm2)
 	beta 	= 0.00015                     	: 0.0003  0.00015
 	cac	= 0.0001			: 0.0004 0.0001
 	taumin  = 0.1   (ms)            	: minimal value of time constant

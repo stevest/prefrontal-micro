@@ -12,7 +12,10 @@ strdef str, vfilePC_filename, EXEC_CMD
 //$ cmp sorted_serout.txt sorted_parout.txt
 
 // see this here on the topic of storing membrane voltage in a parallel context: http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=1987
-objref r_volts[nAllCells],r_msec,r_dmsec
+objref r_volts[nAllCells],r_msec
+r_msec = new Vector(n)
+for q=0,n-1 {r_msec.x[q]=q*dt }
+
 objref r_dvolts[nPCcells][DEND_NSEG]
 //objref r_dvolts[offsets.x[offsets.size()-1]]
 // each recorded range variable must have a separate tvec which will be different for different cells
@@ -25,10 +28,8 @@ proc par_rec_soma_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
 	trgGID = $1
 	if (PC.gid_exists(trgGID)) { 
 		r_volts[trgGID]=new Vector(n)
-		r_msec = new Vector(n)
 		//Also a known bug:
 		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
-		for q=0,n-1 {r_msec.x[q]=q*dt }
 		PC.gid2cell(trgGID).soma {cv.record(&v(0.5),r_volts[trgGID],r_msec,0)}
 		recordedCells.append(trgGID)
 		//}
@@ -38,13 +39,11 @@ proc par_rec_soma_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
 proc par_rec_dend_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
 	trgGID = $1
 	if (PC.gid_exists(trgGID)) { 
-		r_dmsec = new Vector(n)
-		for q=0,n-1 {r_dmsec.x[q]=q*dt }
 		initial = (1/DEND_NSEG)/2
 		for cseg = 0,DEND_NSEG-1 {
 			r_dvolts[trgGID][cseg]=new Vector(n)
 			csegloc = initial + (1/DEND_NSEG)*cseg
-			PC.gid2cell(trgGID).dend {cv.record(&v(csegloc),r_dvolts[trgGID][cseg],r_dmsec,0)}
+			PC.gid2cell(trgGID).dend {cv.record(&v(csegloc),r_dvolts[trgGID][cseg],r_msec,0)}
 		}
 		recordedDends.append(trgGID)
 	}

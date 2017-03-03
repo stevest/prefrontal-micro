@@ -33,7 +33,7 @@ simhome="${simhome}/"
 simglia="/home/cluster/stefanos/Documents/Glia"
 simglia="${simglia}/"
 ## Define neuron repo. This is the git repo inside ~/Libraries.
-nrn_repository="nrn_fork"
+nrn_repository="nrn"
 echo "Currently at directory:"
 echo $simhome
 echo `pwd`
@@ -41,23 +41,23 @@ echo "Using NEURON from repository: ${nrn_repository}."
 
 parallel="1"
 ## Use scheduler or directly run with mpi:
-schedule="0"
+schedule="1"
 #All nodes are:312 
-nodes="312" ##jobname="STR_N100_S6_STC0" jobstdout=""
-cluster="6"
+nodes="24" ##jobname="STR_N100_S6_STC0" jobstdout=""
+##cluster="0"
 # 0=Random, 1=Structured
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
-exp="1"
+exp="0"
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 sn="10"
 clustbias="1"
 excitbias="25"
-inhibias="5"
+inhibias="2"
 nmdabias="2.0"
 gababfactor="15"
-BGe="20"
+BGe="10"
 BGi="1"
-stimmagnitude="15"
+stimmagnitude="40"
 ## NMDA beta is a factor that shifts the lognormal function to the left 
 ## if negative (minus sign is inside its mod file) so greater values
 ## enhance gNMDA.
@@ -89,13 +89,14 @@ jobstdout="$jobstdout\\\n=======================================================
 for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
 #run="0"
-for stimmagnitude in $(seq 40 40); do
-	for run in $(seq 0 0); do
+for cluster in $(seq 0 6); do
+	for run in $(seq 5 19); do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
-		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
+		#jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
+		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_Ss4c${cluster}_SN${sn}_r"
 	else
-		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Rs4c${cluster}_SN${sn}_r"
+		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_Rs4c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
