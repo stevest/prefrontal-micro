@@ -47,17 +47,17 @@ nodes="24" ##jobname="STR_N100_S6_STC0" jobstdout=""
 ##cluster="0"
 # 0=Random, 1=Structured
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
-exp="0"
+exp="1"
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 sn="10"
 clustbias="1"
-excitbias="25"
-inhibias="2"
-nmdabias="2.0"
-gababfactor="15"
+excitbias="2"
+inhibias="1.5"
+nmdabias="2.5"
+gababfactor="0.1"
 BGe="10"
 BGi="1"
-stimmagnitude="40"
+stimmagnitude="20"
 ## NMDA beta is a factor that shifts the lognormal function to the left 
 ## if negative (minus sign is inside its mod file) so greater values
 ## enhance gNMDA.
@@ -65,8 +65,7 @@ nmdaflag="0"
 dendnseg="5"
 ## How many clusters I do identify 
 Cl="7"
-## How much (normalized) the weights are squashed into a narrow uniform distribution
-## Zero means original lognormal weights dist; One means quantized 0.5 weights (connectivity of pairs
+## How much (normalized) the weights are squashed into a narrow uniform distribution ## Zero means original lognormal weights dist; One means quantized 0.5 weights (connectivity of pairs
 ## 	stays the same.
 Fs="1"
 startRun="0"
@@ -89,12 +88,12 @@ jobstdout="$jobstdout\\\n=======================================================
 for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
 #run="0"
-for cluster in $(seq 0 6); do
-	for run in $(seq 5 19); do
+for cluster in $(seq 4 4); do
+	for run in $(seq 0 0); do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
 		#jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
-		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_Ss4c${cluster}_SN${sn}_r"
+		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ss4c${cluster}_SN${sn}_r"
 	else
 		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_Rs4c${cluster}_SN${sn}_r"
 	fi

@@ -1,11 +1,11 @@
 proc par_save_dend_voltage() {local i,s,j,fctr localobj vfilePC
 	//print "@=",PC.id, "dend recordedCells.size=",recordedCells.size()
-	for s=0,recordedCells.size()-1{
-		trgGID = recordedCells.x[s]
+	for s=0,recordedDends.size()-1{
+		trgGID = recordedDends.x[s]
 		for cseg = 0, DEND_NSEG-1 {
 			if (object_id(r_dvolts[trgGID][cseg])) {
 				vfilePC = new File()	
-				sprint(vfilePC_filename,"%s/v_dend_%02d_%03d.%s", $s1, cseg,trgGID, ext) 
+				sprint(vfilePC_filename,"%s/v_dend_%02d_%03d.txt", $s1, cseg,trgGID) 
 				//print "@=",PC.id," Saving dend=",recordedCells.x(s)," loc=",cseg," ",vfilePC_filename
 				vfilePC.wopen(vfilePC_filename)
 				fh = vfilePC.isopen()

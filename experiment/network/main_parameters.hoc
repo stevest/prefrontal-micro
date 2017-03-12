@@ -8,8 +8,8 @@ save_stimulation_locations = 0
 save_background_locations = 0 
 save_synaptic_delays = 0 
 save_pvsynaptic_delays = 0
-save_inmda = 0 
-save_dend_voltage = 0 
+save_inmda = 1 
+save_dend_voltage = 1 
 save_bg_iampa = 0 
 // Experimental setup
 //tstop=10 //defined externaly
