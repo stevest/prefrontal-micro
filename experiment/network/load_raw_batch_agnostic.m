@@ -154,7 +154,7 @@ if ~isempty(files_pid_interuenrons)
     fprintf('Files files_pid_interneurons deleted (Time: %f secs)!\n',toc);
 end
 
-% Handle pyramidal to opyramidal delays:
+% Handle pyramidal to pyramidal delays:
 files_delay_pyramidal = sort(rf(cellfun(@(x) ~isempty(strfind(x,'delay_pyramidal')),rf)));
 if ~isempty(files_delay_pyramidal)
     delaypyramidal = cell(length(files_v_soma),length(files_v_soma));
@@ -272,6 +272,59 @@ if ~isempty(files_iNMDA_dend)
     fprintf('Files iNMDA_dend deleted (Time: %f secs)!\n',toc);
 end
 
+% Handle pyramidal dendritic NMDA A (tau = 90ms):
+files_NMDA_A_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'nmdaA_dend')),rf)));
+if ~isempty(files_NMDA_A_dend)
+    nmdaA = cell(length(files_NMDA_A_dend),1);
+    tic;
+    for fn = 1:length(files_NMDA_A_dend)
+        filename = fullfile(pathto,files_NMDA_A_dend{fn});
+        iNMDA = load(filename);
+        tmp = strsplit(files_NMDA_A_dend{fn}, {'nmdaA_dend_','.'} );
+        trg = str2double(tmp{2})+1;
+        % dt equals 0.1:
+        iNMDA = iNMDA(1:10:end);
+        nmdaA{trg,1} = iNMDA;
+    end
+    fprintf('Time: %f secs\n',toc);
+    outputfile = fullfile(pathto,'nmdaA.mat');
+    save(outputfile, 'nmdaA');
+    % remove files to save space and sanity:
+    tic;
+    for fn = 1:length(files_NMDA_A_dend)
+        filename = fullfile(pathto,files_NMDA_A_dend{fn});
+        delete(filename);
+    end
+    fprintf('Files nmdaA_dend deleted (Time: %f secs)!\n',toc);
+end
+
+% Handle pyramidal to pyramidal NMDA_A for each pair:
+files_NMDA_A_pair = sort(rf(cellfun(@(x) ~isempty(strfind(x,'nmdaA_src_')),rf)));
+if ~isempty(files_NMDA_A_pair)
+    nmdaA_pair = cell(length(files_v_soma),length(files_v_soma));
+    tic;
+    for fn = 1:length(files_NMDA_A_pair)
+        %get files per node id:
+        filename = fullfile(pathto,files_NMDA_A_pair{fn});
+        NMDA_A_pair = load(filename);
+        tmp = strsplit(files_NMDA_A_pair{fn}, {'nmdaA_src_','_trg_','.txt'} );
+        src = str2double(tmp{2})+1;
+        trg = str2double(tmp{3})+1;
+        NMDA_A_pair = NMDA_A_pair(1:10:end);
+        nmdaA_pair{src,trg} = NMDA_A_pair;
+    end
+    fprintf('Time: %f secs\n',toc);
+    outputfile = fullfile(pathto,'nmdaA_pair.mat');
+    save(outputfile, 'nmdaA_pair');
+    % remove files to save space and sanity:
+    tic;
+    for fn = 1:length(files_NMDA_A_pair)
+        filename = fullfile(pathto,files_NMDA_A_pair{fn});
+        delete(filename);
+    end
+    fprintf('Files files_pid_pyramidal deleted (Time: %f secs)!\n',toc);
+end
+
 % Handle pyramidal stimulation synaptic locations:
 files_pid_stim_pyramidal = sort(rf(cellfun(@(x) ~isempty(strfind(x,'pid_stim_pyramidal')),rf)));
 if ~isempty(files_pid_stim_pyramidal)
@@ -310,7 +363,7 @@ if ~isempty(files_pid_stim_pyramidal)
     save(outputfile, 'pidstimpyramidal');
     % remove files to save space and sanity:
     tic;
-    for fn = 1:length(files_pid_pyramidal)
+    for fn = 1:length(files_pid_stim_pyramidal)
         filename = fullfile(pathto,files_pid_stim_pyramidal{fn});
         delete(filename);
     end

@@ -79,7 +79,7 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 			for syn=0, (Stim_MaxSyn_apic-1) {
 				artcell = new NetStim()
 				artcell.interval = 20
-				artcell.number = 50
+				artcell.number = 50//50
 				artcell.start = 0
 				artcell.noise = 0//.2
 				//artificial cell gids:
@@ -429,6 +429,8 @@ if(save_synaptic_locations){
 if(save_inmda){
 	{sprint(EXEC_CMD,"{objref inmdaPC2PC[%d][%d][%d]}",nPCcells,nPCcells,PC2PC_MaxSyn)}
 	{assert(execute1(EXEC_CMD))}
+	{sprint(EXEC_CMD,"{objref nmdaAPC2PC[%d][%d][%d]}",nPCcells,nPCcells,PC2PC_MaxSyn)}
+	{assert(execute1(EXEC_CMD))}
 }
 
 //PC-PC connections
@@ -521,19 +523,27 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 								{assert(execute1(EXEC_CMD))}
 							}
 							PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
-							PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+							//PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
 
-							nmdaOnPC[src][trg][syn].srcgid = srcGID
-							nmdaOnPC[src][trg][syn].sid = syn
-							nmdaOnPC[srcGID][trg][syn].cellid = trgGID
+							//nmdaOnPC[src][trg][syn].srcgid = srcGID
+							//nmdaOnPC[src][trg][syn].sid = syn
+							//nmdaOnPC[srcGID][trg][syn].cellid = trgGID
+							//nmdaOnPC[srcGID][trg][syn].tau1 = NMDATAU 
+							//print "NMDATAU=",nmdaOnPC[srcGID][trg][syn].tau1 
 							if(save_inmda){
 								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
 								{assert(execute1(EXEC_CMD))}
-								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].inmda)}",src,trg,syn,src,trg,syn)}
+								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d].record(&ampaOnPC[%d][%d][%d].iglu)}",src,trg,syn,src,trg,syn)}
 								{assert(execute1(EXEC_CMD))}
+//if (syn == 0){
+								//{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+								//{assert(execute1(EXEC_CMD))}
+								//{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].A)}",src,trg,syn,src,trg,syn)}
+								//{assert(execute1(EXEC_CMD))}
+//}
 							}
-							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS)
-							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
+							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS * 120)
+							//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
 						}
 					}
 				}

@@ -12,7 +12,7 @@ n=int(tstop/dt)
 celsius=34
 DEND_NSEG = 5
 
-tstop = 1500 
+tstop = 700 
 nPCcells = 1
 
 v_init = -66 
@@ -80,11 +80,7 @@ isir = new Random()
 isir.normal(0,3)
 NSnoise = 0 
 
-NS[0]=new NetStim()
-NS[0].interval=40//isir.repick()
-NS[0].number=1//10
-NS[0].start=50
-NS[0].noise=NSnoise
+/*
 for k=1,synapses-1{
 	print "Creating NS: ",k
 	NS[k]=new NetStim()
@@ -94,6 +90,7 @@ for k=1,synapses-1{
 	NS[k].noise=NSnoise
 }
 print "NS final is: ",NS[synapses-1].number
+*/
 
 r = new Random(0)
 r.normal(0, 0.3)
@@ -103,6 +100,7 @@ rl = new Random()
 rl.uniform(0,1)
 
 objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
+objref gabaa[4], gabab[4], ncga[4], ncgb[4]
 orgloc = 70 //location indendrite (distance from soma in um)
 loc = orgloc
 
@@ -113,69 +111,89 @@ for i=1,80-1{
 	wfVect.append(i*8)
 }
 nmdafactor = 2 
+gababfactor = 12
 gabaweight = 0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
 gabaweightb = 1.05e-4
 gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-gabaweight_pv2pc_b = gabaweightb   * 10//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = gabaweightb   * gababfactor 
 objref vcobj
 
 //PCcells.o(0).soma{ vcobj = new VClamp(0.5)}
 //vcobj.dur[0] = 1500
 //vcobj.amp[0] = -66
 		//for wf = 0, wfVect.size()-1 {
+// Universal weight:
+uniweight = 1
+for isidelay = 1 , 100-1{
+NS[0]=new NetStim()
+NS[0].interval=isidelay//isir.repick()
+NS[0].number=3//10
+NS[0].start=500
+NS[0].noise=NSnoise
+for nmdaflag = 0, 1{
 			print "---------------------"
 			//print wfVect.x[wf]//, nmdaVect.x[nw]
 			PID=0.5//rl.repick()
 
 			for syn=0,synapses-1{
 				print " Placing synapse : ",syn
-				PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
-				PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
-				nmdapr[syn].sid = syn 
-				nmdapr[syn].cellid = 0 
-				nmdapr[syn].srcgid = 1 
-				//nc1[syn]=new NetCon(NS[0], ampapr[syn])
-				//nc1[syn].delay=1
-				//nc1[syn].weight=ampaweight// * wfVect.x[wf]//*nw*0.1
-				nc2[syn]=new NetCon(NS[0], nmdapr[syn])
-				nc2[syn].delay=1
-				nc2[syn].weight= 0.25//nmdaweight //* wfVect.x[wf] * nmdafactor 
+				if (nmdaflag){
+					PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
+					//nmdapr[syn].sid = syn 
+					//nmdapr[syn].cellid = 0 
+					//nmdapr[syn].srcgid = 1 */
+					nc2[syn]=new NetCon(NS[0], nmdapr[syn])
+					nc2[syn].delay=1
+					nc2[syn].weight=uniweight
+					//nc2[syn].weight= 0.25 * 25 * 2// excitbias * nmda bias
+				}else{
+					PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
+					nc1[syn]=new NetCon(NS[0], ampapr[syn])
+					nc1[syn].delay=1
+					nc1[syn].weight=uniweight
+					//nc1[syn].weight=ampaweight// * wfVect.x[wf]//*nw*0.1
+				}
+				
 			}
 /*
 			for syn=0,1-1{
 				print " Placing INHIBITORY synapse : ",syn
-				PCcells.o(0).soma ampapr[syn] = new GABAa(0.5)
-				PCcells.o(0).soma nmdapr[syn] = new GABAb(0.5)
-				nc1[syn]=new NetCon(NS[syn], ampapr[syn])
-				nc1[syn].delay=100
-				nc1[syn].weight=gabaweight_pv2pc_a
-				nc2[syn]=new NetCon(NS[syn], nmdapr[syn])
-				nc2[syn].delay=100
-				nc2[syn].weight=gabaweight_pv2pc_b
+				PCcells.o(0).soma gabaa[syn] = new GABAa(0.5)
+				PCcells.o(0).soma gabab[syn] = new GABAb(0.5)
+				ncga[syn]=new NetCon(NS[0], gabaa[syn])
+				ncga[syn].delay=100
+				ncga[syn].weight=gabaweight_pv2pc_a
+				ncgb[syn]=new NetCon(NS[0], gabab[syn])
+				ncgb[syn].delay=100
+				ncgb[syn].weight=gabaweight_pv2pc_b
 			}
+
 			for syn=1,4-1{
 				PID = rl.repick()
 				print " Placing INHIBITORY synapse : ",syn," PID=",PID
-				PCcells.o(0).dend[0] ampapr[syn] = new GABAa(PID)
-				PCcells.o(0).dend[0] nmdapr[syn] = new GABAb(PID)
-				nc1[syn]=new NetCon(NS[syn], ampapr[syn])
-				nc1[syn].delay=100
-				nc1[syn].weight=gabaweight_pv2pc_a * 0.33
-				nc2[syn]=new NetCon(NS[syn], nmdapr[syn])
-				nc2[syn].delay=100
-				nc2[syn].weight=gabaweight_pv2pc_b * 0.33
+				PCcells.o(0).dend[0] gabaa[syn] = new GABAa(PID)
+				PCcells.o(0).dend[0] gabab[syn] = new GABAb(PID)
+				ncga[syn]=new NetCon(NS[0], gabaa[syn])
+				ncga[syn].delay=100
+				ncga[syn].weight=gabaweight_pv2pc_a * 0.33
+				ncgb[syn]=new NetCon(NS[0], gabab[syn])
+				ncgb[syn].delay=100
+				ncgb[syn].weight=gabaweight_pv2pc_b * 0.33
 			}
-*/			
+*/
+
 			PCv = new Vector()
 			PCv.record(&PCcells.o(0).soma.v(.5)) 
-			//PCi = new Vector()
-			//PCi.record(&vcobj.i) 
+/*
+			PCi = new Vector()
+			PCi.record(&gabab[0].i) 
 			PCvd = new Vector()
 			PCvd.record(&PCcells.o(0).dend.v(0.1)) 
 			PCvdd = new Vector()
 			PCvdd.record(&PCcells.o(0).dend.v(0.5)) 
 			PCvddd = new Vector()
 			PCvddd.record(&PCcells.o(0).dend.v(0.9)) 
+*/
 
 			balance_compartments()
 			run()
@@ -183,7 +201,11 @@ objref vcobj
 
 			//sprint(STRING,"DATA/nmda_w%07.3f_pid%.3f.txt", wfVect.x[wf], PID)
 
-			sprint(STRING,"DATA/gaba_%.3f.txt",gabaweight_pv2pc_a )
+			if (nmdaflag) {
+				sprint(STRING,"DATA/soma_NMDA_%d.txt",isidelay)
+			}else{
+				sprint(STRING,"DATA/soma_AMPA_%d.txt",isidelay)
+			}
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCv.size()-1 {
@@ -191,16 +213,16 @@ objref vcobj
 			}
 			vsoma.close()
 /*
-			sprint(STRING,"DATA/gabai_%.3f.txt",gabaweight_pv2pc_a )
+
+			sprint(STRING,"DATA/gababi_%.3f.txt",gabaweight_pv2pc_a )
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCi.size()-1 {
 				vsoma.printf ("%f\n",PCi.x[j])
 			}
 			vsoma.close()
-*/
 
-/*
+
 			vsoma = new File()		
 			sprint(STRING,"DATA/dend/nmda_dend_%g.txt", 0.1)
 			vsoma.wopen(STRING)
@@ -226,8 +248,5 @@ objref vcobj
 			vsoma.close()
 */
 
-	//	}
-		//loc += 10
-	//}
-	//syn += 20
-//}
+} //for nmdaflag
+} // for isidelay

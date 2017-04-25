@@ -49,15 +49,19 @@ nodes="24" ##jobname="STR_N100_S6_STC0" jobstdout=""
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 exp="1"
 #!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
-sn="10"
+sn="11"
 clustbias="1"
-excitbias="2"
-inhibias="1.5"
-nmdabias="2.5"
-gababfactor="0.1"
+excitbias="25"
+inhibias="3"
+nmdabias="2.0"
+gababfactor="15"
 BGe="10"
 BGi="1"
-stimmagnitude="20"
+stimmagnitude="40"
+## Default Elimination of Reciprocal Factor:
+erf="0.0"
+## Default NMDA decay tau:
+nmdatau="90"
 ## NMDA beta is a factor that shifts the lognormal function to the left 
 ## if negative (minus sign is inside its mod file) so greater values
 ## enhance gNMDA.
@@ -72,6 +76,7 @@ startRun="0"
 endRun="0"
 VARPID="0.5"
 custom_jobs=(41 42)
+erf_array=(0.0 0.1 0.3 0.5 0.7 0.9)
 #naming convention in ten characters:
 
 mechanisms="mechanism_simple"
@@ -85,17 +90,21 @@ jobstdout="$jobstdout\\\nJOB NAME IS: $jobname"
 jobstdout="$jobstdout\\\n========================================================================================"
 
 
-for run in $(seq $startRun $endRun); do
+##for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
-#run="0"
-for cluster in $(seq 4 4); do
-	for run in $(seq 0 0); do
+run="0"
+for inhibias in $(seq 3 3); do
+for cluster in $(seq 10 19); do
+##for nmdatau in $(seq 60 60); do
+##for nmdabias in $(seq 2.5 2.5); do
+##for gababfactor in $(seq 17.2 0.2 18); do
+##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
 		#jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
-		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ss4c${cluster}_SN${sn}_r"
+		jobname="AMPActrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ss7c${cluster}_SN${sn}_r"
 	else
-		jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_Rs4c${cluster}_SN${sn}_r"
+		jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Rs7c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
@@ -133,6 +142,8 @@ for cluster in $(seq 4 4); do
 	-c "CL=$Cl" \
 	-c "BGE=$BGe" \
 	-c "BGI=$BGi" \
+	-c "ERF=$erf" \
+	-c "NMDATAU=$nmdatau" \
 	-c "NMDA_FLAG=$nmdaflag" \
 	-c "DEND_NSEG=$dendnseg" \
 	-c "GABABFACTOR=$gababfactor" \
@@ -183,7 +194,8 @@ echo `which nrniv`
 	
 done
 done
-done
+##done
+##done
  
 else
 

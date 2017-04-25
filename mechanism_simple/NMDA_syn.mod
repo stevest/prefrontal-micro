@@ -24,9 +24,9 @@ NEURON {
 	USEION ca READ cai WRITE ica VALENCE 2
 	NONSPECIFIC_CURRENT inmda 
 	RANGE e ,gmax,inmda
-	RANGE gnmda
+	RANGE gnmda, tau1
 	RANGE srcgid, sid, myflag, n, mybeta , cellid
-	GLOBAL tau1,gama,tau2
+	GLOBAL gama,tau2
 }
 
 

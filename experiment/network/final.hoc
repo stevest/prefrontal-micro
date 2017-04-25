@@ -41,8 +41,7 @@ proc pprint(){
 {system("echo $(date)", PPRINT_CMD)}
 {sprint(STDOUT, "NEURON MPIRUN STARTING AT: %s",PPRINT_CMD)}
 {pprint(STDOUT)}
-//JOBID is generated from SGE so get it:
-{sprint(STDOUT, "JOB NAME: %s",JOBNAME)}
+//JOBID is generated from SGE so get it: {sprint(STDOUT, "JOB NAME: %s",JOBNAME)}
 {pprint(STDOUT)}
 {system("echo $JOB_ID", PPRINT_CMD)}
 {sprint(STDOUT, "JOB ID: %s",PPRINT_CMD)}
@@ -74,7 +73,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 3000 
+tstop = 5000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -83,7 +82,7 @@ if(1){assert(execute1(EXEC_CMD))}
 if(1){pprint("Load Network Parameters.")}
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g_rndI50.hoc\")}",PATH,SN,FS,CL)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint(EXEC_CMD)}
@@ -219,7 +218,7 @@ if(1){
 	{pprint(PPRINT_CMD)}
 }
 //ATTENTION TO WEIGHT OF BG SYNAPSES!! CORRECTED FOR FEWER SYNAPSES!!!! SSS
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{backgroundActivity(%d,%d)}",RUN,0)}
 	{assert(execute1(EXEC_CMD))}
@@ -240,7 +239,7 @@ if(0){
 //connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%f)}",RUN,0,0.585)}
+	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%f)}",0,0,0.585)}
 	{assert(execute1(EXEC_CMD))}
 	sprint(PPRINT_CMD,"%s executed OK.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
@@ -250,7 +249,7 @@ if(1){
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",RUN,0)}
+	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
@@ -258,7 +257,7 @@ if(1){
 }
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",RUN,0)}
+	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
@@ -266,7 +265,7 @@ if(1){
 }
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",RUN,0)}
+	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",0,0)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
