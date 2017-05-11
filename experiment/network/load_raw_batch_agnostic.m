@@ -257,7 +257,7 @@ if ~isempty(files_iNMDA_dend)
         tmp = strsplit(files_iNMDA_dend{fn}, {'inmda_dend_','.'} );
         trg = str2double(tmp{2})+1;
         % dt equals 0.1:
-        iNMDA = iNMDA(1:10:end);
+        %iNMDA = iNMDA(1:10:end);
         inmda{trg,1} = iNMDA;
     end
     fprintf('Time: %f secs\n',toc);
@@ -272,6 +272,56 @@ if ~isempty(files_iNMDA_dend)
     fprintf('Files iNMDA_dend deleted (Time: %f secs)!\n',toc);
 end
 
+% Handle pyramidal dendritic iAMPA:
+files_iAMPA_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'iampa_dend')),rf)));
+if ~isempty(files_iAMPA_dend)
+    iampa = cell(length(files_iAMPA_dend),1);
+    tic;
+    for fn = 1:length(files_iAMPA_dend)
+        filename = fullfile(pathto,files_iAMPA_dend{fn});
+        iAMPA = load(filename);
+        tmp = strsplit(files_iAMPA_dend{fn}, {'iampa_dend_','.'} );
+        trg = str2double(tmp{2})+1;
+        % dt equals 0.1:
+        %iNMDA = iNMDA(1:10:end);
+        iampa{trg,1} = iAMPA;
+    end
+    fprintf('Time: %f secs\n',toc);
+    outputfile = fullfile(pathto,'iampa.mat');
+    save(outputfile, 'iampa');
+    % remove files to save space and sanity:
+    tic;
+    for fn = 1:length(files_iAMPA_dend)
+        filename = fullfile(pathto,files_iAMPA_dend{fn});
+        delete(filename);
+    end
+    fprintf('Files iAMPA_dend deleted (Time: %f secs)!\n',toc);
+end
+
+% Handle pyramidal dendritic iGABA:
+files_iGABA_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'igaba_dend')),rf)));
+if ~isempty(files_iGABA_dend)
+    igaba = cell(length(files_iGABA_dend),1);
+    tic;
+    for fn = 1:length(files_iGABA_dend)
+        filename = fullfile(pathto,files_iGABA_dend{fn});
+        iGABA = load(filename);
+        tmp = strsplit(files_iGABA_dend{fn}, {'igaba_dend_','.'} );
+        trg = str2double(tmp{2})+1;
+        igaba{trg,1} = iGABA;
+    end
+    fprintf('Time: %f secs\n',toc);
+    outputfile = fullfile(pathto,'igaba.mat');
+    save(outputfile, 'igaba');
+    % remove files to save space and sanity:
+    tic;
+    for fn = 1:length(files_iGABA_dend)
+        filename = fullfile(pathto,files_iGABA_dend{fn});
+        delete(filename);
+    end
+    fprintf('Files iGABA_dend deleted (Time: %f secs)!\n',toc);
+end
+
 % Handle pyramidal dendritic NMDA A (tau = 90ms):
 files_NMDA_A_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'nmdaA_dend')),rf)));
 if ~isempty(files_NMDA_A_dend)
@@ -283,7 +333,7 @@ if ~isempty(files_NMDA_A_dend)
         tmp = strsplit(files_NMDA_A_dend{fn}, {'nmdaA_dend_','.'} );
         trg = str2double(tmp{2})+1;
         % dt equals 0.1:
-        iNMDA = iNMDA(1:10:end);
+        %iNMDA = iNMDA(1:10:end);
         nmdaA{trg,1} = iNMDA;
     end
     fprintf('Time: %f secs\n',toc);
@@ -310,7 +360,7 @@ if ~isempty(files_NMDA_A_pair)
         tmp = strsplit(files_NMDA_A_pair{fn}, {'nmdaA_src_','_trg_','.txt'} );
         src = str2double(tmp{2})+1;
         trg = str2double(tmp{3})+1;
-        NMDA_A_pair = NMDA_A_pair(1:10:end);
+        %NMDA_A_pair = NMDA_A_pair(1:10:end);
         nmdaA_pair{src,trg} = NMDA_A_pair;
     end
     fprintf('Time: %f secs\n',toc);

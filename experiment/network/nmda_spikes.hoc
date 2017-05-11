@@ -6,13 +6,14 @@ objref PC
 PC = new ParallelContext()
 PARALLEL  = 0
 
+tstop = 700 
+{xopen("./DATA/vstim.hoc")}
 steps_per_ms=10
 dt=1/steps_per_ms
 n=int(tstop/dt)
 celsius=34
 DEND_NSEG = 5
 
-tstop = 700 
 nPCcells = 1
 
 v_init = -66 
@@ -29,68 +30,40 @@ proc balance_compartments() {
 	//Do not call finitialize with v_init argument, because it sets it in all cells
 	// created up to this point!
 	finitialize()
+	fcurrent()
 	forsec PCcell_list {
+		//print "In PCcell_list"
 		for (x) {
+			//print "V is: ",v
 			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
 			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
 			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
-			if (ismembrane("in_ion")) {e_passive(x)=e_passive(x)+in(x)/g_passive(x)} //ican
 			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
-
-			if (ismembrane("ican")) { gbar_ican(x)= gbar_ican(x)  *0.0 }
-		
 		}
 	}
 	fcurrent()
-	if (cv.active()) {
+	/*if (cv.active()) {
 		cv.re_init()
 	}       else {
 		fcurrent()
-	}
+	}*/
 	frecord_init()
 }
 
 
 //-------------------Set synaptic weights
 ampaweight=	0.00019		//0.00019//According to Wang(2008)
-
-/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
-nmdaweights.x[1]=0.35		//1.5
-nmdaweights.x[2]=0.47		//1.9
-nmdaweights.x[3]=0.585		//2.3*/
 nmdaweight = 0.25//0.05
 
 taur_cad = 50//36 //SSS
 
-objref nmdaVect
-nmdaVect = new Vector()
-nmdaVect.append(nmdaweight)
-for i=1,40-1{
-	nmdaVect.append(nmdaVect.x[i-1]+0.05)
-}
-
 objref r, PCv,PCi, vsoma
 objref PCvd, PCvdd, PCvddd
 
-synapses = 1 
+synapses = 5
 
 objref NS[synapses]
-objref isir
-isir = new Random()
-isir.normal(0,3)
 NSnoise = 0 
-
-/*
-for k=1,synapses-1{
-	print "Creating NS: ",k
-	NS[k]=new NetStim()
-	NS[k].interval=1//isir.repick()
-	NS[k].number=10
-	NS[k].start=NS[k-1].start + isir.repick()
-	NS[k].noise=NSnoise
-}
-print "NS final is: ",NS[synapses-1].number
-*/
 
 r = new Random(0)
 r.normal(0, 0.3)
@@ -101,60 +74,78 @@ rl.uniform(0,1)
 
 objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 objref gabaa[4], gabab[4], ncga[4], ncgb[4]
-orgloc = 70 //location indendrite (distance from soma in um)
-loc = orgloc
 
-objref wfVect
-wfVect = new Vector()
-//wfVect.append(1)
-for i=1,80-1{
-	wfVect.append(i*8)
-}
-nmdafactor = 2 
+nmdabias = 10 //TEMP CHANGE! REVERT BACK TO 2!!
+excitbias = 25
 gababfactor = 12
 gabaweight = 0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
 gabaweightb = 1.05e-4
 gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 gabaweight_pv2pc_b = gabaweightb   * gababfactor 
-objref vcobj
 
-//PCcells.o(0).soma{ vcobj = new VClamp(0.5)}
-//vcobj.dur[0] = 1500
-//vcobj.amp[0] = -66
-		//for wf = 0, wfVect.size()-1 {
-// Universal weight:
-uniweight = 1
-for isidelay = 1 , 100-1{
-NS[0]=new NetStim()
-NS[0].interval=isidelay//isir.repick()
-NS[0].number=3//10
-NS[0].start=500
-NS[0].noise=NSnoise
-for nmdaflag = 0, 1{
+objref nil
+objref iNMDA[synapses]
+objref NMDA_A[synapses]
+objref totalINMDA
+objref totalNMDA_A
+
+NS=new NetStim()
+NS.interval=ISI//isir.repick()
+NS.number=NUMBER//10
+NS.start=200
+NS.noise=NSnoise
+
+/*
+objref stimvec
+stimvec = new Vector()
+stimvec.append(200)
+stimvec.append(205)
+stimvec.append(210)
+stimvec.append(215)
+stimvec.append(220)
+stimvec.append(230)
+stimvec.append(270)
+stimvec.append(290)
+stimvec.append(400)
+stimvec.append(450)
+*/
+
+
+NS = new VecStim()
+NS.play(stimvec)
+NS.delay=1
+
+
+for nmdaflag = 1, 1{
 			print "---------------------"
-			//print wfVect.x[wf]//, nmdaVect.x[nw]
 			PID=0.5//rl.repick()
 
 			for syn=0,synapses-1{
 				print " Placing synapse : ",syn
+				nmdapr[syn] = nil
+				ampapr[syn] = nil
+				nc1[syn] = nil
+				nc2[syn] = nil
 				if (nmdaflag){
 					PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
+					nmdapr[syn].tau1 = NMDATAU
 					//nmdapr[syn].sid = syn 
 					//nmdapr[syn].cellid = 0 
-					//nmdapr[syn].srcgid = 1 */
-					nc2[syn]=new NetCon(NS[0], nmdapr[syn])
+					//nmdapr[syn].srcgid = 1 
+					nc2[syn]=new NetCon(NS, nmdapr[syn])
 					nc2[syn].delay=1
-					nc2[syn].weight=uniweight
+					nc2[syn].weight= 0.25 * 0.5 * excitbias * nmdabias //4.2 
 					//nc2[syn].weight= 0.25 * 25 * 2// excitbias * nmda bias
 				}else{
 					PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
-					nc1[syn]=new NetCon(NS[0], ampapr[syn])
+					nc1[syn]=new NetCon(NS, ampapr[syn])
 					nc1[syn].delay=1
-					nc1[syn].weight=uniweight
-					//nc1[syn].weight=ampaweight// * wfVect.x[wf]//*nw*0.1
+					nc1[syn].weight=ampaweight*4//SSS
+					//nc1[syn].weight=ampaweight//  wfVect.x[wf]// nw*0.1
 				}
 				
 			}
+
 /*
 			for syn=0,1-1{
 				print " Placing INHIBITORY synapse : ",syn
@@ -182,8 +173,19 @@ for nmdaflag = 0, 1{
 			}
 */
 
-			PCv = new Vector()
-			PCv.record(&PCcells.o(0).soma.v(.5)) 
+			PCv = new Vector(n,0)
+			PCv.record(&PCcells.o(0).soma.v(0.5)) 
+			if (nmdaflag){
+				//record NMDA current from each synapse
+				for syn = 0,synapses-1{
+					iNMDA[syn] = new Vector(n,0)
+					iNMDA[syn].record(&nmdapr[syn].inmda) 
+					NMDA_A[syn] = new Vector(n,0)
+					NMDA_A[syn].record(&nmdapr[syn].NLalpha) 
+
+				}
+			}
+			//PCv.record(&PCcells.o(0).soma.i_passive(0.5)) 
 /*
 			PCi = new Vector()
 			PCi.record(&gabab[0].i) 
@@ -197,14 +199,15 @@ for nmdaflag = 0, 1{
 
 			balance_compartments()
 			run()
+print "RUN FINISHED"
 			vsoma = new File()		
 
 			//sprint(STRING,"DATA/nmda_w%07.3f_pid%.3f.txt", wfVect.x[wf], PID)
 
 			if (nmdaflag) {
-				sprint(STRING,"DATA/soma_NMDA_%d.txt",isidelay)
+				sprint(STRING,"DATA/soma_NMDA_%d_%d_%d.txt",ISI,NUMBER,NMDATAU)
 			}else{
-				sprint(STRING,"DATA/soma_AMPA_%d.txt",isidelay)
+				sprint(STRING,"DATA/soma_AMPA_%d_%d.txt",ISI,NUMBER)
 			}
 			print STRING
 			vsoma.wopen(STRING)
@@ -212,6 +215,41 @@ for nmdaflag = 0, 1{
 				vsoma.printf ("%f\n",PCv.x[j])
 			}
 			vsoma.close()
+
+print "Vsoma saved"
+			if (nmdaflag) {
+				totalINMDA = new Vector(n,0)
+				for syn = 0,synapses-1{
+					for k=0,iNMDA[syn].size()-2{
+						totalINMDA.x[k] = totalINMDA.x[k] + iNMDA[syn].x[k]
+					}
+
+				}
+print "Inmda concatinated"
+				sprint(STRING,"DATA/iNMDA_%d_%d_%d.txt",ISI,NUMBER,NMDATAU)
+				vsoma.wopen(STRING)
+				for j=0, totalINMDA.size()-1 {
+					vsoma.printf ("%f\n",totalINMDA.x[j])
+				}
+				vsoma.close()
+
+				totalNMDA_A = new Vector(n,0)
+				for syn = 0,synapses-1{
+					for k=0,NMDA_A[syn].size()-2{
+						totalNMDA_A.x[k] = totalNMDA_A.x[k] + NMDA_A[syn].x[k]
+					}
+
+				}
+print "Inmda concatinated"
+				sprint(STRING,"DATA/NMDA_A_%d_%d_%d.txt",ISI,NUMBER,NMDATAU)
+				vsoma.wopen(STRING)
+				for j=0, totalNMDA_A.size()-1 {
+					vsoma.printf ("%f\n",totalNMDA_A.x[j])
+				}
+				vsoma.close()
+print "Inmda saved"
+			}else{
+			}
 /*
 
 			sprint(STRING,"DATA/gababi_%.3f.txt",gabaweight_pv2pc_a )
@@ -249,4 +287,3 @@ for nmdaflag = 0, 1{
 */
 
 } //for nmdaflag
-} // for isidelay

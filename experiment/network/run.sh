@@ -46,26 +46,35 @@ schedule="1"
 nodes="24" ##jobname="STR_N100_S6_STC0" jobstdout=""
 ##cluster="0"
 # 0=Random, 1=Structured
-#!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
 exp="1"
-#!!! MAJOR CAUTION CHANGE W.*0.7 values tmp for random experiment!!!
+## Serial number of network (RNG) in MATLAB:
 sn="11"
+## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
+## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
+## for both NMDA AMPA
 excitbias="25"
 inhibias="3"
-nmdabias="2.0"
+## ONly NMDA bias 
+nmdabias="0.0"
+ampabias="90.0"
+## only GABAb
 gababfactor="15"
+## Gia to Background bias (alla to exw sbhsei)
 BGe="10"
 BGi="1"
+## Posa stimulus synapses bazw
 stimmagnitude="40"
 ## Default Elimination of Reciprocal Factor:
 erf="0.0"
 ## Default NMDA decay tau:
+## afto grafei sto network.hoc to tau decay tou NMDA!!
 nmdatau="90"
 ## NMDA beta is a factor that shifts the lognormal function to the left 
 ## if negative (minus sign is inside its mod file) so greater values
 ## enhance gNMDA.
 nmdaflag="0"
+## number of dendritic (basal) segments 
 dendnseg="5"
 ## How many clusters I do identify 
 Cl="7"
@@ -94,17 +103,17 @@ jobstdout="$jobstdout\\\n=======================================================
 #for run in "${custom_jobs[@]}"
 run="0"
 for inhibias in $(seq 3 3); do
-for cluster in $(seq 10 19); do
-##for nmdatau in $(seq 60 60); do
+for cluster in $(seq 20 59); do
+##for gababfactor in $(seq 26 34); do
 ##for nmdabias in $(seq 2.5 2.5); do
 ##for gababfactor in $(seq 17.2 0.2 18); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
 		#jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
-		jobname="AMPActrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ss7c${cluster}_SN${sn}_r"
+		jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_Ss7c${cluster}_SN${sn}_r"
 	else
-		jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Rs7c${cluster}_SN${sn}_r"
+		jobname="F_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Rs7c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
@@ -137,6 +146,7 @@ for cluster in $(seq 10 19); do
 	-c "EXCITBIAS=$excitbias" \
 	-c "INHIBIAS=$inhibias" \
 	-c "NMDABIAS=$nmdabias" \
+	-c "AMPABIAS=$ampabias" \
 	-c "ST=$stimmagnitude" \
 	-c "FS=$Fs" \
 	-c "CL=$Cl" \

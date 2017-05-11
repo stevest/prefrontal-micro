@@ -73,7 +73,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 5000 
+tstop = 7000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -272,7 +272,7 @@ if(1){
 	//connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
 
-if(0){
+if(1){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{noise(%d)}",RUN)}
 	{assert(execute1(EXEC_CMD))}
@@ -367,6 +367,12 @@ if(PARALLEL){
 		//par_save_inmda(JOBDIR,CLUSTER_ID,ISBINARY)
 		//{pprint("par_save_inmda() is active.")}
 	}
+	if(save_igaba){
+		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_igaba.hoc\")}",PATH)}
+		if(1){assert(execute1(EXEC_CMD))}
+		par_save_dend_igaba(JOBDIR,CLUSTER_ID, ISBINARY)
+		{pprint("par_save_dend_igaba() is active.")}
+	}
 
 }
 
@@ -374,6 +380,7 @@ if(PARALLEL){
 {pprint(PPRINT_CMD)}
 
 if(PARALLEL){
+	{ PC.barrier }
 	{ PC.runworker() }
 	{ PC.done() }// tell workers to quit
 	//Only master node is active now.

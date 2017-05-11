@@ -24,8 +24,8 @@ NEURON {
 	USEION ca READ cai WRITE ica VALENCE 2
 	NONSPECIFIC_CURRENT inmda 
 	RANGE e ,gmax,inmda
-	RANGE gnmda, tau1
-	RANGE srcgid, sid, myflag, n, mybeta , cellid
+	RANGE gnmda, tau1, NLalpha
+	RANGE srcgid, sid, n, cellid
 	GLOBAL gama,tau2
 }
 
@@ -76,6 +76,7 @@ PARAMETER {
 	srcgid = -1
 	myflag = -1
 	sid = -1
+	NLalpha = 0
 
 }
 
@@ -120,7 +121,7 @@ BREAKPOINT {
 	SOLVE state METHOD cnexp
 : Move the logistic function to enhance NMDAg: 
 	:if (myflag > 0){
-		:gnmda=(A-B)/(0.00084 * v + 0.052)
+		:gnmda=(A-B)/(0.00186 * v + 0.152)
 	:} else {
 		gnmda=(A-B)/(1+n*exp(-gama*v - mybeta))
 	:}
@@ -131,6 +132,7 @@ BREAKPOINT {
 	:if (cellid == 236){
 		:printf("@=%f cellid=%g ni=%f AB=%f exp=%f\n",t,cellid,n, (A-B),(1+n*exp(-gama*v - mybeta)) )
 	:}
+	NLalpha = A
 }
 
 
@@ -153,6 +155,7 @@ NET_RECEIVE (weight) {
 	gmax=weight
 	A = A + gmax
 	B = B + gmax
+
 VERBATIM
 //		printf("@NMDA=%f cellid=%g srcgid=%g sid=%g\n",t,cellid, srcgid, sid );
 ENDVERBATIM

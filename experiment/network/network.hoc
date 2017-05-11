@@ -429,7 +429,15 @@ if(save_synaptic_locations){
 if(save_inmda){
 	{sprint(EXEC_CMD,"{objref inmdaPC2PC[%d][%d][%d]}",nPCcells,nPCcells,PC2PC_MaxSyn)}
 	{assert(execute1(EXEC_CMD))}
+	{sprint(EXEC_CMD,"{objref iampaPC2PC[%d][%d][%d]}",nPCcells,nPCcells,PC2PC_MaxSyn)}
+	{assert(execute1(EXEC_CMD))}
 	{sprint(EXEC_CMD,"{objref nmdaAPC2PC[%d][%d][%d]}",nPCcells,nPCcells,PC2PC_MaxSyn)}
+	{assert(execute1(EXEC_CMD))}
+}
+if(save_igaba){
+	{sprint(EXEC_CMD,"{objref igabaaPV2PC[%d][%d][%d]}",nPVcells,nPCcells,4)}
+	{assert(execute1(EXEC_CMD))}
+	{sprint(EXEC_CMD,"{objref igababPV2PC[%d][%d][%d]}",nPVcells,nPCcells,4)}
 	{assert(execute1(EXEC_CMD))}
 }
 
@@ -523,27 +531,31 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 								{assert(execute1(EXEC_CMD))}
 							}
 							PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
-							//PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+							PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
 
-							//nmdaOnPC[src][trg][syn].srcgid = srcGID
-							//nmdaOnPC[src][trg][syn].sid = syn
-							//nmdaOnPC[srcGID][trg][syn].cellid = trgGID
-							//nmdaOnPC[srcGID][trg][syn].tau1 = NMDATAU 
+							nmdaOnPC[src][trg][syn].srcgid = srcGID
+							nmdaOnPC[src][trg][syn].sid = syn
+							nmdaOnPC[srcGID][trg][syn].cellid = trgGID
+							nmdaOnPC[srcGID][trg][syn].tau1 = NMDATAU 
 							//print "NMDATAU=",nmdaOnPC[srcGID][trg][syn].tau1 
 							if(save_inmda){
 								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
 								{assert(execute1(EXEC_CMD))}
-								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d].record(&ampaOnPC[%d][%d][%d].iglu)}",src,trg,syn,src,trg,syn)}
+								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].inmda)}",src,trg,syn,src,trg,syn)}
 								{assert(execute1(EXEC_CMD))}
-//if (syn == 0){
-								//{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
-								//{assert(execute1(EXEC_CMD))}
-								//{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].A)}",src,trg,syn,src,trg,syn)}
-								//{assert(execute1(EXEC_CMD))}
-//}
+								{sprint(EXEC_CMD,"{iampaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+								{sprint(EXEC_CMD,"{iampaPC2PC[%d][%d][%d].record(&ampaOnPC[%d][%d][%d].iglu)}",src,trg,syn,src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+if (0){//Save iNMDA for each cell separately:
+								{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+								{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].A)}",src,trg,syn,src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+}
 							}
-							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS * 120)
-							//connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
+							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS * AMPABIAS)
+							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
 						}
 					}
 				}
@@ -768,6 +780,16 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 							{sprint(EXEC_CMD,"{delayPV2PC[%d][%d].append(%f)}",src,trg,delstimpvpc)}
 							{assert(execute1(EXEC_CMD))}
 						}
+						if(save_igaba){
+							{sprint(EXEC_CMD,"{igabaaPV2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+							{assert(execute1(EXEC_CMD))}
+							{sprint(EXEC_CMD,"{igabaaPV2PC[%d][%d][%d].record(&gabaOnPC_A[%d][%d][%d].g)}",src,trg,syn,src,trg,syn)}
+							{assert(execute1(EXEC_CMD))}
+							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+							{assert(execute1(EXEC_CMD))}
+							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d].record(&gabaOnPC_B[%d][%d][%d].g)}",src,trg,syn,src,trg,syn)}
+							{assert(execute1(EXEC_CMD))}
+						}
 						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_a*INHIBIAS) //SSS change weight instead of # of synapses
 						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_b*INHIBIAS) //SSS DEFAULT WEIGHT is 4 !!
 					}
@@ -789,6 +811,16 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 						if(delstimpvpc<=dt){delstimpvpc=dt+0.01}
 						if(save_pvsynaptic_delays){
 							{sprint(EXEC_CMD,"{delayPV2PC[%d][%d].append(%f)}",src,trg,delstimpvpc)}
+							{assert(execute1(EXEC_CMD))}
+						}
+						if(save_igaba){
+							{sprint(EXEC_CMD,"{igabaaPV2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+							{assert(execute1(EXEC_CMD))}
+							{sprint(EXEC_CMD,"{igabaaPV2PC[%d][%d][%d].record(&gabaOnPC_A[%d][%d][%d].i)}",src,trg,syn,src,trg,syn)}
+							{assert(execute1(EXEC_CMD))}
+							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+							{assert(execute1(EXEC_CMD))}
+							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d].record(&gabaOnPC_B[%d][%d][%d].i)}",src,trg,syn,src,trg,syn)}
 							{assert(execute1(EXEC_CMD))}
 						}
 						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_a*0.33*INHIBIAS) //SSS change weight instead of # of synapses

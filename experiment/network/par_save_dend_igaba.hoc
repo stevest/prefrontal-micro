@@ -1,0 +1,32 @@
+//objref cuminmdaPC2PC[nPCcells][nPCcells]
+objref cumigabaPV2PC[nPCcells]
+proc par_save_dend_igaba(){local k,srcPC,trgPC  localobj vfilePC
+	for trg=0, nPCcells-1 {
+		trgPC = ind2gid(trg,0)
+		//make sure that only the node having trg cel saves the  file:
+		if (PC.gid_exists(trgPC)) {
+			cumigabaPV2PC[trgPC] = new Vector(n,0)
+			for src=0, nPVcells-1 {
+				srcPC = src
+				//Make sure that if for some reason syncurrent Vect is empty/nonexistent, things will continue:
+				if (object_id(igabaaPV2PC[srcPC][trgPC][0])) {
+					for syn=0, 4-1 {// for all target neurons on this node
+	print "saving gaba src=",srcPC," trg=",trgPC, "Suma=", igabaaPV2PC[srcPC][trg][syn].sum(),"Sumb=", igababPV2PC[srcPC][trg][syn].sum()
+	print "SumCinside=", cumigabaPV2PC[trgPC].sum()
+						for k = 0, n-1{
+							cumigabaPV2PC[trgPC].x[k] += igabaaPV2PC[srcPC][trg][syn].x[k] 
+							cumigabaPV2PC[trgPC].x[k] += igababPV2PC[srcPC][trg][syn].x[k] 
+						}
+					}
+				}
+			}
+	print "trg=",trg," SumCout=", cumigabaPV2PC[trgPC].sum()
+			vfilePC = new File()	
+			sprint(vfilePC_filename,"%s/igaba_dend_%03d.txt", $s1, trgPC) 
+			vfilePC.wopen(vfilePC_filename)
+			cumigabaPV2PC[trgPC].printf(vfilePC,"%8.4f\n")
+			vfilePC.close()
+		}
+	}
+}
+
