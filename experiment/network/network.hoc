@@ -78,8 +78,8 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 		if (bool) { 
 			for syn=0, (Stim_MaxSyn_apic-1) {
 				artcell = new NetStim()
-				artcell.interval = 20
-				artcell.number = 50//50
+				artcell.number = SF//30//50//50
+				artcell.interval = 1000/SF//33.3//20
 				artcell.start = 0
 				artcell.noise = 0//.2
 				//artificial cell gids:

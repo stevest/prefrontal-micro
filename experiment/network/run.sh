@@ -43,7 +43,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="24" ##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="13" ##jobname="STR_N100_S6_STC0" jobstdout=""
 ##cluster="0"
 # 0=Random, 1=Structured
 exp="1"
@@ -56,8 +56,8 @@ clustbias="1"
 excitbias="25"
 inhibias="3"
 ## ONly NMDA bias 
-nmdabias="0.0"
-ampabias="90.0"
+nmdabias="2.0"
+ampabias="1.0"
 ## only GABAb
 gababfactor="15"
 ## Gia to Background bias (alla to exw sbhsei)
@@ -65,6 +65,8 @@ BGe="10"
 BGi="1"
 ## Posa stimulus synapses bazw
 stimmagnitude="40"
+## Stimulus frequency:
+stimfreq="50"
 ## Default Elimination of Reciprocal Factor:
 erf="0.0"
 ## Default NMDA decay tau:
@@ -102,7 +104,8 @@ jobstdout="$jobstdout\\\n=======================================================
 ##for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
 run="0"
-for inhibias in $(seq 3 3); do
+for stimfreq in $(seq 20 20 60); do
+for inhibias in $(seq 2 1 5); do
 for cluster in $(seq 20 59); do
 ##for gababfactor in $(seq 26 34); do
 ##for nmdabias in $(seq 2.5 2.5); do
@@ -110,10 +113,15 @@ for cluster in $(seq 20 59); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
+		exp_str="S"
 		#jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
-		jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_Ss7c${cluster}_SN${sn}_r"
+		# ran after army
+		#jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 	else
-		jobname="F_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Rs7c${cluster}_SN${sn}_r"
+		exp_str="R"
+		jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		#jobname="F_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Rs7c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
 	outputFile=$uniquejobname.out
@@ -122,7 +130,7 @@ for cluster in $(seq 20 59); do
 	echo $outputDir
 	if [ -d $outputDir ]; then
 		echo "Job directory already exists. Stopping before overriding data."
-		#exit 1
+		exit 1
 	else
 		mkdir -p $outputDir;
 	fi
@@ -148,6 +156,7 @@ for cluster in $(seq 20 59); do
 	-c "NMDABIAS=$nmdabias" \
 	-c "AMPABIAS=$ampabias" \
 	-c "ST=$stimmagnitude" \
+	-c "SF=$stimfreq" \
 	-c "FS=$Fs" \
 	-c "CL=$Cl" \
 	-c "BGE=$BGe" \
@@ -204,7 +213,7 @@ echo `which nrniv`
 	
 done
 done
-##done
+done
 ##done
  
 else
