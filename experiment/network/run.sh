@@ -1,4 +1,5 @@
-#!/usr/bin/sh ##Make sure that before each run git repo is clean, so ##one can track each run to its source code: ## ANSI escape codes: ERR='\033[0;31m'
+#!/usr/bin/sh ##Make sure that before each run git repo is clean, so ##one can track each run to its source code: ## ANSI escape codes:
+ERR='\033[0;31m'
 WARN='\033[0;33m'
 INFO='\033[0;32m'
 NOC='\033[0m'
@@ -19,7 +20,7 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -
 
 	gitsha1=`git rev-parse HEAD`
 if [[ $dirtygit > 0 ]]; then
-	echo -e "${ERR}Can not continue with run when git repo is dirty. Exiting...${NOC}"
+	echo -e "${WARN}The git repo is dirty. You have been warned...${NOC}"
 	echo -e "${INFO}Current HEAD is: ${gitsha1}${NOC}"
 	#exit 1
 else
@@ -43,8 +44,8 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="13" ##jobname="STR_N100_S6_STC0" jobstdout=""
-##cluster="0"
+nodes="312" ##jobname="STR_N100_S6_STC0" jobstdout=""
+cluster="0"
 # 0=Random, 1=Structured
 exp="1"
 ## Serial number of network (RNG) in MATLAB:
@@ -53,13 +54,13 @@ sn="11"
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-excitbias="25"
-inhibias="3"
+excitbias="1"
+inhibias="1"
 ## ONly NMDA bias 
 nmdabias="2.0"
 ampabias="1.0"
 ## only GABAb
-gababfactor="15"
+gababfactor="1"
 ## Gia to Background bias (alla to exw sbhsei)
 BGe="10"
 BGi="1"
@@ -69,6 +70,8 @@ stimmagnitude="40"
 stimfreq="50"
 ## Default Elimination of Reciprocal Factor:
 erf="0.0"
+## Eliminate reciprocal Specific (defined in networkparameters.hoc)
+ers="1"
 ## Default NMDA decay tau:
 ## afto grafei sto network.hoc to tau decay tou NMDA!!
 nmdatau="90"
@@ -104,9 +107,13 @@ jobstdout="$jobstdout\\\n=======================================================
 ##for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
 run="0"
-for stimfreq in $(seq 20 20 60); do
-for inhibias in $(seq 2 1 5); do
-for cluster in $(seq 20 59); do
+#Move inhibitory synapses at different dendritic locations to check for more states:
+ipid="0.05"
+stimfreq="60"
+gababfactor="1.0"
+for inhibias in $(seq 5.4 5.4); do
+for excitbias in $(seq 5 5); do
+for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 ##for nmdabias in $(seq 2.5 2.5); do
 ##for gababfactor in $(seq 17.2 0.2 18); do
@@ -117,10 +124,13 @@ for cluster in $(seq 20 59); do
 		#jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
 		# ran after army
 		#jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
-		jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		#jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="F_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Rs7c${cluster}_SN${sn}_r"
 	fi
 	uniquejobname="${jobname}${run}"
@@ -129,15 +139,15 @@ for cluster in $(seq 20 59); do
 	echo "Output Job directory is:"
 	echo $outputDir
 	if [ -d $outputDir ]; then
-		echo "Job directory already exists. Stopping before overriding data."
-		exit 1
+		echo "${WARN}Job directory already exists. Stopping before overriding data.${NOC}"
+		#exit 1
 	else
 		mkdir -p $outputDir;
 	fi
 	## Submit as Job in Sun Grid Engine:
 	if [ "$schedule" == "1" ]; then
 	echo -e "${INFO}SCHEDULER VERSION IS COMMENCING ${NOC}"
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p -3 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 12-$nodes -p -3 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
 	-c "RUN=$run" \
 	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
 	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \
@@ -162,6 +172,8 @@ for cluster in $(seq 20 59); do
 	-c "BGE=$BGe" \
 	-c "BGI=$BGi" \
 	-c "ERF=$erf" \
+	-c "ERS=$ers" \
+	-c "IPID=$ipid" \
 	-c "NMDATAU=$nmdatau" \
 	-c "NMDA_FLAG=$nmdaflag" \
 	-c "DEND_NSEG=$dendnseg" \

@@ -475,6 +475,9 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 		clusterPID[PCgids.x[localID]] = new Vector()
 		for syn=0, (PC2PC_MaxSyn-1) {
 			PID = r_PC2PC[PCgids.x[localID]].repick()
+			//Place synapses uniformly distributed in dendrites.
+			//PID = 0.05 + (syn * 0.2)
+			//print "placing synapse in ",PID
 			//rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 			rDendidx = 0
 			clusterDend[PCgids.x[localID]].append(rDendidx)
@@ -532,6 +535,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							}
 							PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 							PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+							PCcells.o(localID).dend[rDendidx] {print "ri=",ri(0.01)}					
 
 							nmdaOnPC[src][trg][syn].srcgid = srcGID
 							nmdaOnPC[src][trg][syn].sid = syn
@@ -795,7 +799,7 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 					}
 					//----------------------------Insert synapses at dendrites
 					for syn=1,4-1 { 
-						PID = r_PV2PC[PCgids.x[localID]].repick ()
+						PID = IPID//r_PV2PC[PCgids.x[localID]].repick ()
 						if(save_pvsynaptic_locations){
 							{sprint(EXEC_CMD,"{pidPV2PC[%d][%d].append(%f)}",src,trg,PID)}
 							{assert(execute1(EXEC_CMD))}

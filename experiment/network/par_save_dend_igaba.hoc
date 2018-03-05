@@ -11,8 +11,8 @@ proc par_save_dend_igaba(){local k,srcPC,trgPC  localobj vfilePC
 				//Make sure that if for some reason syncurrent Vect is empty/nonexistent, things will continue:
 				if (object_id(igabaaPV2PC[srcPC][trgPC][0])) {
 					for syn=0, 4-1 {// for all target neurons on this node
-	print "saving gaba src=",srcPC," trg=",trgPC, "Suma=", igabaaPV2PC[srcPC][trg][syn].sum(),"Sumb=", igababPV2PC[srcPC][trg][syn].sum()
-	print "SumCinside=", cumigabaPV2PC[trgPC].sum()
+	//print "saving gaba src=",srcPC," trg=",trgPC, "Suma=", igabaaPV2PC[srcPC][trg][syn].sum(),"Sumb=", igababPV2PC[srcPC][trg][syn].sum()
+	//print "SumCinside=", cumigabaPV2PC[trgPC].sum()
 						for k = 0, n-1{
 							cumigabaPV2PC[trgPC].x[k] += igabaaPV2PC[srcPC][trg][syn].x[k] 
 							cumigabaPV2PC[trgPC].x[k] += igababPV2PC[srcPC][trg][syn].x[k] 
@@ -20,7 +20,7 @@ proc par_save_dend_igaba(){local k,srcPC,trgPC  localobj vfilePC
 					}
 				}
 			}
-	print "trg=",trg," SumCout=", cumigabaPV2PC[trgPC].sum()
+	//print "trg=",trg," SumCout=", cumigabaPV2PC[trgPC].sum()
 			vfilePC = new File()	
 			sprint(vfilePC_filename,"%s/igaba_dend_%03d.txt", $s1, trgPC) 
 			vfilePC.wopen(vfilePC_filename)
