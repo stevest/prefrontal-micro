@@ -129,6 +129,27 @@ for foldr = 1:length(check_flds)
             end
         end
         
+        if ~exist(fullfile(pathbase,folderto,'vdend.mat'),'file')
+            % Handle pyramidal dendritic voltage:
+            files_v_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'v_dend')),rf)));
+            vdend = cell(N,5);
+            tic;
+            for fn = 1:length(files_v_dend)
+                %filter the dend segment!
+                tmp = strsplit(files_v_dend{fn}, {'_','.'} );
+                seg = str2double(tmp{3})+1;
+                dend = str2double(tmp{4})+1;
+                filename = fullfile(pathbase,folderto,files_v_dend{fn});
+                vtrace = load(filename);
+                % dt equals 0.1:
+                %         vtrace = vtrace(1:10:end);
+                vdend{dend,seg} = vtrace;
+            end
+            fprintf('Time: %f secs\n',toc);
+            outputfile = fullfile(pathbase,folderto,'vdend.mat');
+            save(outputfile, 'vdend');
+        end
+    
         
     end
     

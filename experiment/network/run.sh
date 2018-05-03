@@ -44,7 +44,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="312" ##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="12" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
 exp="1"
@@ -80,12 +80,12 @@ nmdatau="90"
 ## enhance gNMDA.
 nmdaflag="0"
 ## number of dendritic (basal) segments 
-dendnseg="5"
+dendnseg="15"
 ## How many clusters I do identify 
 Cl="7"
 ## How much (normalized) the weights are squashed into a narrow uniform distribution ## Zero means original lognormal weights dist; One means quantized 0.5 weights (connectivity of pairs
 ## 	stays the same.
-Fs="1"
+Fs="0"
 startRun="0"
 endRun="0"
 VARPID="0.5"
@@ -109,14 +109,20 @@ jobstdout="$jobstdout\\\n=======================================================
 run="0"
 #Move inhibitory synapses at different dendritic locations to check for more states:
 ipid="0.05"
+# cluster dendritic input to a single point on dendrite:
+# locpid : 1=proximal skewed, 2=median normal, 3=distal skewed
+locpid="1"
+clpid="0.95"
+clustbias="0.5"
 stimfreq="60"
-gababfactor="1.0"
-for inhibias in $(seq 5.4 5.4); do
-for excitbias in $(seq 5 5); do
+inhibias="20"
+gababfactor="8"
+for inhibias in $(seq 4 4); do
+for excitbias in $(seq 2 2); do
 for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 ##for nmdabias in $(seq 2.5 2.5); do
-##for gababfactor in $(seq 17.2 0.2 18); do
+##for gababfactor in (seq 17.2 0.2 18); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
@@ -126,7 +132,8 @@ for cluster in $(seq 0 0); do
 		#jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		jobname="BLAHtest_d15Fs${Fs}_SF${stimfreq}_IPID${ipid}_NRNLOCPID${locpid}_CB${clustbias}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
 		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
@@ -174,6 +181,8 @@ for cluster in $(seq 0 0); do
 	-c "ERF=$erf" \
 	-c "ERS=$ers" \
 	-c "IPID=$ipid" \
+	-c "CLPID=$clpid" \
+	-c "LOCPID=$locpid" \
 	-c "NMDATAU=$nmdatau" \
 	-c "NMDA_FLAG=$nmdaflag" \
 	-c "DEND_NSEG=$dendnseg" \

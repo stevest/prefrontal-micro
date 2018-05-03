@@ -37,7 +37,7 @@ fprintf('Files v_soma deleted (Time: %f secs)!\n',toc);
 % Handle pyramidal dendritic voltage:
 files_v_dend = sort(rf(cellfun(@(x) ~isempty(strfind(x,'v_dend')),rf)));
 if ~isempty(files_v_dend)
-    vdend = cell(length(files_v_soma),1);
+    vdend = cell(length(files_v_soma),5);
     tic;
     for fn = 1:length(files_v_dend)
         %filter the dend segment!

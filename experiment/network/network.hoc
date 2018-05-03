@@ -81,7 +81,7 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 				artcell.number = SF//30//50//50
 				artcell.interval = 1000/SF//33.3//20
 				artcell.start = 0
-				artcell.noise = 0//.2
+				artcell.noise = 0//0.21
 				//artificial cell gids:
 				//MAKE SURE NO GIDS ARE THE SAME!
 				artgid = trg + syn*nPCcells + nPCcells + nPVcells 
@@ -400,7 +400,7 @@ proc backgroundActivityPV() { local artgid,PID,trg,syn,bool,localID,trgGID local
 } //end procedure 
 
 // recurrent synaptic clusternig algorithm (for variation)
-func clustbias(){ local rb,oldPID localobj rbo
+func clustbias(){ local rb,oldPID,tmp localobj rbo
 	//arguments (many!)
 	//$1 = PID old
 	//$2 = runs serial number
@@ -412,8 +412,91 @@ func clustbias(){ local rb,oldPID localobj rbo
 	//So, smaller values of CLUSTBIAS mean more deviation from clustering the synapses.
 	//when CLUSTBIAS==0: new PID == Random(0,1) (non clustered synapses)
 	//when CLUSTBIAS==1: new PID == old PID (clustered synapses - default)
-	return ((rb-oldPID)* (1-CLUSTBIAS)) + oldPID 
+	//wrong formula!:
+	//tmp = ((rb-(0.5-oldPID))* (1-CLUSTBIAS)) + oldPID 
+	tmp = ((rb*(1-CLUSTBIAS))-((1-CLUSTBIAS)/2))+oldPID
+	if(tmp<0.05){tmp=0.05}
+	if(tmp>0.95){tmp=0.95}
+	return tmp
 }
+
+objref cdf, cdf_rev, gcdf, g7cdf
+cdf = new Vector(15)
+cdf.x[0] = 0.1110
+cdf.x[1] = 0.2532
+cdf.x[2] = 0.4020 
+cdf.x[3] = 0.5393
+cdf.x[4] = 0.6571
+cdf.x[5] = 0.7533
+cdf.x[6] = 0.8287
+cdf.x[7] = 0.8854
+cdf.x[8] = 0.9264
+cdf.x[9] = 0.9548
+cdf.x[10] = 0.9737
+cdf.x[11] = 0.9858
+cdf.x[12] = 0.9932
+cdf.x[13] = 0.9975
+cdf.x[14] = 1.0000
+
+/*
+gcdf = new Vector(5)
+gcdf.x[0] = 0.0400
+gcdf.x[1] = 0.2800
+gcdf.x[2] = 0.7200
+gcdf.x[3] = 0.9600
+gcdf.x[4] = 1.0000
+*/
+gcdf = new Vector(16)
+gcdf.x[0] = 0.0341
+gcdf.x[1] = 0.0785
+gcdf.x[2] = 0.1341
+gcdf.x[3] = 0.2009
+gcdf.x[4] = 0.2779
+gcdf.x[5] = 0.3631
+gcdf.x[6] = 0.4538
+gcdf.x[7] = 0.5462
+gcdf.x[8] = 0.6369
+gcdf.x[9] = 0.7221
+gcdf.x[10] = 0.7991
+gcdf.x[11] = 0.8659
+gcdf.x[12] = 0.9215
+gcdf.x[13] = 0.9659
+gcdf.x[14] = 1.0000
+
+
+g7cdf = new Vector(5)
+g7cdf.x[0] = 0.0000
+g7cdf.x[1] = 0.0400
+g7cdf.x[2] = 0.2800
+g7cdf.x[3] = 0.7600
+g7cdf.x[4] = 1.0000
+
+/*
+cdf_rev = new Vector(6)
+cdf_rev.x[5] = 0.0000
+cdf_rev.x[4] = 0.4020
+cdf_rev.x[3] = 0.7534
+cdf_rev.x[2] = 0.9265
+cdf_rev.x[1] = 0.9858
+cdf_rev.x[0] = 1.0000
+*/
+cdf_rev = new Vector(16)
+cdf_rev.x[15] = 0.0000
+cdf_rev.x[14] = 0.1110
+cdf_rev.x[13] = 0.2532
+cdf_rev.x[12] = 0.4020 
+cdf_rev.x[11] = 0.5393
+cdf_rev.x[10] = 0.6571
+cdf_rev.x[9] = 0.7533
+cdf_rev.x[8] = 0.8287
+cdf_rev.x[7] = 0.8854
+cdf_rev.x[6] = 0.9264
+cdf_rev.x[5] = 0.9548
+cdf_rev.x[4] = 0.9737
+cdf_rev.x[3] = 0.9858
+cdf_rev.x[2] = 0.9932
+cdf_rev.x[1] = 0.9975
+cdf_rev.x[0] = 1.0000
 
 // ---------------------------------PC-PC connections, basal dendrite(Thomson, 1997)------------------------------------//
 
@@ -454,7 +537,7 @@ objref conampaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 objref connmdaPC2PC[nPCcells][nPCcells][PC2PC_MaxSyn]
 
 objref RN_PC2PC[nPCcells],r_PC2PC[nPCcells],fp_PC2PC[nPCcells],rDend_PC2PC[nPCcells]
-proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,bool,localID,trgGID,srcGID,arg,rn localobj null
+proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,bool,localID,trgGID,srcGID,arg,rn,rsg localobj null
 	arg = $3
 	if(PARALLEL){ PC.barrier() }
 	
@@ -473,20 +556,175 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	for localID=0, PCcells.count()-1 {
 		clusterDend[PCgids.x[localID]] = new Vector()
 		clusterPID[PCgids.x[localID]] = new Vector()
+		if (0){
+			//old way of placing synapses (5 in total)
+			for syn=0, (PC2PC_MaxSyn-1) {
+				PID = r_PC2PC[PCgids.x[localID]].repick()
+				//Place synapses uniformly distributed in dendrites.
+				//PID = 0.05 + (syn * 0.2)
+				//print "placing synapse in ",PID
+				//rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
+				rDendidx = 0
+				clusterDend[PCgids.x[localID]].append(rDendidx)
+				//uniformly distribute synapses along basals:
+				//PID = (1/PC2PC_MaxSyn)/2 + ((1/PC2PC_MaxSyn)*syn)
+				//print " uniform spreaded synapse#",syn," is @ PID = ",PID
+				clusterPID[PCgids.x[localID]].append(PID)
+				//clusterPID[PCgids.x[i]].append(0.9)// SOS CHANGE PC2PC PID ALWAYS DISTALLY!
+			}
+		}
 		for syn=0, (PC2PC_MaxSyn-1) {
-			PID = r_PC2PC[PCgids.x[localID]].repick()
-			//Place synapses uniformly distributed in dendrites.
-			//PID = 0.05 + (syn * 0.2)
-			//print "placing synapse in ",PID
-			//rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 			rDendidx = 0
 			clusterDend[PCgids.x[localID]].append(rDendidx)
-			//uniformly distribute synapses along basals:
-			//PID = (1/PC2PC_MaxSyn)/2 + ((1/PC2PC_MaxSyn)*syn)
-			//print " uniform spreaded synapse#",syn," is @ PID = ",PID
-			clusterPID[PCgids.x[localID]].append(PID)
-			//clusterPID[PCgids.x[i]].append(0.9)// SOS CHANGE PC2PC PID ALWAYS DISTALLY!
 		}
+		if (LOCPID == 1){
+			// LOCPID == 1 equal proximal clustering:
+			//Place synapses in a skew normal distributed way:
+			/*
+			for syn=0, 10-1{
+				clusterPID[PCgids.x[localID]].append(0.1)
+			}
+			for syn=10, 19-1{
+				clusterPID[PCgids.x[localID]].append(0.3)
+			}
+			for syn=19, 23-1{
+				clusterPID[PCgids.x[localID]].append(0.5)
+			}
+			clusterPID[PCgids.x[localID]].append(0.7)
+			clusterPID[PCgids.x[localID]].append(0.9)
+			*/
+			//sample from skewed normal distribution:
+			for syn=0, (PC2PC_MaxSyn-1) {
+				rsg = r_PC2PC[PCgids.x[localID]].repick()
+				for q=0, DEND_NSEG-1{
+					if (rsg <= cdf.x[q]){
+						//get pid:
+						//print "PID=",(q+1) / 5 - 0.1
+						clusterPID[PCgids.x[localID]].append((q+1) / DEND_NSEG - (1/(DEND_NSEG*2)))
+						break
+					}
+				}
+
+			}
+		}
+		if (LOCPID == 3){
+			// LOCPID == 3 equal distal clustering:
+			//Place synapses in a skew normal distributed way:
+			/*
+			for syn=0, 10-1{
+				clusterPID[PCgids.x[localID]].append(0.9)
+			}
+			for syn=10, 19-1{
+				clusterPID[PCgids.x[localID]].append(0.7)
+			}
+			for syn=19, 23-1{
+				clusterPID[PCgids.x[localID]].append(0.5)
+			}
+			clusterPID[PCgids.x[localID]].append(0.3)
+			clusterPID[PCgids.x[localID]].append(0.1)
+			*/
+			for syn=0, (PC2PC_MaxSyn-1) {
+				rsg = r_PC2PC[PCgids.x[localID]].repick()
+				for q=0, DEND_NSEG-1{
+					if (rsg <= cdf_rev.x[q] && rsg > cdf_rev.x[q+1]){
+						//print "PID=",(q+1) / 5 - 0.1
+						//get pid:
+						clusterPID[PCgids.x[localID]].append((q+1) / DEND_NSEG - (1/(DEND_NSEG*2)))
+						break
+					}
+				}
+
+			}
+		}
+		if (LOCPID == 2){
+			// LOCPID == 2 equal distal clustering:
+			//Place synapses in a normal normal distributed way:
+			/*
+			clusterPID[PCgids.x[localID]].append(0.1)
+			for syn=1, 7-1{
+				clusterPID[PCgids.x[localID]].append(0.3)
+			}
+			for syn=7, 18-1{
+				clusterPID[PCgids.x[localID]].append(0.5)
+			}
+			for syn=18, 24-1{
+				clusterPID[PCgids.x[localID]].append(0.7)
+			}
+			clusterPID[PCgids.x[localID]].append(0.9)
+			*/
+			//sample from  normal distribution:
+			for syn=0, (PC2PC_MaxSyn-1) {
+				rsg = r_PC2PC[PCgids.x[localID]].repick()
+				for q=0,DEND_NSEG-1{
+					if (rsg <= gcdf.x[q]){
+						//get pid:
+						//print "PID=",(q+1) / 5 - 0.1
+						clusterPID[PCgids.x[localID]].append((q+1) / DEND_NSEG - (1/(DEND_NSEG*2)))
+						break
+					}
+				}
+
+			}
+		}
+		if (LOCPID == 4){
+			// LOCPID == 4 Reduce synapse no to locate inhibition thres. 
+			//Place synapses in a normal normal distributed way:
+			for syn=0, 8-1{
+				clusterPID[PCgids.x[localID]].append(0.9)
+			}
+			for syn=8, 15-1{
+				clusterPID[PCgids.x[localID]].append(0.7)
+			}
+			for syn=15, 18-1{
+				clusterPID[PCgids.x[localID]].append(0.5)
+			}
+			clusterPID[PCgids.x[localID]].append(0.3)
+			clusterPID[PCgids.x[localID]].append(0.1)
+		}
+		if (LOCPID == 5){
+			// LOCPID == 4 Reduce synapse no to locate inhibition thres. 
+			//Place synapses in a normal normal distributed way:
+			for syn=0, 6-1{
+				clusterPID[PCgids.x[localID]].append(0.9)
+			}
+			for syn=6, 11-1{
+				clusterPID[PCgids.x[localID]].append(0.7)
+			}
+			for syn=11, 13-1{
+				clusterPID[PCgids.x[localID]].append(0.5)
+			}
+			clusterPID[PCgids.x[localID]].append(0.3)
+			clusterPID[PCgids.x[localID]].append(0.1)
+		}
+		if (LOCPID == 6){
+			// LOCPID == 4 Reduce synapse no to locate inhibition thres. 
+			//Place synapses in a normal normal distributed way:
+			for syn=0, 4-1{
+				clusterPID[PCgids.x[localID]].append(0.9)
+			}
+			for syn=4, 7-1{
+				clusterPID[PCgids.x[localID]].append(0.7)
+			}
+			clusterPID[PCgids.x[localID]].append(0.5)
+			clusterPID[PCgids.x[localID]].append(0.3)
+			clusterPID[PCgids.x[localID]].append(0.1)
+		}
+		if (LOCPID == 7){
+			for syn=0, (PC2PC_MaxSyn-1) {
+				PID = r_PC2PC[PCgids.x[localID]].repick()
+				clusterPID[PCgids.x[localID]].append(PID)
+			}
+			// LOCPID == 4 Reduce synapse no to locate inhibition thres. 
+			//Place synapses in a normal normal distributed way:
+			//clusterPID[PCgids.x[localID]].append(0.9)
+			//clusterPID[PCgids.x[localID]].append(0.7)
+			//clusterPID[PCgids.x[localID]].append(0.5)
+			//clusterPID[PCgids.x[localID]].append(0.3)
+			//clusterPID[PCgids.x[localID]].append(0.1)
+		}
+		if (LOCPID == 8){
+		}
+		
 	}
 
 	for trg=0, nPCcells-1 { 
@@ -521,8 +759,10 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 						for syn=0, (PC2PC_MaxSyn-1) { //for current syn
 							//rDendidx = clusterDend[trgGID].x[syn]
 							rDendidx = 0
-							PIDtmp = clusterPID[trgGID].x[syn]
-							PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
+							PID = clusterPID[trgGID].x[syn]
+							//PIDtmp = CLPID //retain the ablilty to disperse the input by reducing the clustbias variable:
+							//PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
+							print "PID is ", PID
 							FIDp = abs(fp_PC2PC[trg].repick())
 							if( FIDp <= dt ){ FIDp = dt + 0.01 }
 							if(save_synaptic_delays){
@@ -799,7 +1039,8 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 					}
 					//----------------------------Insert synapses at dendrites
 					for syn=1,4-1 { 
-						PID = IPID//r_PV2PC[PCgids.x[localID]].repick ()
+						PID = IPID
+						//PID = r_PV2PC[PCgids.x[localID]].repick ()
 						if(save_pvsynaptic_locations){
 							{sprint(EXEC_CMD,"{pidPV2PC[%d][%d].append(%f)}",src,trg,PID)}
 							{assert(execute1(EXEC_CMD))}
