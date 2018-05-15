@@ -22,8 +22,8 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | wc -
 #dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -l) ))
 
 git_branch=`git rev-parse --abbrev-ref HEAD`
-
-if [[ $dirtygit > 0 && $git_branch == "runs"]]; then
+#Commit only if in 'runs' branch (to avoid spamming) and if git is dirty:
+if [[ ($dirtygit > 0 && $git_branch == "runs") ]]; then
 	#echo -e "${WARN}The git repo is dirty. You have been warned...${NOC}"
 	#echo -e "${INFO}Current HEAD is: ${gitsha1}${NOC}"
 	echo -e "${INFO}Auto-committing dirty repo:${NOC}"
@@ -128,9 +128,11 @@ excitbias="1"
 gababfactor="1"
 pv2pc="20"
 pc2pc="20"
+# Pass simulation stop externally in seconds:
+tstop_sec="0.1"
 for pc2pc in $(seq 36 36); do
 for pv2pc in $(seq 52 52); do
-for cluster in $(seq 0 19); do
+for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 ##for nmdabias in $(seq 2.5 2.5); do
 ##for gababfactor in (seq 17.2 0.2 18); do
@@ -144,7 +146,7 @@ for cluster in $(seq 0 19); do
 		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="synapses_PC2PC${pc2pc}_PV2PC${pv2pc}SF${stimfreq}_IPID${ipid}_NRNLOCPID${locpid}_CB${clustbias}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		jobname="synapses_PC2PC${pc2pc}_PV2PC${pv2pc}SF${stimfreq}_IPID${ipid}_NRNLOCPID${locpid}_CB${clustbias}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
 		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
@@ -176,6 +178,7 @@ for cluster in $(seq 0 19); do
 	-c "execute1\(\\\"'SIMHOME = \\\"$simhome\\\"'\\\"\)" \
 	-c "execute1\(\\\"'SIMGLIA = \\\"$simglia\\\"'\\\"\)" \
 	-c "PARALLEL=$parallel" \
+	-c "TSTOP_SEC=$tstop_sec" \
 	-c "CLUSTER_ID=$cluster" \
 	-c "EXPERIMENT=$exp" \
 	-c "CLUSTBIAS=$clustbias" \
