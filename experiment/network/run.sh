@@ -124,17 +124,17 @@ clpid="0.45"
 stimfreq="60"
 stimnoise="0.0"
 inhibias="1"
-excitbias="1"
+excitbias="0.96"
 gababfactor="15"
 pv2pc="4"
-pc2pc="5"
+pc2pc="60"
 # Pass simulation stop externally in seconds:
-tstop_sec="2"
+tstop_sec="7"
 #for pc2pc in $(seq 36 36); do
 #for pv2pc in $(seq 52 52); do
-for cluster in $(seq 0 0); do
+for cluster in $(seq 0 19); do
 ##for gababfactor in $(seq 26 34); do
-for excitbias in $(seq 25 25); do
+#for excitbias in $(seq 25 25); do
 for inhibias in $(seq 4 4); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
@@ -251,7 +251,7 @@ echo `which nrniv`
 	
 done
 done
-done
+##done
 ##done
  
 else
