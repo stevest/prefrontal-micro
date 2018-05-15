@@ -135,7 +135,7 @@ tstop_sec="2"
 for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 for excitbias in $(seq 25 25); do
-for inhibias in (seq 4 4); do
+for inhibias in $(seq 4 4); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
