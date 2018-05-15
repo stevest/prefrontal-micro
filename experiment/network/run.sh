@@ -121,7 +121,6 @@ ipid="0.05"
 # locpid : 1=proximal skewed, 2=median normal, 3=distal skewed
 locpid="7"
 clpid="0.45"
-clustbias="0.5"
 stimfreq="60"
 stimnoise="0.0"
 inhibias="1"
