@@ -10,7 +10,7 @@ save_synaptic_delays = 1
 save_pvsynaptic_delays = 1
 save_inmda = 0 
 save_igaba = 0 
-save_dend_voltage = 0 // WARNING MEM ISSUES WITH MULTIPLE DEND_NSEG!!!!
+save_dend_voltage = 1 // WARNING MEM ISSUES WITH MULTIPLE DEND_NSEG!!!!
 save_bg_iampa = 0 
 // Experimental setup
 //tstop=10 //defined externaly
@@ -27,23 +27,13 @@ for k=0,n-1 {r_msec.x[k] = k*dt }
 Stim_MaxSyn_apic=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn_basal=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
-PC2PC_MaxSyn = 5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
-if (LOCPID == 4){
-	PC2PC_MaxSyn = 20//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
-}
-if (LOCPID == 5){
-	PC2PC_MaxSyn = 15//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
-}
-if (LOCPID == 6){
-	PC2PC_MaxSyn = 10//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
-}
-if (LOCPID == 7){
-	PC2PC_MaxSyn = 5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
-}
+PC2PC_MaxSyn = PC2PCsyns//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
 PC_MaxAutosyn=1//XENIA //1	//autosynapses (one third, Lubke, 1996)
 PV2PV_MaxSyn=12//NASSI	//IN-IN connections
 PC2PV_MaxSyn=2//XENIA//2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
-PV2PC_MaxSyn=4//NASSI//15//XENIA	13//IN-PC connections to soma (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)(15-Tamas 1997, Markram 2004)
+//This parameter was depricated: now it is not.Places one synapse in the soma and the rest on the dend.
+PV2PC_MaxSyn = PV2PCsyns//NASSI//15//XENIA	13//IN-PC connections to soma (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)(15-Tamas 1997, Markram 2004)
+print "PV2PC_MaxSyn ",PV2PCsyns
 
 //-----Objects for record data
 //CHANGES after installing devel version 7.4:

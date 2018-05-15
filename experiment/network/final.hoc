@@ -73,7 +73,7 @@ if (EXPERIMENT) { //if Structured...
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
 if(PARALLEL){PC.barrier}
-tstop = 10//000 
+tstop = 10000 
 //Use execute1() instead of execute() feed the bool into assert
 //execute1() does not like the ~ (even if documented otherwise...)
 //Also the ~ encloses command in {}, but that is not happening. Go figure..
@@ -152,7 +152,8 @@ ampaweightin=	7.5e-4 * 1//according to Wang,Gao,2009
 nmdaweightin=	3.2e-4 * 1//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 autogabaweight=	0.006205				//According to Bacci (2003) 
 PC2PV_MaxSyn = 4 //7is the June working
-PV2PC_MaxSyn = 4 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
+//So apparently I have calibrated the PV2PC synapses. I will change it for now but should return to validate it! SSS
+//PV2PC_MaxSyn = 4 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
 //------------------Set # of synapses
 //synapses_backb=300//16//18//60//100
 //synapses_backpr=300//16//18//60//100

@@ -4,25 +4,33 @@ WARN='\033[0;33m'
 INFO='\033[0;32m'
 NOC='\033[0m'
 
+## I care about auto-commiting before each run. Since between runs I normaly modify some files, check
+## ONLY for modified files and commit them. I should remember to manually commit if I make major changes.
 ##Documentation in: https://git-scm.com/docs/git-status
 dirtygit="0"
 ##Files MODIFIED since index:
 ##Exclude run script(s) from check:
-echo "Excluding /run.sh"
-dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | grep -v "/run.sh" | wc -l) ))
+#echo "Excluding /run.sh"
+##Update, include run.sh because why not.
+dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | wc -l) ))
+#dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | grep -v "/run.sh" | wc -l) ))
 ##Files DELETED since index:
-dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ D" | wc -l) ))
+#dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ D" | wc -l) ))
 ##Files added to the index, but uncommitted
-dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^A" | wc -l) ))
+#dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^A" | wc -l) ))
 ##Check for new/untracked files (its better safe than sorry):
-dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -l) ))
+#dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^\?" | wc -l) ))
 
+git_branch=`git rev-parse --abbrev-ref HEAD`
 
-	gitsha1=`git rev-parse HEAD`
-if [[ $dirtygit > 0 ]]; then
-	echo -e "${WARN}The git repo is dirty. You have been warned...${NOC}"
-	echo -e "${INFO}Current HEAD is: ${gitsha1}${NOC}"
+if [[ $dirtygit > 0 && $git_branch == "runs"]]; then
+	#echo -e "${WARN}The git repo is dirty. You have been warned...${NOC}"
+	#echo -e "${INFO}Current HEAD is: ${gitsha1}${NOC}"
+	echo -e "${INFO}Auto-committing dirty repo:${NOC}"
+	# Auto commit only modified/deleted files:
+	eval "git commit -am 'RUN AUTOCOMMIT'"
 	#exit 1
+	gitsha1=`git rev-parse HEAD`
 else
 	gitsha1=`git rev-parse HEAD`
 	echo -e ${INFO}"Git repo is clean. Continue run with SHA1: ${gitsha1}${NOC}"
@@ -80,12 +88,12 @@ nmdatau="90"
 ## enhance gNMDA.
 nmdaflag="0"
 ## number of dendritic (basal) segments 
-dendnseg="15"
+dendnseg="5"
 ## How many clusters I do identify 
 Cl="7"
 ## How much (normalized) the weights are squashed into a narrow uniform distribution ## Zero means original lognormal weights dist; One means quantized 0.5 weights (connectivity of pairs
 ## 	stays the same.
-Fs="0"
+Fs="1"
 startRun="0"
 endRun="0"
 VARPID="0.5"
@@ -111,15 +119,18 @@ run="0"
 ipid="0.05"
 # cluster dendritic input to a single point on dendrite:
 # locpid : 1=proximal skewed, 2=median normal, 3=distal skewed
-locpid="1"
-clpid="0.95"
+locpid="7"
+clpid="0.45"
 clustbias="0.5"
 stimfreq="60"
-inhibias="20"
-gababfactor="8"
-for inhibias in $(seq 4 4); do
-for excitbias in $(seq 2 2); do
-for cluster in $(seq 0 0); do
+inhibias="1"
+excitbias="1"
+gababfactor="1"
+pv2pc="20"
+pc2pc="20"
+for pc2pc in $(seq 36 36); do
+for pv2pc in $(seq 52 52); do
+for cluster in $(seq 0 19); do
 ##for gababfactor in $(seq 26 34); do
 ##for nmdabias in $(seq 2.5 2.5); do
 ##for gababfactor in (seq 17.2 0.2 18); do
@@ -133,7 +144,7 @@ for cluster in $(seq 0 0); do
 		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="BLAHtest_d15Fs${Fs}_SF${stimfreq}_IPID${ipid}_NRNLOCPID${locpid}_CB${clustbias}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
+		jobname="synapses_PC2PC${pc2pc}_PV2PC${pv2pc}SF${stimfreq}_IPID${ipid}_NRNLOCPID${locpid}_CB${clustbias}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
 		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
@@ -186,6 +197,8 @@ for cluster in $(seq 0 0); do
 	-c "NMDATAU=$nmdatau" \
 	-c "NMDA_FLAG=$nmdaflag" \
 	-c "DEND_NSEG=$dendnseg" \
+	-c "PV2PCsyns=$pv2pc" \
+	-c "PC2PCsyns=$pc2pc" \
 	-c "GABABFACTOR=$gababfactor" \
 	-c "VARPID=$VARPID" \
 	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 

@@ -81,7 +81,7 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 				artcell.number = SF//30//50//50
 				artcell.interval = 1000/SF//33.3//20
 				artcell.start = 0
-				artcell.noise = 0//0.21
+				artcell.noise = 0//0.6//0.2
 				//artificial cell gids:
 				//MAKE SURE NO GIDS ARE THE SAME!
 				artgid = trg + syn*nPCcells + nPCcells + nPVcells 
@@ -420,7 +420,7 @@ func clustbias(){ local rb,oldPID,tmp localobj rbo
 	return tmp
 }
 
-objref cdf, cdf_rev, gcdf, g7cdf
+objref cdf, cdf_rev, gcdf, g7cdf,gcdf_s2, gcdf03_s2
 cdf = new Vector(15)
 cdf.x[0] = 0.1110
 cdf.x[1] = 0.2532
@@ -446,6 +446,7 @@ gcdf.x[2] = 0.7200
 gcdf.x[3] = 0.9600
 gcdf.x[4] = 1.0000
 */
+//gaussian median, mu=0.5, with sigma from0 to 1:
 gcdf = new Vector(16)
 gcdf.x[0] = 0.0341
 gcdf.x[1] = 0.0785
@@ -462,6 +463,42 @@ gcdf.x[11] = 0.8659
 gcdf.x[12] = 0.9215
 gcdf.x[13] = 0.9659
 gcdf.x[14] = 1.0000
+//Gaussian with mu=0.5, sigma/2 (more narrow/clustered):
+gcdf_s2 = new Vector(15)
+gcdf_s2.x[0]  = 0.0000
+gcdf_s2.x[1]  = 0.0000
+gcdf_s2.x[2]  = 0.0000
+gcdf_s2.x[3]  = 0.0000
+gcdf_s2.x[4]  = 0.0000
+gcdf_s2.x[5]  = 0.0833
+gcdf_s2.x[6]  = 0.3333
+gcdf_s2.x[7]  = 0.6667
+gcdf_s2.x[8]  = 0.9167
+gcdf_s2.x[9]  = 1.0000
+gcdf_s2.x[10] = 1.0000
+gcdf_s2.x[11] = 1.0000
+gcdf_s2.x[12] = 1.0000
+gcdf_s2.x[13] = 1.0000
+gcdf_s2.x[14] = 1.0000
+
+
+//Gaussian with mu=0.3, sigma/2 (more narrow/clustered):
+gcdf03_s2 = new Vector(15)
+gcdf03_s2.x[0]  = 0.0000
+gcdf03_s2.x[1]  = 0.0000
+gcdf03_s2.x[2]  = 0.0833
+gcdf03_s2.x[3]  = 0.3333
+gcdf03_s2.x[4]  = 0.6667
+gcdf03_s2.x[5]  = 0.9167
+gcdf03_s2.x[6]  = 1.0000
+gcdf03_s2.x[7]  = 1.0000
+gcdf03_s2.x[8]  = 1.0000
+gcdf03_s2.x[9]  = 1.0000
+gcdf03_s2.x[10] = 1.0000
+gcdf03_s2.x[11] = 1.0000
+gcdf03_s2.x[12] = 1.0000
+gcdf03_s2.x[13] = 1.0000
+gcdf03_s2.x[14] = 1.0000
 
 
 g7cdf = new Vector(5)
@@ -518,9 +555,9 @@ if(save_inmda){
 	{assert(execute1(EXEC_CMD))}
 }
 if(save_igaba){
-	{sprint(EXEC_CMD,"{objref igabaaPV2PC[%d][%d][%d]}",nPVcells,nPCcells,4)}
+	{sprint(EXEC_CMD,"{objref igabaaPV2PC[%d][%d][%d]}",nPVcells,nPCcells,PV2PC_MaxSyn)}
 	{assert(execute1(EXEC_CMD))}
-	{sprint(EXEC_CMD,"{objref igababPV2PC[%d][%d][%d]}",nPVcells,nPCcells,4)}
+	{sprint(EXEC_CMD,"{objref igababPV2PC[%d][%d][%d]}",nPVcells,nPCcells,PV2PC_MaxSyn)}
 	{assert(execute1(EXEC_CMD))}
 }
 
@@ -723,6 +760,11 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 			//clusterPID[PCgids.x[localID]].append(0.1)
 		}
 		if (LOCPID == 8){
+			//old way of placing synapses (5 in total)
+			for syn=0, (PC2PC_MaxSyn-1) {
+				PID = r_PC2PC[PCgids.x[localID]].repick()
+				clusterPID[PCgids.x[localID]].append(PID)
+			}
 		}
 		
 	}
@@ -1038,9 +1080,9 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_b*INHIBIAS) //SSS DEFAULT WEIGHT is 4 !!
 					}
 					//----------------------------Insert synapses at dendrites
-					for syn=1,4-1 { 
-						PID = IPID
-						//PID = r_PV2PC[PCgids.x[localID]].repick ()
+					for syn=1,PV2PC_MaxSyn-2 { 
+						//PID = IPID
+						PID = r_PV2PC[PCgids.x[localID]].repick ()
 						if(save_pvsynaptic_locations){
 							{sprint(EXEC_CMD,"{pidPV2PC[%d][%d].append(%f)}",src,trg,PID)}
 							{assert(execute1(EXEC_CMD))}
