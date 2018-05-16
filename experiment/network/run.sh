@@ -52,7 +52,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="12" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="312" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
 exp="1"
