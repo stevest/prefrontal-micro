@@ -132,7 +132,7 @@ pc2pc="120"
 tstop_sec="7"
 #for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
-for cluster in $(seq 0 19); do
+for cluster in $(seq 1 19); do
 ##for gababfactor in $(seq 26 34); do
 #for excitbias in $(seq 25 25); do
 for inhibias in $(seq 4 4); do
@@ -167,7 +167,7 @@ for inhibias in $(seq 4 4); do
 	## Submit as Job in Sun Grid Engine:
 	if [ "$schedule" == "1" ]; then
 	echo -e "${INFO}SCHEDULER VERSION IS COMMENCING ${NOC}"
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 12-$nodes -p -3 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 312-$nodes -p -3 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
 	-c "RUN=$run" \
 	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
 	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \
