@@ -127,10 +127,10 @@ inhibias="1"
 excitbias="0.96"
 gababfactor="15"
 pv2pc="4"
-pc2pc="60"
+pc2pc="120"
 # Pass simulation stop externally in seconds:
-tstop_sec="2"
-for pc2pc in $(seq 62 2 120); do
+tstop_sec="7"
+#for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
 for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
@@ -251,7 +251,7 @@ echo `which nrniv`
 	
 done
 done
-done
+##done
 ##done
  
 else
