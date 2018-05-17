@@ -129,7 +129,7 @@ gababfactor="15"
 pv2pc="4"
 pc2pc="25"
 # Pass simulation stop externally in seconds:
-tstop_sec="0.01"
+tstop_sec="3"
 #for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
 for cluster in $(seq 0 0); do
