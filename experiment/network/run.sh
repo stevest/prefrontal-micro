@@ -52,7 +52,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="312" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="78" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
 exp="1"
@@ -124,15 +124,15 @@ clpid="0.45"
 stimfreq="60"
 stimnoise="0.0"
 inhibias="1"
-excitbias="0.96"
+excitbias="1"
 gababfactor="15"
 pv2pc="4"
-pc2pc="120"
+pc2pc="25"
 # Pass simulation stop externally in seconds:
 tstop_sec="7"
 #for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
-for cluster in $(seq 2 19); do
+for cluster in $(seq 0 19); do
 ##for gababfactor in $(seq 26 34); do
 #for excitbias in $(seq 25 25); do
 for inhibias in $(seq 4 4); do
