@@ -27,7 +27,7 @@ for k=0,n-1 {r_msec.x[k] = k*dt }
 Stim_MaxSyn_apic=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn_basal=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
-PC2PC_MaxSyn = PC2PCsyns//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
+PC2PC_MaxSyn = PC2PCsyns*5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
 PC_MaxAutosyn=1//XENIA //1	//autosynapses (one third, Lubke, 1996)
 PV2PV_MaxSyn=12//NASSI	//IN-IN connections
 PC2PV_MaxSyn=2//XENIA//2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
