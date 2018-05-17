@@ -520,8 +520,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							PIDtmp = clusterPID[trgGID].x[synheavy]
 							PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
 							//these are the heavy synapses 
-							for syn=0, (PC2PCsyns-1) { //for current syn
-								print "SYNHEAVY ",src, " ",trg
+							for syn=(PC2PCsyns*synheavy), (PC2PCsyns*(synheavy+1))-1 { //for current syn
+								print "SYNHEAVY ",src, " ",trg, " ",syn
 								//rDendidx = clusterDend[trgGID].x[syn]
 								rDendidx = 0
 								FIDp = abs(fp_PC2PC[trg].repick())
