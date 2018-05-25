@@ -167,7 +167,7 @@ for inhibias in $(seq 1 4); do
 	## Submit as Job in Sun Grid Engine:
 	if [ "$schedule" == "1" ]; then
 	echo -e "${INFO}SCHEDULER VERSION IS COMMENCING ${NOC}"
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 12-$nodes -p -3 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 12-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
 	-c "RUN=$run" \
 	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
 	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \

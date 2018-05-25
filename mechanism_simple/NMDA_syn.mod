@@ -25,7 +25,7 @@ NEURON {
 	NONSPECIFIC_CURRENT inmda 
 	RANGE e ,gmax,inmda
 	RANGE gnmda, tau1, NLalpha
-	RANGE srcgid, sid, n, cellid
+	RANGE srcgid, sid, n, cellid, myflag
 	GLOBAL gama,tau2
 }
 
