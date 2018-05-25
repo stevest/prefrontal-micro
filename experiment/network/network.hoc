@@ -122,9 +122,6 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 					rApicIdx = 0 //PROXIMAL!
 					PCcells.o(localID).apic[rApicIdx] {ampapr[trg][syn] = new GLU(PID)}
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn] = new nmda_segev(PID)}
-					print "nmda flag ",nmdapr[trg][syn].myflag
-					nmdapr[trg][syn].myflag = 1//disable Mg blocakge
-					print "nmda flag becomes ",nmdapr[trg][syn].myflag
 					artgid = trg + syn*nPCcells + nPCcells + nPVcells 
 
 					nmdapr[trg][syn].srcgid = artgid
@@ -524,7 +521,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
 							//these are the heavy synapses 
 							for syn=(PC2PCsyns*synheavy), (PC2PCsyns*(synheavy+1))-1 { //for current syn
-								print "SYNHEAVY ",src, " ",trg, " ",syn
+								//print "SYNHEAVY ",src, " ",trg, " ",syn
 								//rDendidx = clusterDend[trgGID].x[syn]
 								rDendidx = 0
 								FIDp = abs(fp_PC2PC[trg].repick())
@@ -539,6 +536,9 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 								}
 								PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 								PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+								print "nmda flag ",nmdapr[trg][syn].myflag
+								nmdaOnPC[src][trg][syn].myflag = 1//disable Mg blocakge
+								print "nmda flag becomes ",nmdapr[trg][syn].myflag
 
 								nmdaOnPC[src][trg][syn].srcgid = srcGID
 								nmdaOnPC[src][trg][syn].sid = syn
