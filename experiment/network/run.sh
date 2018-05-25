@@ -52,7 +52,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="12" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="24" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
 exp="1"
@@ -135,7 +135,7 @@ tstop_sec="2.5"
 for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 #for excitbias in $(seq 25 25); do
-for pc2pc  in $(seq 90 10 160); do
+for pc2pc  in $(seq 170 10 260); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
