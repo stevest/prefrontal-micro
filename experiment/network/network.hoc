@@ -122,6 +122,9 @@ proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, inte
 					rApicIdx = 0 //PROXIMAL!
 					PCcells.o(localID).apic[rApicIdx] {ampapr[trg][syn] = new GLU(PID)}
 					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn] = new nmda_segev(PID)}
+					print "nmda flag ",nmdapr[trg][syn].myflag
+					nmdapr[trg][syn].myflag = 1//disable Mg blocakge
+					print "nmda flag becomes ",nmdapr[trg][syn].myflag
 					artgid = trg + syn*nPCcells + nPCcells + nPVcells 
 
 					nmdapr[trg][syn].srcgid = artgid

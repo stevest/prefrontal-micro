@@ -125,8 +125,12 @@ BREAKPOINT {
 	:} else {
 		gnmda=(A-B)/(1+n*exp(-gama*v - mybeta))
 	:}
+	if (myflag > 0){
+		inmda = (1e-3) * gnmda: * (v-e)
+	} else {
+		inmda = (1e-3) * gnmda * (v-e)
+	}
 
-	inmda = (1e-3) * gnmda * (v-e)
 
 	ica = inmda * 0.01
 	:if (cellid == 236){

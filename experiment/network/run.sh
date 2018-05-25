@@ -129,13 +129,13 @@ gababfactor="15"
 pv2pc="4"
 pc2pc="25"
 # Pass simulation stop externally in seconds:
-tstop_sec="0.01"
+tstop_sec="2.5"
 #for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
-for cluster in $(seq 0 19); do
+for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 #for excitbias in $(seq 25 25); do
-for inhibias in $(seq 4 4); do
+for inhibias in $(seq 1 4); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
@@ -146,7 +146,7 @@ for inhibias in $(seq 4 4); do
 		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="repr_heavy_tmp_SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
+		jobname="noMg_heavy_SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
 		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
