@@ -124,10 +124,10 @@ clpid="0.45"
 stimfreq="60"
 stimnoise="0.0"
 inhibias="1"
-excitbias="1"
+excitbias="5"
 gababfactor="1"
 pv2pc="4"
-pc2pc="100"
+pc2pc="25"
 # Pass simulation stop externally in seconds:
 tstop_sec="2.5"
 #for pc2pc in $(seq 62 2 120); do
@@ -135,7 +135,7 @@ tstop_sec="2.5"
 for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 #for excitbias in $(seq 25 25); do
-for inhibias  in $(seq 1 1 4); do
+for pc2pc  in $(seq 5 5 25); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then

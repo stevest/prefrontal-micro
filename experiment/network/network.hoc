@@ -474,7 +474,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 		clusterDend[PCgids.x[localID]] = new Vector()
 		clusterPID[PCgids.x[localID]] = new Vector()
 		//place only 5 'heavy' synapses
-		for syn=0, (5-1) {
+		//for syn=0, (5-1) {
+		for syn=0, (PC2PCsyns-1) {
 			PID = r_PC2PC[PCgids.x[localID]].repick()
 			//rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 			rDendidx = 0
@@ -516,11 +517,14 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							{sprint(EXEC_CMD,"{pidPC2PC[%d][%d] = new Vector()}",src,trg)}
 							{assert(execute1(EXEC_CMD))}
 						}
-						for synheavy=0, 4{
-							PIDtmp = clusterPID[trgGID].x[synheavy]
-							PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
+						//for synheavy=0, 4{
+							//PIDtmp = clusterPID[trgGID].x[syn]
+							//PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
 							//these are the heavy synapses 
-							for syn=(PC2PCsyns*synheavy), (PC2PCsyns*(synheavy+1))-1 { //for current syn
+							//for syn=(PC2PCsyns*synheavy), (PC2PCsyns*(synheavy+1))-1 { //for current syn
+							for syn = 0, (PC2PCsyns)-1 { //for current syn
+								PIDtmp = clusterPID[trgGID].x[syn]
+								PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
 								//print "SYNHEAVY ",src, " ",trg, " ",syn
 								//rDendidx = clusterDend[trgGID].x[syn]
 								rDendidx = 0
@@ -564,7 +568,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 								conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS * AMPABIAS)
 								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
 							}
-						}
+						//}
 					}
 				}
 			}//connectivity matrix
