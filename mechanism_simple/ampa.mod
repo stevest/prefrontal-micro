@@ -50,7 +50,7 @@ ENDCOMMENT
 NEURON {
 	THREADSAFE
 	POINT_PROCESS GLU         
-	RANGE R, gmax, g
+	RANGE R, gmax, g, myalpha
 	NONSPECIFIC_CURRENT  iglu             : i
 	GLOBAL Cdur, Alpha, Beta, Erev, Rinf, Rtau
 }
@@ -66,8 +66,9 @@ PARAMETER {
 	Cdur	= 0.3	(ms)		: transmitter duration (rising phase)
 	Alpha	= 10	(/ms)		: forward (binding) rate
 	:	Beta	= 0.31	(/ms)		: backward (unbinding) rate 
-	Beta	= 0.01	(/ms)		: backward (unbinding) rate Until March 2010, then changed 0.15
+	Beta	= 0.15	(/ms)		: backward (unbinding) rate Until March 2010, then changed 0.15
 	Erev	= 0	(mV)		:0 reversal potential
+	myalpha = 0	(ms)
 }
 
 
@@ -87,12 +88,14 @@ INITIAL {
         PROTECT Rinf = Cmax*Alpha / (Cmax*Alpha + Beta)
        	PROTECT Rtau = 1 / ((Alpha * Cmax) + Beta)
 		synon = 0
+	myalpha = 0
 }
 
 BREAKPOINT {
 	SOLVE release METHOD cnexp
 	g = (Ron + Roff)*1(umho)
 	iglu = g*(v - Erev)  
+	myalpha = Roff
 	:printf("@%10f\n",t)
 	:printf("Ron=%10f\n",Ron)
 	:printf("Roff=%10f\n",Roff)

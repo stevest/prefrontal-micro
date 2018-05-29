@@ -125,17 +125,18 @@ stimfreq="60"
 stimnoise="0.0"
 inhibias="1"
 excitbias="4"
-gababfactor="1"
+gababfactor="15"
 pv2pc="4"
-pc2pc="5"
+pc2pc="25"
 # Pass simulation stop externally in seconds:
-tstop_sec="7"
+tstop_sec="2"
+loccl="1"
 #for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
-for cluster in $(seq 0 19); do
+for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
 #for excitbias in $(seq 25 25); do
-for inhibias  in $(seq 6 6); do
+#for inhibias  in $(seq 6 6); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
@@ -146,7 +147,7 @@ for inhibias  in $(seq 6 6); do
 		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="ampatau_heavy_SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
+		jobname="LOCCL${loccl}SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
 		jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
@@ -167,7 +168,7 @@ for inhibias  in $(seq 6 6); do
 	## Submit as Job in Sun Grid Engine:
 	if [ "$schedule" == "1" ]; then
 	echo -e "${INFO}SCHEDULER VERSION IS COMMENCING ${NOC}"
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 78-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 12-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
 	-c "RUN=$run" \
 	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
 	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \
@@ -191,6 +192,7 @@ for inhibias  in $(seq 6 6); do
 	-c "STIMNOISE=$stimnoise" \
 	-c "FS=$Fs" \
 	-c "CL=$Cl" \
+	-c "LOCCL=$loccl" \
 	-c "BGE=$BGe" \
 	-c "BGI=$BGi" \
 	-c "ERF=$erf" \
@@ -250,7 +252,7 @@ echo `which nrniv`
 	fi
 	
 done
-done
+##done
 ##done
 ##done
  

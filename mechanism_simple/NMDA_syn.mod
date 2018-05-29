@@ -119,19 +119,11 @@ INITIAL {
 BREAKPOINT {
 
 	SOLVE state METHOD cnexp
-: Move the logistic function to enhance NMDAg: 
-	:if (myflag > 0){
-		:gnmda=(A-B)/(0.00186 * v + 0.152)
-	:} else {
-		gnmda=(A-B)/(1+n*exp(-gama*v - mybeta))
-	:}
+	gnmda=(A-B)/(1+n*exp(-gama*v - mybeta))
 	inmda = (1e-3) * gnmda * (v-e)
 
 
 	ica = inmda * 0.01
-	:if (cellid == 236){
-		:printf("@=%f cellid=%g ni=%f AB=%f exp=%f\n",t,cellid,n, (A-B),(1+n*exp(-gama*v - mybeta)) )
-	:}
 	NLalpha = A
 }
 
