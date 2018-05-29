@@ -537,9 +537,6 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 								}
 								PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
 								PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
-								//print "nmda flag ",nmdaOnPC[src][trg][syn].myflag
-								nmdaOnPC[src][trg][syn].myflag = 1//disable Mg blocakge
-								//print "nmda flag becomes ",nmdaOnPC[src][trg][syn].myflag
 
 								nmdaOnPC[src][trg][syn].srcgid = srcGID
 								nmdaOnPC[src][trg][syn].sid = syn
