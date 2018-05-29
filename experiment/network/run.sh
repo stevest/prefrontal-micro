@@ -129,13 +129,13 @@ gababfactor="15"
 pv2pc="4"
 pc2pc="25"
 # Pass simulation stop externally in seconds:
-tstop_sec="2"
+tstop_sec="7"
 loccl="1"
 #for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
-for cluster in $(seq 0 0); do
 ##for gababfactor in $(seq 26 34); do
-#for excitbias in $(seq 25 25); do
+for loccl in $(seq 1 4); do
+for cluster in $(seq 0 19); do
 #for inhibias  in $(seq 6 6); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
@@ -168,7 +168,7 @@ for cluster in $(seq 0 0); do
 	## Submit as Job in Sun Grid Engine:
 	if [ "$schedule" == "1" ]; then
 	echo -e "${INFO}SCHEDULER VERSION IS COMMENCING ${NOC}"
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 12-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
 	-c "RUN=$run" \
 	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
 	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \
@@ -252,7 +252,7 @@ echo `which nrniv`
 	fi
 	
 done
-##done
+done
 ##done
 ##done
  
