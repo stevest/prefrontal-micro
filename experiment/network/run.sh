@@ -123,18 +123,18 @@ locpid="7"
 clpid="0.45"
 stimfreq="60"
 stimnoise="0.0"
-inhibias="4"
+inhibias="5"
 excitbias="1"
 gababfactor="1"
 pv2pc="4"
-pc2pc="10"
+pc2pc="25"
 # Pass simulation stop externally in seconds:
 tstop_sec="2.5"
 loccl="1"
 #for pc2pc in $(seq 62 2 120); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 1 1); do
+for pc2pc in $(seq 10 5 25); do
 for cluster in $(seq 0 0); do
 #for inhibias  in $(seq 6 6); do
 ##for erf in "${erf_array[@]}"; do
