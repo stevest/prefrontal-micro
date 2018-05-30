@@ -127,7 +127,7 @@ inhibias="4"
 excitbias="1"
 gababfactor="1"
 pv2pc="4"
-pc2pc="15"
+pc2pc="10"
 # Pass simulation stop externally in seconds:
 tstop_sec="2.5"
 loccl="1"
