@@ -135,7 +135,7 @@ loccl="1"
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
 for loccl in $(seq 8 19); do
-for cluster in $(seq 0 19); do
+for cluster in $(seq 0 9); do
 #for inhibias  in $(seq 6 6); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
