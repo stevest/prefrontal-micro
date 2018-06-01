@@ -102,7 +102,9 @@ objref PcellStimList
 {PcellStimList = new Vector(nPCcells,0)}
 
 if(EXPERIMENT){ //if Structured...
+	//print "PcellStimListSTR.size() = ",PcellStimListSTR[CLUSTER_ID].size()
 	for i=0,PcellStimListSTR[CLUSTER_ID].size()-1{
+		//print " ",PcellStimListSTR[CLUSTER_ID].x[i]	
 		PcellStimList.x[PcellStimListSTR[CLUSTER_ID].x[i]]=1
 		// {sprint(PPRINT_CMD,"Stimulating cell: %d",PcellStimListSTR[CLUSTER_ID].x[i])}
 		//if(DEBUG){pprint(PPRINT_CMD)}
