@@ -55,7 +55,7 @@ schedule="1"
 nodes="78" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
-exp="0"
+exp="1"
 ## Serial number of network (RNG) in MATLAB:
 sn="11"
 ## Ean einai clustered oi synapseeis stous dendrites:
@@ -114,7 +114,7 @@ jobstdout="$jobstdout\\\n=======================================================
 
 ##for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
-run="1"
+run="0"
 #Move inhibitory synapses at different dendritic locations to check for more states:
 ipid="0.05"
 # cluster dendritic input to a single point on dendrite:
