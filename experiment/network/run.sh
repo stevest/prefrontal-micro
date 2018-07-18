@@ -114,7 +114,7 @@ jobstdout="$jobstdout\\\n=======================================================
 
 ##for run in $(seq $startRun $endRun); do
 #for run in "${custom_jobs[@]}"
-run="0"
+run="1"
 #Move inhibitory synapses at different dendritic locations to check for more states:
 ipid="0.05"
 # cluster dendritic input to a single point on dendrite:
