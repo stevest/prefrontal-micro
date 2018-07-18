@@ -536,7 +536,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 									{assert(execute1(EXEC_CMD))}
 								}
 								PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
-								PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+								//PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+								PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_nojump(PID)}					
 
 								nmdaOnPC[src][trg][syn].srcgid = srcGID
 								nmdaOnPC[src][trg][syn].sid = syn
