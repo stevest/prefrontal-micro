@@ -57,7 +57,7 @@ cluster="0"
 # 0=Random, 1=Structured
 exp="1"
 ## Serial number of network (RNG) in MATLAB:
-sn="20"
+sn="21"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
@@ -134,9 +134,9 @@ loccl="1"
 #for pc2pc in $(seq 2 2 20); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 1 1); do
+#for loccl in $(seq 1 1); do
 for cluster in $(seq 0 0); do
-#for inhibias  in $(seq 4); do
+for inhibias  in $(seq 2 4); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
