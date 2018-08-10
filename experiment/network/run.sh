@@ -55,7 +55,7 @@ schedule="1"
 nodes="78" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
-exp="1"
+exp="0"
 ## Serial number of network (RNG) in MATLAB:
 sn="11"
 ## Ean einai clustered oi synapseeis stous dendrites:
@@ -129,15 +129,16 @@ gababfactor="15"
 pv2pc="4"
 pc2pc="4"
 # Pass simulation stop externally in seconds:
-tstop_sec="5"
-loccl="10"
-#for pc2pc in $(seq 2 2 20); do
+tstop_sec="3"
+loccl="1"
+cluster="0"
+for pc2pc in $(seq 2 2 20); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 1 9); do
+#for loccl in $(seq 1 1); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
-for cluster in $(seq 10 90); do
-#for inhibias  in $(seq 3 4); do
+#for cluster in $(seq 0 0); do
+for inhibias  in $(seq 1 4); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
