@@ -137,7 +137,7 @@ cluster="0"
 ##for gababfactor in $(seq 26 34); do
 for loccl in $(seq 1 1); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
-for cluster in $(seq 0 9); do
+for cluster in $(seq 10 49); do
 #for inhibias  in $(seq 1.1 0.1 1.8); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
