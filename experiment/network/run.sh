@@ -135,9 +135,9 @@ cluster="0"
 #for pc2pc in $(seq 2 2 20); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 1 1); do
+for loccl in $(seq 2 10); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
-for cluster in $(seq 9 90); do
+for cluster in $(seq 9 49); do
 #for inhibias  in $(seq 1.8 1.8); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
