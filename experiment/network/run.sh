@@ -129,7 +129,7 @@ gababfactor="15"
 pv2pc="4"
 pc2pc="4"
 # Pass simulation stop externally in seconds:
-tstop_sec="5"
+tstop_sec="3"
 loccl="1"
 cluster="0"
 #for pc2pc in $(seq 2 2 20); do
@@ -138,7 +138,7 @@ cluster="0"
 #for loccl in $(seq 1 10); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
 #for cluster in $(seq 9 49); do
-for inhibias  in $(seq 1 4); do
+for inhibias  in $(seq 2.1 0.1 2.9); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
