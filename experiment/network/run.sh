@@ -55,7 +55,7 @@ schedule="1"
 nodes="78" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
-exp="1"
+exp="0"
 ## Serial number of network (RNG) in MATLAB:
 sn="20"
 ## Ean einai clustered oi synapseeis stous dendrites:
@@ -135,10 +135,10 @@ cluster="0"
 #for pc2pc in $(seq 2 2 20); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 1 10); do
+#for loccl in $(seq 1 10); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
-for cluster in $(seq 9 49); do
-#for inhibias  in $(seq 1.1 0.1 1.8); do
+#for cluster in $(seq 9 49); do
+for inhibias  in $(seq 1 4); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
@@ -255,7 +255,7 @@ echo `which nrniv`
 	fi
 	
 done
-done
+#done
 ##done
 ##done
  
