@@ -255,7 +255,7 @@ echo `which nrniv`
 	fi
 	
 done
-done
+#done
 ##done
 ##done
  
