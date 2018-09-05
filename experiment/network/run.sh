@@ -128,6 +128,7 @@ excitbias="1"
 gababfactor="15"
 pv2pc="4"
 pc2pc="4"
+no_mg="1"
 # Pass simulation stop externally in seconds:
 tstop_sec="3"
 loccl="1"
@@ -210,6 +211,7 @@ for inhibias  in $(seq 1 4); do
 	-c "PC2PCsyns=$pc2pc" \
 	-c "GABABFACTOR=$gababfactor" \
 	-c "VARPID=$VARPID" \
+	-c "NO_MG=$no_mg" \
 	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
 
 	else
