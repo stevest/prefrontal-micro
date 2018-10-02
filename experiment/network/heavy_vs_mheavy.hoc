@@ -1,0 +1,185 @@
+strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING
+PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+objref PC
+PC = new ParallelContext()
+PARALLEL  = 0
+
+tstop = 700 
+{xopen("./DATA/vstim.hoc")}
+steps_per_ms=10
+dt=1/steps_per_ms
+n=int(tstop/dt)
+celsius=34
+DEND_NSEG = 5
+
+nPCcells = 1
+
+v_init = -66 
+objref cv
+cv=new CVode(0)
+if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
+if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
+if(!cv.cache_efficient(1)){print "ERRORRRR!"}
+
+{xopen("pfc_pc_temp.hoc")}
+
+//Balance each cell compartment to the prefered voltage and comply with NEURON initialization routines.
+proc balance_compartments() {
+	//Do not call finitialize with v_init argument, because it sets it in all cells
+	// created up to this point!
+	finitialize()
+	fcurrent()
+	forsec PCcell_list {
+		//print "In PCcell_list"
+		for (x) {
+			//print "V is: ",v
+			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
+			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+		}
+	}
+	fcurrent()
+	/*if (cv.active()) {
+		cv.re_init()
+	}       else {
+		fcurrent()
+	}*/
+	frecord_init()
+}
+
+
+//-------------------Set synaptic weights
+ampaweight=	0.00019		//0.00019//According to Wang(2008)
+nmdaweight = 0.25//0.05
+
+taur_cad = 50//36 //SSS
+
+objref r, PCv,PCdv,PCi, vsoma
+objref PCvd, PCvdd, PCvddd
+
+// Ta dyo senaria einai:
+// 5 syns , 25 EB, uniform (nrn RNG)
+// 120 * 5 syns, EB 1, uniform (nrn RNG)
+// Use just ONE synapse to check current/dend depol
+maxsynapses = 25//120
+synapses = maxsynapses
+
+objref NS[synapses]
+NSnoise = 0.5 
+
+r = new Random(0)
+r.normal(0, 0.3)
+
+objref rl
+rl = new Random()
+rl.uniform(0,1)
+
+objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
+objref gabaa[4], gabab[4], ncga[4], ncgb[4]
+
+nmdabias = 2 //TEMP CHANGE! REVERT BACK TO 2!!
+excitbias = 25
+gababfactor = 15
+gabaweight = 0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
+gabaweightb = 1.05e-4
+gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = gabaweightb   * gababfactor 
+synweight = 0.5
+
+objref nil
+
+NS=new NetStim()
+NS.interval=10//ISI//isir.repick()
+NS.number=10
+NS.start=50
+NS.noise=NSnoise
+
+objref locations_vect
+locations_vect = new Vector()
+locations_vect.append(0.05)
+locations_vect.append(0.25)
+locations_vect.append(0.45)
+locations_vect.append(0.65)
+locations_vect.append(0.85)
+
+balance_compartments()
+//run the two freaking configurations:
+//LA8OS! to setup prepei na exei k eteroxronismenes synapses!
+objref fp_PC2PC
+fp_PC2PC = new Random(0)	
+fp_PC2PC.normal(1.7,0.9)	//According to Thomson(2007)
+
+for location = 0, 4{
+for experiment = 0 , 1{
+	if (experiment == 0){
+		excitbias = 25
+		synapses = 1
+	}else{
+		excitbias = 1//0.960
+		synapses = maxsynapses
+	}
+	print "---------------------"
+	PID=locations_vect.x[location]
+
+	for syn=0,maxsynapses-1{
+		nmdapr[syn] = nil
+		ampapr[syn] = nil
+		nc1[syn] = nil
+		nc2[syn] = nil
+	}
+	for syn=0,synapses-1{
+		//print " Placing synapse : ",syn, " in loc ",PID
+		nmdapr[syn] = nil
+		ampapr[syn] = nil
+		nc1[syn] = nil
+		nc2[syn] = nil
+
+		FIDp = abs(fp_PC2PC.repick())
+		print "FIDp ",FIDp
+
+		PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
+		nc2[syn]=new NetCon(NS, nmdapr[syn])
+		nc2[syn].delay=FIDp
+		nc2[syn].weight= 0.25 * synweight * excitbias * nmdabias //4.2 
+
+		PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
+		nc1[syn]=new NetCon(NS, ampapr[syn])
+		nc1[syn].delay=FIDp
+		nc1[syn].weight = ampaweight * synweight * excitbias * 1//SSS
+		
+	}
+
+
+	PCv = new Vector(n,0)
+	PCv.record(&PCcells.o(0).soma.v(0.5)) 
+	//PCv.record(&PCcells.o(0).soma.i_passive(0.5)) 
+
+	PCdv = new Vector(n,0)
+	PCdv.record(&PCcells.o(0).dend[0].v(PID)) 
+
+	run()
+print "RUN FINISHED"
+	vsoma = new File()		
+	sprint(STRING,"DATA/heavy_vsoma_%d_%d.txt",experiment,location)
+	print STRING
+	vsoma.wopen(STRING)
+	for j=0, PCv.size()-1 {
+		vsoma.printf ("%f\n",PCv.x[j])
+	}
+	vsoma.close()
+
+	vsoma = new File()		
+	sprint(STRING,"DATA/heavy_vdend_%d_%d.txt",experiment,location)
+	print STRING
+	vsoma.wopen(STRING)
+	for j=0, PCdv.size()-1 {
+		vsoma.printf ("%f\n",PCdv.x[j])
+	}
+	vsoma.close()
+
+print "Vsoma saved"
+}
+} //For different dend locations
