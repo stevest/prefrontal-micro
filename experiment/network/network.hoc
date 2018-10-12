@@ -474,8 +474,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 	for localID=0, PCcells.count()-1 {
 		clusterDend[PCgids.x[localID]] = new Vector()
 		clusterPID[PCgids.x[localID]] = new Vector()
-		//place only 5 'heavy' synapses
-		for syn=0, (5-1) {
+		for syn=0, (PC2PC_MaxSyn-1) {
 			PID = r_PC2PC[PCgids.x[localID]].repick()
 			//rDendidx = int(rDend_PC2PC[PCgids.x[i]].uniform(0,PCcells.o(i).DendNo-1) )
 			rDendidx = 0
@@ -517,55 +516,51 @@ proc connectPC2PC() { local i,j,FIDp,PID,BasalNo,rDendidx,synCtr,trg,src,syn,boo
 							{sprint(EXEC_CMD,"{pidPC2PC[%d][%d] = new Vector()}",src,trg)}
 							{assert(execute1(EXEC_CMD))}
 						}
-						for synheavy=0, 4{
-							PIDtmp = clusterPID[trgGID].x[synheavy]
+						for syn=0, PC2PC_MaxSyn-1{
+							PIDtmp = clusterPID[trgGID].x[syn]
 							PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
-							//these are the heavy synapses 
-							for syn=(PC2PCsyns*synheavy), (PC2PCsyns*(synheavy+1))-1 { //for current syn
-								//print "SYNHEAVY ",src, " ",trg, " ",syn
-								//rDendidx = clusterDend[trgGID].x[syn]
-								rDendidx = 0
-								FIDp = abs(fp_PC2PC[trg].repick())
-								if( FIDp <= dt ){ FIDp = dt + 0.01 }
-								if(save_synaptic_delays){
-									{sprint(EXEC_CMD,"{delayPC2PC[%d][%d].append(%f)}",src,trg,FIDp)}
-									{assert(execute1(EXEC_CMD))}
-								}
-								if(save_synaptic_locations){
-									{sprint(EXEC_CMD,"{pidPC2PC[%d][%d].append(%f)}",src,trg,PID)}
-									{assert(execute1(EXEC_CMD))}
-								}
-								PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
-								if(NO_MG){
-									PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_nojump(PID)}					
-								} else {
-									PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
-								}
-
-								nmdaOnPC[src][trg][syn].srcgid = srcGID
-								nmdaOnPC[src][trg][syn].sid = syn
-								nmdaOnPC[srcGID][trg][syn].cellid = trgGID
-								nmdaOnPC[srcGID][trg][syn].tau1 = NMDATAU 
-								//print "NMDATAU=",nmdaOnPC[srcGID][trg][syn].tau1 
-								if(save_inmda){
-									{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
-									{assert(execute1(EXEC_CMD))}
-									{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].inmda)}",src,trg,syn,src,trg,syn)}
-									{assert(execute1(EXEC_CMD))}
-									{sprint(EXEC_CMD,"{iampaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
-									{assert(execute1(EXEC_CMD))}
-									{sprint(EXEC_CMD,"{iampaPC2PC[%d][%d][%d].record(&ampaOnPC[%d][%d][%d].iglu)}",src,trg,syn,src,trg,syn)}
-									{assert(execute1(EXEC_CMD))}
-	if (0){//Save iNMDA for each cell separately:
-									{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
-									{assert(execute1(EXEC_CMD))}
-									{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].A)}",src,trg,syn,src,trg,syn)}
-									{assert(execute1(EXEC_CMD))}
-	}
-								}
-								conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS * AMPABIAS)
-								connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
+							//rDendidx = clusterDend[trgGID].x[syn]
+							rDendidx = 0
+							FIDp = abs(fp_PC2PC[trg].repick())
+							if( FIDp <= dt ){ FIDp = dt + 0.01 }
+							if(save_synaptic_delays){
+								{sprint(EXEC_CMD,"{delayPC2PC[%d][%d].append(%f)}",src,trg,FIDp)}
+								{assert(execute1(EXEC_CMD))}
 							}
+							if(save_synaptic_locations){
+								{sprint(EXEC_CMD,"{pidPC2PC[%d][%d].append(%f)}",src,trg,PID)}
+								{assert(execute1(EXEC_CMD))}
+							}
+							PCcells.o(localID).dend[rDendidx] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
+							if(NO_MG){
+								PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_nojump(PID)}					
+							} else {
+								PCcells.o(localID).dend[rDendidx] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
+							}
+
+							nmdaOnPC[src][trg][syn].srcgid = srcGID
+							nmdaOnPC[src][trg][syn].sid = syn
+							nmdaOnPC[srcGID][trg][syn].cellid = trgGID
+							nmdaOnPC[srcGID][trg][syn].tau1 = NMDATAU 
+							//print "NMDATAU=",nmdaOnPC[srcGID][trg][syn].tau1 
+							if(save_inmda){
+								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+								{sprint(EXEC_CMD,"{inmdaPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].inmda)}",src,trg,syn,src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+								{sprint(EXEC_CMD,"{iampaPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+								{sprint(EXEC_CMD,"{iampaPC2PC[%d][%d][%d].record(&ampaOnPC[%d][%d][%d].iglu)}",src,trg,syn,src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+if (0){//Save iNMDA for each cell separately:
+								{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d] = new Vector()}",src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+								{sprint(EXEC_CMD,"{nmdaAPC2PC[%d][%d][%d].record(&nmdaOnPC[%d][%d][%d].A)}",src,trg,syn,src,trg,syn)}
+								{assert(execute1(EXEC_CMD))}
+}
+							}
+							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS * AMPABIAS)
+							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
 						}
 					}
 				}

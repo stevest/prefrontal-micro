@@ -130,15 +130,15 @@ pv2pc="4"
 pc2pc="4"
 no_mg="0"
 # Pass simulation stop externally in seconds:
-tstop_sec="5"
+tstop_sec="3"
 loccl="1"
 cluster="0"
 #for pc2pc in $(seq 2 2 20); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 8 8); do
+for loccl in $(seq 1 1 ); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
-for cluster in $(seq 0 49); do
+for cluster in $(seq 0 9); do
 #for inhibias  in $(seq 1.1 0.1 1.9); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
@@ -150,7 +150,7 @@ for cluster in $(seq 0 49); do
 		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="LOCCL${loccl}SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
+		jobname="nhLOCCL${loccl}SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
 		jobname="LOCCL${loccl}SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
