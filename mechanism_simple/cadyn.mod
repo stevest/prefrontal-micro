@@ -19,7 +19,7 @@ UNITS {
 
 PARAMETER {
 	depth	= .1	(um)		: depth of shell 
-	taur =  5 (ms)	: rate of calcium removal for stress conditions
+	taur =  50 (ms)	: rate of calcium removal for stress conditions
 	cainf	= 50e-6(mM)	:changed oct2
 	cai		(mM)
 }
@@ -45,7 +45,7 @@ DERIVATIVE state {
 	drive_channel =  - (10000) * ica / (2 * FARADAY * depth)
 	if (drive_channel <= 0.) { drive_channel = 0.  }   : cannot pump inward 
          
-        ca' = drive_channel/18 + (cainf -ca)/taur
+        ca' = drive_channel/18 + (cainf -ca)/taur*7
 	cai = ca
 }
 
