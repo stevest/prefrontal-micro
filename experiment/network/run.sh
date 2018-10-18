@@ -55,7 +55,7 @@ schedule="1"
 nodes="78" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
 cluster="0"
 # 0=Random, 1=Structured
-exp="1"
+exp="0"
 ## Serial number of network (RNG) in MATLAB:
 sn="11"
 ## Ean einai clustered oi synapseeis stous dendrites:
@@ -65,7 +65,7 @@ clustbias="1"
 excitbias="1"
 inhibias="1"
 ## ONly NMDA bias (default is 10)
-nmdabias="6.0"
+nmdabias="2.0"
 ampabias="1.0"
 ## only GABAb
 gababfactor="1"
@@ -133,7 +133,7 @@ no_mg="0"
 tstop_sec="3"
 loccl="1"
 cluster="0"
-for pc2pc in $(seq 1 4); do
+for pc2pc in $(seq 6 2 20); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
 #for loccl in $(seq 1 1); do
