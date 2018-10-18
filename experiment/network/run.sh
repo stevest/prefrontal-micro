@@ -65,7 +65,7 @@ clustbias="1"
 excitbias="1"
 inhibias="1"
 ## ONly NMDA bias (default is 10)
-nmdabias="2.0"
+nmdabias="6.0"
 ampabias="1.0"
 ## only GABAb
 gababfactor="1"
@@ -133,7 +133,7 @@ no_mg="0"
 tstop_sec="3"
 loccl="1"
 cluster="0"
-for pc2pc in $(seq 6 2 20); do
+for pc2pc in $(seq 1 4); do
 #for pv2pc in $(seq 52 52); do
 ##for gababfactor in $(seq 26 34); do
 #for loccl in $(seq 1 1); do

@@ -54,7 +54,7 @@ rl.uniform(0,1)
 objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 objref gabaa[4], gabab[4], ncga[4], ncgb[4]
 
-nmdabias = 2 //TEMP CHANGE! REVERT BACK TO 2!!
+nmdabias = 4 //TEMP CHANGE! REVERT BACK TO 2!!
 ampabias = 1
 excitbias = EXCITB//1
 objref nil
@@ -74,7 +74,7 @@ locations_vect.append(0.65)
 locations_vect.append(0.85)
 
 proc ttx() {
-	forsec PCcell_list {
+	forsec PCsoma_list {
 	for(x) {
 		if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
 		if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
