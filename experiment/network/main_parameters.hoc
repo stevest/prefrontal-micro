@@ -28,7 +28,7 @@ Stim_MaxSyn_apic=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn_basal=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
 //if comming from a calibration script, ignore most of the parameters:
-if (name_declared("CALIB_SCRIPT")!=5){
+if (name_declared("CALIB_SCRIPT")!=0){
 	print "comming from amcalib script"
 	PC2PCsyns = 1//place holder value
 	PV2PCsyns = 1
