@@ -97,27 +97,48 @@ locations_vect.append(0.85)
 
 balance_compartments()
 
+proc sadp_soma() {
+	forsec PCsoma_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0 } 
+		}
+	}
+}
+proc sadp_dend() {
+	forsec PCdend_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0 } 
+		}
+	}
+}
+proc ttx() {
+	forsec PCsoma_list {
+		for(x) {
+			if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+			if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+		}
+	}
+}
 proc calcium_block() {
 	forsec PCcell_list{
 		for(x) {
-		if(ismembrane("can")) for(x) {  gcabar_can(x)= gcabar_can(x)*0 }
-		if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 }			
-		if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
-		if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
-}}}
-proc validateNMDA () {
-	forsec PCsoma_list{
-                for(x) {
-                if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+			if(ismembrane("can")) for(x) {  gcabar_can(x)= gcabar_can(x)*0 }
+			if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 }			
+			if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
+			if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
 		}
 	}
+}
+proc validateNMDA () {
         forsec PCcell_list{
                 for(x) {
-                if(ismembrane("kdr")) for(x) {  gkdrbar_kdr(x)= gkdrbar_kdr(x)*0 }
-                if(ismembrane("IKs")) for(x) {  gKsbar_IKs(x)= gKsbar_IKs(x)*0 }
-                if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*0 }
-                if(ismembrane("kca")) for(x) {  gbar_kca(x)= gbar_kca(x)*0}
-                if(ismembrane("iC"))  for(x) {  gkcbar_iC(x)= gkcbar_iC(x)*0}
+			if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+			if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+			if(ismembrane("kdr")) for(x) {  gkdrbar_kdr(x)= gkdrbar_kdr(x)*0 }
+			if(ismembrane("IKs")) for(x) {  gKsbar_IKs(x)= gKsbar_IKs(x)*0 }
+			if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*0 }
+			if(ismembrane("kca")) for(x) {  gbar_kca(x)= gbar_kca(x)*0}
+			if(ismembrane("iC"))  for(x) {  gkcbar_iC(x)= gkcbar_iC(x)*0}
 		}
 	}
 }
@@ -127,7 +148,9 @@ objref myvclamp
 PCcells.o(0).soma myvclamp = new VClamp(0.5)
 myvclamp.dur[0] = tstop
 calcium_block()
-validateNMDA()
+sadp_soma()
+sadp_dend()
+ttx()
 
 for experiment_conf = 0,0{
 	if(EXPAMPA){
@@ -136,6 +159,7 @@ for experiment_conf = 0,0{
 	}else{
 		myvclamp.amp[0] = 60
 		EXPSTR = "NMDA"
+		validateNMDA()
 	}
 
 	for location = 0, locations_vect.size()-1{

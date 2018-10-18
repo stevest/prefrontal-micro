@@ -4,7 +4,7 @@ simhome="${simhome}/"
 simglia="/home/cluster/stefanos/Documents/Glia"
 simglia="${simglia}/"
 
-nmda_fast="1"
+nmda_fast="0"
 schedule="0"
 for synno in $(seq 5 5); do
 	for expampa in $(seq 0 1); do

@@ -16,268 +16,272 @@ create 	soma,dend[1], axon, apic[2]  //dend[0]=basal, dend[1]=proximal, dend[2]=
 proc init() {
 
 
-//OBJECT: properties of the cell
-//MUST BE INITIALIZED !!!
-ApicNo=0
-DendNo=0
-v_init_pc = -66
-
-create 	soma,dend[1], axon, apic[2]
-
-gCAN=0//0.001
-soma{
-	nseg=3
-	L=75//80
-	diam=10.14  /* L and diam chosen to match surface area and internal*/
-	v = v_init_pc
-		    /*  resistance with a sphere of diam 23 microns */
-	//insert kdyn
-	insert passive
-      	cm = 1.2         /* microF/cm2 */
-	g_passive = 6e-5   /* mho/cm2 */    
-	e_passive = -66
-	Ra = 100         /* ohm-cm */
-
-	insert Naf
-	gnafbar_Naf =  0.108  *1.675
-
-	insert nap
-	gnabar_nap =  1.8e-06 
-
-	insert cal
-	gcalbar_cal =  3e-05
-
-	insert can
-	gcabar_can = 2e-5 
-
-	insert car
-	gcabar_car = 3e-08 *1000
-
-	insert cat
-	gcatbar_cat =  6e-06 
-
-	insert kdr
-	gkdrbar_kdr =  0.0054*4		 // *3 //SSS
-
-	insert IKs
-	gKsbar_IKs = 6e-4 *1.71		*0.5// SSS //2.1
-
-	insert kad
-	gkabar_kad = 7e-4 
+	//OBJECT: properties of the cell
+	//MUST BE INITIALIZED !!!
+	ApicNo=0
+	DendNo=0
+	v_init_pc = -66
+
+	create 	soma,dend[1], axon, apic[2]
+
+	gCAN=0//0.001
+	soma{
+		nseg=3
+		L=75//80
+		diam=10.14  /* L and diam chosen to match surface area and internal*/
+		v = v_init_pc
+			    /*  resistance with a sphere of diam 23 microns */
+		//insert kdyn
+		insert passive
+		cm = 1.2         /* microF/cm2 */
+		g_passive = 6e-5   /* mho/cm2 */    
+		e_passive = -66
+		Ra = 100         /* ohm-cm */
+
+		insert Naf
+		gnafbar_Naf =  0.108  *1.675
+
+		insert nap
+		gnabar_nap =  1.8e-06 
+
+		insert cal
+		gcalbar_cal =  3e-05
+
+		insert can
+		gcabar_can = 2e-5 
+
+		insert car
+		gcabar_car = 3e-08 *1000
+
+		insert cat
+		gcatbar_cat =  6e-06 
+
+		insert kdr
+		gkdrbar_kdr =  0.0054*4		 // *3 //SSS
+
+		insert IKs
+		gKsbar_IKs = 6e-4 *1.71		*0.5// SSS //2.1
+
+		insert kad
+		gkabar_kad = 7e-4 
 
-	insert iC
-	gkcbar_iC = 2.2e-3		// *10 //SSS 
+		insert iC
+		gkcbar_iC = 2.2e-3		// *10 //SSS 
 
-	insert h 
-	gbar_h =   9e-06 *0.8		// *0.1//SSS
-	
-	insert kca
-	gbar_kca = 0.025 *5.6		// *1.02 //SSS 
+		insert h 
+		gbar_h =   9e-06 *0.8		// *0.1//SSS
+		
+		insert kca
+		gbar_kca = 0.025 *5.6		// *1.02 //SSS 
 
-	insert ican
-	gbar_ican=gCAN
+		insert ican
+		gbar_ican=gCAN
 
-	insert cadyn
-}
+		insert cadyn
+	}
 
-//Dendritic_factors
+	//Dendritic_factors
 
-dend[0]{
-	//basal dendrites
-	nseg=DEND_NSEG//9 //changed to 5 segments to accommodate uniformly spreaded synapses
-	L=150
-	diam=1 
-	v = v_init_pc
+	dend[0]{
+		//basal dendrites
+		nseg=DEND_NSEG//9 //changed to 5 segments to accommodate uniformly spreaded synapses
+		L=150
+		diam=1 
+		v = v_init_pc
 
-	insert passive
-      	cm = 2         		/* microF/cm2 */
-	g_passive =1.7e-04     	/* mho/cm2 */    
-	e_passive = -66
-	Ra = 100           	/* ohm-cm */
-
-	insert Naf
-	gnafbar_Naf = 1.8e-3 
-
-	insert nap
-	gnabar_nap = 1.8e-05 
+		insert passive
+		cm = 2         		/* microF/cm2 */
+		g_passive =1.7e-04     	/* mho/cm2 */    
+		e_passive = -66
+		Ra = 100           	/* ohm-cm */
+
+		insert Naf
+		gnafbar_Naf = 1.8e-3 
+
+		insert nap
+		gnabar_nap = 1.8e-05 
 
-        insert can
-	gcabar_can = 6e-05 
-	
-	insert kdr
-	gkdrbar_kdr = 0.0054		//*15//SSS 
+		insert can
+		gcabar_can = 6e-05 
+		
+		insert kdr
+		gkdrbar_kdr = 0.0054		//*15//SSS 
 
-	insert IKs
-	gKsbar_IKs =  0.0006		//*0.1//SSS
-	
-	insert kad
-	gkabar_kad = 0.0007
+		insert IKs
+		gKsbar_IKs =  0.0006		//*0.1//SSS
+		
+		insert kad
+		gkabar_kad = 0.0007
 
-	insert h
-	gbar_h =9e-06		//*0.1//SSS 
+		insert h
+		gbar_h =9e-06		//*0.1//SSS 
 
-	insert ican
-	gbar_ican=gCAN*0.1
+		insert ican
+		gbar_ican=gCAN*0.1
 
-	insert cadyn
-}
+		insert cadyn
+	}
 
-apic[0]{
-//proximal dendrites
-	nseg=15   
-	L=400.0
-        diam=3.4
-	v = v_init_pc
+	apic[0]{
+	//proximal dendrites
+		nseg=15   
+		L=400.0
+		diam=3.4
+		v = v_init_pc
 
-	insert passive
-      	cm = 2//1.2       /* microF/cm2 */
-	g_passive = 8.5e-5*2  /* mho/cm2 */  
-	e_passive = -66
-	Ra = 150          /* ohm-cm */
+		insert passive
+		cm = 2//1.2       /* microF/cm2 */
+		g_passive = 8.5e-5*2  /* mho/cm2 */  
+		e_passive = -66
+		Ra = 150          /* ohm-cm */
 
-	insert Naf
-	gnafbar_Naf =  5e-3
+		insert Naf
+		gnafbar_Naf =  5e-3
 
-	insert nap
-	gnabar_nap =  5.4e-05 
+		insert nap
+		gnabar_nap =  5.4e-05 
 
-	insert cal
-	gcalbar_cal = 1.9e-4  
+		insert cal
+		gcalbar_cal = 1.9e-4  
 
-	insert can
-	gcabar_can =  6e-05   
+		insert can
+		gcabar_can =  6e-05   
 
-	insert car
-	gcabar_car =  9e-08  *1000
+		insert car
+		gcabar_car =  9e-08  *1000
 
-	insert cat
-	gcatbar_cat =   6e-05  
+		insert cat
+		gcatbar_cat =   6e-05  
 
-	insert kdr
-	gkdrbar_kdr = 2.16e-05 
+		insert kdr
+		gkdrbar_kdr = 2.16e-05 
 
-	insert IKs
-	gKsbar_IKs = 0.0012		//*0.01 //SS 
+		insert IKs
+		gKsbar_IKs = 0.0012		//*0.01 //SS 
 
-	insert kad
-	gkabar_kad =  0.0007
+		insert kad
+		gkabar_kad =  0.0007
 
-	insert iC
-	gkcbar_iC =  2.2e-05
+		insert iC
+		gkcbar_iC =  2.2e-05
 
-	insert kca
-	gbar_kca =  0.0025 *1.1
+		insert kca
+		gbar_kca =  0.0025 *1.1
 
-	insert h
-	gbar_h =1.4e-5		
+		insert h
+		gbar_h =1.4e-5		
 
-	insert ican
-	gbar_ican=gCAN*0.1
-
-	insert cadyn
-}
+		insert ican
+		gbar_ican=gCAN*0.1
+
+		insert cadyn
+	}
 
-apic[1]{
-	nseg=15
-	L=400
-	diam=2.6
-	v = v_init_pc
-
-	insert passive
-      	cm = 2//1.2         /* microF/cm2 */
-	g_passive = 8.5e-5*2   /* mho/cm2 */    
-	e_passive = -66
-	Ra = 150           /* ohm-cm */
- 
-	insert Naf	
-	gnafbar_Naf =  3.6e-3
-
-        insert nap
-        gnabar_nap = 1.8e-4  
-
-	insert cal
-	gcalbar_cal = 3.6e-6
-
-	insert can
-	gcabar_can =  0.001  
-
-	insert car
-	gcabar_car = 1.5e-06  *1000
-
-	insert cat
-	gcatbar_cat = 6e-06
-
-	insert kdr	
-	gkdrbar_kdr =  5.4e-06    
-
-	insert IKs	
-	gKsbar_IKs = 0.0012  	//*0.01//SSS 
-
-	insert kad
-	gkabar_kad = 7e-05 
-
-	insert iC	
-	gkcbar_iC =  2.2e-06 
-	
-	insert kca
-	gbar_kca =  0.0025 *1.1*0.01
-
-	insert h
-	gbar_h =9e-05 
-
-	insert ican
-	gbar_ican=gCAN*0.1
-
-	insert cadyn
-}
-	
-axon {
-	nseg=1
-	L=113.22
-	diam=1.1
-	v = v_init_pc
-
-	insert passive
-      	cm = 1.2         /* microF/cm2 */
-	g_passive = 8.5e-5   /* mho/cm2 */    
-	e_passive = -66
-	Ra = 150         /* ohm-cm */
-
-	insert Naf
-	gnafbar_Naf=0.18
-
-	insert kdr
-	gkdrbar_kdr=0.0054
-}
-
-connect dend[0](0), soma(0)
-connect apic[0](0), soma(1)
-connect apic[1](0), apic[0](1)
-connect axon(0), soma(0.5)
-
-cao0_ca_ion = 2 	/* mM */
-cai0_ca_ion = 50e-6  	/* mM */
-ko0_k_ion = 3.82 	/* mM */
-ki0_k_ion = 140   	/* mM */
-celsius   = 34
-
-//proc subsets:
-
-all = new SectionList()
-somatic = new SectionList()
-axonal = new SectionList()
-basal = new SectionList()
-apical = new SectionList()
-
-soma all.append()
-dend[0] all.append()
-for i=0, 1 apic[i] all.append()
-axon all.append()
-
-soma somatic.append()
-axon axonal.append()
-dend[0] basal.append()
-for i=0,1 apic[i] apical.append()
+	apic[1]{
+		nseg=15
+		L=400
+		diam=2.6
+		v = v_init_pc
+
+		insert passive
+		cm = 2//1.2         /* microF/cm2 */
+		g_passive = 8.5e-5*2   /* mho/cm2 */    
+		e_passive = -66
+		Ra = 150           /* ohm-cm */
+	 
+		insert Naf	
+		gnafbar_Naf =  3.6e-3
+
+		insert nap
+		gnabar_nap = 1.8e-4  
+
+		insert cal
+		gcalbar_cal = 3.6e-6
+
+		insert can
+		gcabar_can =  0.001  
+
+		insert car
+		gcabar_car = 1.5e-06  *1000
+
+		insert cat
+		gcatbar_cat = 6e-06
+
+		insert kdr	
+		gkdrbar_kdr =  5.4e-06    
+
+		insert IKs	
+		gKsbar_IKs = 0.0012  	//*0.01//SSS 
+
+		insert kad
+		gkabar_kad = 7e-05 
+
+		insert iC	
+		gkcbar_iC =  2.2e-06 
+		
+		insert kca
+		gbar_kca =  0.0025 *1.1*0.01
+
+		insert h
+		gbar_h =9e-05 
+
+		insert ican
+		gbar_ican=gCAN*0.1
+
+		insert cadyn
+	}
+		
+	axon {
+		nseg=1
+		L=113.22
+		diam=1.1
+		v = v_init_pc
+
+		insert passive
+		cm = 1.2         /* microF/cm2 */
+		g_passive = 8.5e-5   /* mho/cm2 */    
+		e_passive = -66
+		Ra = 150         /* ohm-cm */
+
+		insert Naf
+		gnafbar_Naf=0.18
+
+		insert kdr
+		gkdrbar_kdr=0.0054
+	}
+
+	connect dend[0](0), soma(0)
+	connect apic[0](0), soma(1)
+	connect apic[1](0), apic[0](1)
+	connect axon(0), soma(0.5)
+
+	cao0_ca_ion = 2 	/* mM */
+	cai0_ca_ion = 50e-6  	/* mM */
+	ko0_k_ion = 3.82 	/* mM */
+	ki0_k_ion = 140   	/* mM */
+	celsius   = 34
+
+	//proc subsets:
+
+	all = new SectionList()
+	somatic = new SectionList()
+	axonal = new SectionList()
+	basal = new SectionList()
+	apical = new SectionList()
+
+	soma { all.append() }
+	dend[0] { all.append() }
+	for i=0, 1 {
+		apic[i] { all.append() }
+	}
+	axon { all.append() }
+
+	soma { somatic.append() }
+	axon {  axonal.append() }
+	dend[0] {  basal.append() }
+	for i=0,1 {
+		apic[i] { apical.append() }
+	}
 
 } //End proc init()
 
@@ -321,7 +325,7 @@ createPyrs()
 
 
 //Create a list with segments for all neurons
-objref PCsoma_list, PCbasal_list, PCapical_list, PCdend_list, PCcell_list, cell0_list
+objref PCsoma_list, PCbasal_list, PCapical_list, PCdend_list, PCcell_list
 objref proxi_list[nPCcells], dist_list[nPCcells]
 
 PCsoma_list = new SectionList()
@@ -329,19 +333,15 @@ PCbasal_list = new SectionList()
 PCapical_list = new SectionList()
 PCdend_list = new SectionList()
 PCcell_list = new SectionList()
-cell0_list=new SectionList()
 
 for i=0, PCcells.count()-1 {
 
-	PCcells.o(i).soma PCsoma_list.append()
+	PCcells.o(i).soma { PCsoma_list.append() }
 	PCcells.o(i).DendNo=1
-	PCcells.o(i).basal
-	PCbasal_list.append()  
-	PCdend_list.append()
+	PCcells.o(i).basal { PCbasal_list.append()  }
+	PCcells.o(i).basal { PCdend_list.append() }
 
 	PCcells.o(i).ApicNo=0
-	PCcells.o(i).apical
-
 	forsec PCcells.o(i).apical {
 		PCapical_list.append()  
 		PCdend_list.append()
@@ -349,17 +349,6 @@ for i=0, PCcells.count()-1 {
 	}
 	forsec PCcells.o(i).all {
 		PCcell_list.append()
-	}
-	
-	proxi_list[i] = new SectionList()
-	dist_list[i] = new SectionList()
-	ctr = 1
-	forsec PCcells.o(i).apical {
-		if(ctr<=1) {proxi_list[i].append()
-		} else {
-		dist_list[i].append()
-		}
-		ctr = ctr+1
 	}
 }
 
