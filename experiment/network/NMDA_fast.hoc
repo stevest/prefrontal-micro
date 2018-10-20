@@ -54,7 +54,7 @@ rl.uniform(0,1)
 objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 objref gabaa[4], gabab[4], ncga[4], ncgb[4]
 
-nmdabias = 2 //TEMP CHANGE! REVERT BACK TO 2!!
+nmdabias = 10 //TEMP CHANGE! REVERT BACK TO 2!!
 ampabias = 1
 excitbias = EXCITB//1
 objref nil
