@@ -124,7 +124,7 @@ clpid="0.45"
 stimfreq="60"
 stimnoise="0.5"
 inhibias="1"
-excitbias="9"
+excitbias="15"
 gababfactor="15"
 pv2pc="4"
 pc2pc="1"
@@ -140,7 +140,7 @@ cluster="0"
 for loccl in $(seq 1 1); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
 #for cluster in $(seq 0 19); do
-for inhibias  in $(seq 2 0.5 5); do
+for inhibias  in $(seq 3 0.5 7); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
