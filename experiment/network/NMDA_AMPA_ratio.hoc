@@ -77,7 +77,7 @@ rl = new Random()
 rl.uniform(0,1)
 
 
-nmdabias = 2 //TEMP CHANGE! REVERT BACK TO 2!!
+nmdabias = 3 //TEMP CHANGE! REVERT BACK TO 2!!
 ampabias = 1//1
 
 

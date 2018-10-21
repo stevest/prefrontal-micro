@@ -54,13 +54,13 @@ rl.uniform(0,1)
 objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 objref gabaa[4], gabab[4], ncga[4], ncgb[4]
 
-nmdabias = 10 //TEMP CHANGE! REVERT BACK TO 2!!
+nmdabias = 4 //TEMP CHANGE! REVERT BACK TO 2!!
 ampabias = 1
 excitbias = EXCITB//1
 objref nil
 
 NS=new NetStim()
-NS.interval=10//ISI//isir.repick()
+NS.interval=20//ISI//isir.repick()
 NS.number=2//20
 NS.start=100
 NS.noise=NSnoise
@@ -106,6 +106,7 @@ for location = 0, locations_vect.size()-1{
 			}
 			for syn=0,synapses-1{
 				print " Placing synapse : ",syn, " in loc ",PID
+
 				if (FAST){
 					PCcells.o(0).dend[0] nmdapr[syn] = new nmda_fast(PID)
 				}else{	
@@ -132,8 +133,10 @@ for location = 0, locations_vect.size()-1{
 			PCdv = new Vector(n,0)
 			PCdv.record(&PCcells.o(0).dend[0].v(PID)) 
 
+/*
 			PCinmda = new Vector(n,0)
 			PCinmda.record(&nmdapr[0].inmda) 
+*/
 
 			if (HAVEAMPA) {
 				PCiampa = new Vector(n,0)
@@ -143,7 +146,7 @@ for location = 0, locations_vect.size()-1{
 			run()
 print "RUN FINISHED"
 			vsoma = new File()		
-			sprint(STRING,"DATA/NMDA_fast/vsoma_%s_%s_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,synapses,location,excitbias)
+			sprint(STRING,"DATA/NMDA_fast/vsoma_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCv.size()-1 {
@@ -152,14 +155,14 @@ print "RUN FINISHED"
 			vsoma.close()
 
 			vsoma = new File()		
-			sprint(STRING,"DATA/NMDA_fast/vdend_%s_%s_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,synapses,location,excitbias)
+			sprint(STRING,"DATA/NMDA_fast/vdend_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCdv.size()-1 {
 				vsoma.printf ("%f\n",PCdv.x[j])
 			}
 			vsoma.close()
-
+/*
 			vsoma = new File()		
 			sprint(STRING,"DATA/NMDA_fast/inmda_%s_%s_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,synapses,location,excitbias)
 			print STRING
@@ -179,7 +182,7 @@ print "RUN FINISHED"
 				}
 				vsoma.close()
 			}
-
+*/
 
 print "Vsoma saved"
 

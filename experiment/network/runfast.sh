@@ -7,7 +7,7 @@ simglia="${simglia}/"
 schedule="0"
 
 for excitb in $(seq 1 1); do
-for nsyn in $(seq 5 20 400); do
+for nsyn in $(seq 5 5 70); do
 	
 	if [ "$schedule" == "1" ]; then
 	jobname="NMDA_fast_nsyn${nsyn}_excitb$(printf '%.3f' $excitb)_"
