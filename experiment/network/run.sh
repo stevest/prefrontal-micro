@@ -57,7 +57,7 @@ cluster="0"
 # 0=Random, 1=Structured
 exp="1"
 ## Serial number of network (RNG) in MATLAB:
-sn="20"
+sn="11"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
@@ -65,8 +65,8 @@ clustbias="1"
 excitbias="1"
 inhibias="1"
 ## ONly NMDA bias (default is 10)
-nmdabias="4.0"
-ampabias="1.0"
+nmdabias="0.0"
+ampabias="2.0"
 ## only GABAb
 gababfactor="1"
 ## Gia to Background bias (alla to exw sbhsei)
@@ -137,10 +137,10 @@ cluster="0"
 #for pv2pc in $(seq 52 52); do
 #for excitbias in $(seq 1 8); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 1 10); do
+for loccl in $(seq 1 1); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
-for cluster in $(seq 0 19); do
-#for inhibias  in $(seq 3 0.5 9); do
+#for cluster in $(seq 0 19); do
+for inhibias  in $(seq 1 0.5 9); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then

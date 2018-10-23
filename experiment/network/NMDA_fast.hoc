@@ -55,7 +55,7 @@ objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 objref gabaa[4], gabab[4], ncga[4], ncgb[4]
 
 nmdabias = 4 //TEMP CHANGE! REVERT BACK TO 2!!
-ampabias = 1
+ampabias = 2
 excitbias = EXCITB//1
 objref nil
 
@@ -107,6 +107,7 @@ for location = 0, locations_vect.size()-1{
 			for syn=0,synapses-1{
 				print " Placing synapse : ",syn, " in loc ",PID
 
+/*
 				if (FAST){
 					PCcells.o(0).dend[0] nmdapr[syn] = new nmda_fast(PID)
 				}else{	
@@ -115,6 +116,7 @@ for location = 0, locations_vect.size()-1{
 				nc2[syn]=new NetCon(NS, nmdapr[syn])
 				nc2[syn].delay=1
 				nc2[syn].weight= 0.25 * 0.5 * excitbias * nmdabias //4.2 
+*/
 
 				if (HAVEAMPA) {
 					PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
