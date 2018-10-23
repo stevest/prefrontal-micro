@@ -130,7 +130,7 @@ pv2pc="4"
 pc2pc="1"
 no_mg="0"
 # Pass simulation stop externally in seconds:
-tstop_sec="3"
+tstop_sec="5"
 loccl="1"
 cluster="0"
 #for pc2pc in $(seq 6 2 20); do
