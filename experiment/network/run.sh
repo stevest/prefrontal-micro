@@ -135,12 +135,12 @@ loccl="1"
 cluster="0"
 #for pc2pc in $(seq 6 2 20); do
 #for pv2pc in $(seq 52 52); do
-#for excitbias in $(seq 1 8); do
+for excitbias in $(seq 10 1 20); do
 ##for gababfactor in $(seq 26 34); do
 for loccl in $(seq 1 1); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
 #for cluster in $(seq 0 19); do
-for inhibias  in $(seq 1 0.5 9); do
+#for inhibias  in $(seq 1 0.5 9); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
