@@ -283,7 +283,7 @@ if(1){
 
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{noise(%d)}",RUN)}
+	{sprint(EXEC_CMD,"{noise(%d)}",CLUSTER_ID)}
 	{assert(execute1(EXEC_CMD))}
 	//noise(RUN)
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
