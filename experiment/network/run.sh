@@ -57,7 +57,7 @@ cluster="0"
 # 0=Random, 1=Structured
 exp="1"
 ## Serial number of network (RNG) in MATLAB:
-sn="20"
+sn="11"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
@@ -65,8 +65,8 @@ clustbias="1"
 excitbias="1"
 inhibias="1"
 ## ONly NMDA bias (default is 10)
-nmdabias="4.0"
-ampabias="1.0"
+nmdabias="0.0"
+ampabias="2.0"
 ## only GABAb
 gababfactor="1"
 ## Gia to Background bias (alla to exw sbhsei)
@@ -123,8 +123,8 @@ locpid="7"
 clpid="0.45"
 stimfreq="60"
 stimnoise="0.5"
-inhibias="3"
-excitbias="9"
+inhibias="1"
+excitbias="83"
 gababfactor="15"
 pv2pc="4"
 pc2pc="1"
