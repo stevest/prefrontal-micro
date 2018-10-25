@@ -82,7 +82,7 @@ if(1){assert(execute1(EXEC_CMD))}
 if(1){pprint("Load Network Parameters.")}
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g_rndI50.hoc\")}",PATH,SN,FS,CL)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g_stim5.hoc\")}",PATH,SN,FS,CL)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint(EXEC_CMD)}

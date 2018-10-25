@@ -57,7 +57,7 @@ cluster="0"
 # 0=Random, 1=Structured
 exp="1"
 ## Serial number of network (RNG) in MATLAB:
-sn="31"
+sn="20"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
@@ -123,7 +123,7 @@ locpid="7"
 clpid="0.45"
 stimfreq="60"
 stimnoise="0.5"
-inhibias="2.5"
+inhibias="3"
 excitbias="9"
 gababfactor="15"
 pv2pc="4"
@@ -151,7 +151,7 @@ for cluster in $(seq 0 19); do
 		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
 		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="LC${loccl}_SN${stimnoise}_pc2pc${pc2pc}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
+		jobname="stim5LC${loccl}_SN${stimnoise}_pc2pc${pc2pc}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
 	else
 		exp_str="R"
 		jobname="LOCCL${loccl}SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
