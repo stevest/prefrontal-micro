@@ -123,7 +123,7 @@ locpid="7"
 clpid="0.45"
 stimfreq="60"
 stimnoise="0.5"
-inhibias="6"
+inhibias="4"
 excitbias="9"
 gababfactor="15"
 pv2pc="4"
@@ -137,7 +137,7 @@ cluster="0"
 #for pv2pc in $(seq 52 52); do
 #for excitbias in $(seq 82 2 88); do
 ##for gababfactor in $(seq 26 34); do
-for loccl in $(seq 1 5); do
+for loccl in $(seq 6 10); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
 for cluster in $(seq 0 19); do
 #for inhibias  in $(seq 4.5 0.5 8); do
