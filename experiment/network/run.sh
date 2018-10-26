@@ -140,7 +140,7 @@ cluster="0"
 for loccl in $(seq 1 1); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
 #for cluster in $(seq 0 19); do
-for inhibias  in $(seq 1 0.5 4); do
+for inhibias  in $(seq 4.5 0.5 8); do
 ##for erf in "${erf_array[@]}"; do
 #	cluster="${run}"
 	if [ "$exp" == "1" ]; then
