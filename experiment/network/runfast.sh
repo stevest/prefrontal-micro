@@ -31,7 +31,7 @@ for nsyn in $(seq 5 10 400); do
 	../../mechanism_simple/x86_64/special -nobanner \
 	-c "NSYN=$nsyn"  \
 	-c "EXCITB=$excitb"  \
-	-c "FAST=0" \
+	-c "FAST=1" \
 	-c "HAVEAMPA=1" \
 	NMDA_fast.hoc
 	fi	

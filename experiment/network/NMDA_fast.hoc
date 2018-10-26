@@ -107,16 +107,16 @@ for location = 0, locations_vect.size()-1{
 			for syn=0,synapses-1{
 				print " Placing synapse : ",syn, " in loc ",PID
 
-/*
+
 				if (FAST){
-					PCcells.o(0).dend[0] nmdapr[syn] = new nmda_fast(PID)
+					PCcells.o(0).dend[0] nmdapr[syn] = new nmda_nojump(PID)
 				}else{	
 					PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
 				}
 				nc2[syn]=new NetCon(NS, nmdapr[syn])
 				nc2[syn].delay=1
 				nc2[syn].weight= 0.25 * 0.5 * excitbias * nmdabias //4.2 
-*/
+
 
 				if (HAVEAMPA) {
 					PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
@@ -148,7 +148,7 @@ for location = 0, locations_vect.size()-1{
 			run()
 print "RUN FINISHED"
 			vsoma = new File()		
-			sprint(STRING,"DATA/NMDA_fast/vsoma_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
+			sprint(STRING,"DATA/NMDA_noMg/vsoma_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCv.size()-1 {
@@ -157,7 +157,7 @@ print "RUN FINISHED"
 			vsoma.close()
 
 			vsoma = new File()		
-			sprint(STRING,"DATA/NMDA_fast/vdend_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
+			sprint(STRING,"DATA/NMDA_noMg/vdend_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCdv.size()-1 {
