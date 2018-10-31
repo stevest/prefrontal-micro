@@ -19,7 +19,7 @@ UNITS {
 
 PARAMETER {
 	depth	= .1	(um)		: depth of shell 
-	taur =  200 (ms)	: rate of calcium removal for stress conditions
+	taur =  50 (ms)	: rate of calcium removal for stress conditions
 	cainf	= 50e-6(mM)	:changed oct2
 	cai		(mM)
 }
