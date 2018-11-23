@@ -1,4 +1,7 @@
-#!/usr/bin/sh ##Make sure that before each run git repo is clean, so ##one can track each run to its source code: ## ANSI escape codes:
+#!/bin/bash
+##Make sure that before each run git repo is clean, so 
+##one can track each run to its source code:
+## ANSI escape codes:
 ERR='\033[0;31m'
 WARN='\033[0;33m'
 INFO='\033[0;32m'
@@ -41,23 +44,20 @@ simhome=`pwd`
 simhome="${simhome}/"
 simglia="/home/cluster/stefanos/Documents/Glia"
 simglia="${simglia}/"
-## Define neuron repo. This is the git repo inside ~/Libraries.
-nrn_repository="nrn"
 echo "Currently at directory:"
 echo $simhome
 echo `pwd`
-echo "Using NEURON from repository: ${nrn_repository}."
 
 parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="24" ##52##jobname="STR_N100_S6_STC0" jobstdout=""
+nodes="12" ##52##jobname="STR_N100_S6_STC0" 
 cluster="0"
 # 0=Random, 1=Structured
 exp="1"
 ## Serial number of network (RNG) in MATLAB:
-sn="11"
+sn="1"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
@@ -65,7 +65,7 @@ clustbias="1"
 excitbias="1"
 inhibias="1"
 ## ONly NMDA bias (default is 10)
-nmdabias="4.0"
+nmdabias="2.0"
 ampabias="1.0"
 ## only GABAb
 gababfactor="1"
@@ -101,19 +101,11 @@ custom_jobs=(41 42)
 erf_array=(0.0 0.1 0.3 0.5 0.7 0.9)
 #naming convention in ten characters:
 
-mechanisms="mechanism_simple"
 
-if [ "$parallel" == "1" ]; then
+#==============================================================================
+#==============================================================================
+# RUN PARAMETERS:
 
-jobstdout="$jobstdout\\\n========================================================================================"
-jobstdout="$jobstdout\\\nNEURON MPIRUN starting at $(date)"
-jobstdout="$jobstdout\\\n========================================================================================"
-jobstdout="$jobstdout\\\nJOB NAME IS: $jobname"
-jobstdout="$jobstdout\\\n========================================================================================"
-
-
-##for run in $(seq $startRun $endRun); do
-#for run in "${custom_jobs[@]}"
 run="0"
 #Move inhibitory synapses at different dendritic locations to check for more states:
 ipid="0.05"
@@ -123,149 +115,148 @@ locpid="7"
 clpid="0.45"
 stimfreq="60"
 stimnoise="0.5"
-inhibias="15"
-excitbias="36"
-gababfactor="8"
+inhibias="3"
+excitbias="1"
+gababfactor="15"
 pv2pc="4"
-pc2pc="1"
+pc2pc="10"
 no_mg="0"
 # Pass simulation stop externally in seconds:
-tstop_sec="3"
+tstop_sec="0.01"
 loccl="1"
 cluster="0"
-#for pc2pc in $(seq 6 2 20); do
-#for pv2pc in $(seq 52 52); do
-#for excitbias in $(seq 82 2 88); do
+if [ "$exp" == "1" ]; then
+	exp_str="S"
+else
+	exp_str="R"
+fi
+
+jobname="NEW_LC${loccl}_SN${stimnoise}_pc2pc${pc2pc}_pv2pc${pv2pc}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
+
+uniquejobname="${jobname}${run}"
+outputFile=$uniquejobname.out
+outputDir="${simglia}${uniquejobname}"
+echo "Output Job directory is:"
+echo $outputDir
+if [ -d $outputDir ]; then
+	echo "${WARN}Job directory already exists. Possible data overwrite.${NOC}"
+else
+	mkdir -p $outputDir;
+fi
+
+
+
+jobstdout=""
+jobstdout="${jobstdout}\\\n========================================================================================"
+jobstdout="${jobstdout}\\\nNEURON SIMULATION starting at $(date)"
+jobstdout="${jobstdout}\\\n========================================================================================"
+jobstdout="${jobstdout}\\\nJOB NAME IS: ${jobname}"
+jobstdout="${jobstdout}\\\n========================================================================================"
+
+# Group all run parameters in one variable to use across running scenarios:
+run_variables=( 
+"execute1(\"strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA\")" 
+"execute1(\"SN = \\\"$sn\\\"\")" 
+"execute1(\"GITSHA1 = \\\"$gitsha1\\\"\")" 
+"execute1(\"JOBNAME = \\\"$uniquejobname\\\"\")" 
+"execute1(\"JOBDIR = \\\"$outputDir\\\"\")" 
+"execute1(\"SIMHOME = \\\"$simhome\\\"\")" 
+"execute1(\"SIMGLIA = \\\"$simglia\\\"\")" 
+"RUN=$run" 
+"PARALLEL=$parallel" 
+"TSTOP_SEC=$tstop_sec" 
+"CLUSTER_ID=$cluster" 
+"EXPERIMENT=$exp" 
+"CLUSTBIAS=$clustbias" 
+"EXCITBIAS=$excitbias" 
+"INHIBIAS=$inhibias" 
+"NMDABIAS=$nmdabias" 
+"AMPABIAS=$ampabias" 
+"ST=$stimmagnitude" 
+"SF=$stimfreq" 
+"STIMNOISE=$stimnoise" 
+"FS=$Fs" 
+"CL=$Cl" 
+"LOCCL=$loccl" 
+"BGE=$BGe" 
+"BGI=$BGi" 
+"ERF=$erf" 
+"ERS=$ers" 
+"IPID=$ipid" 
+"CLPID=$clpid" 
+"LOCPID=$locpid" 
+"NMDATAU=$nmdatau" 
+"NMDA_FLAG=$nmdaflag" 
+"DEND_NSEG=$dendnseg" 
+"PV2PCsyns=$pv2pc" 
+"PC2PCsyns=$pc2pc"
+"GABABFACTOR=$gababfactor" 
+"VARPID=$VARPID" 
+"NO_MG=$no_mg" 
+)
+
+# Interleave variables with NEURON -c flag:
+wrapped_vars=()
+for E in "${run_variables[@]}"; do
+    wrapped_vars+=("-c")
+    wrapped_vars+=("${E}")
+done
+
+# Parenthesis need escaping in SGE version:
+wrapped_vars_sge=()
+for E in "${run_variables[@]}"; do
+    wrapped_vars_sge+=("-c")
+    wrapped_vars_sge+=("'${E}'")
+done
+
+
 ##for gababfactor in $(seq 26 34); do
 for loccl in $(seq 1 1); do
 #for stimnoise in $(seq 0.1 0.1 0.5); do
-#for cluster in $(seq 0 10); do
-for inhibias  in $(seq 21 30); do
-##for erf in "${erf_array[@]}"; do
-#	cluster="${run}"
-	if [ "$exp" == "1" ]; then
-		exp_str="S"
-		#jobname="distally_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_BGE${BGe}_BGI${BGi}_GBF$(printf '%.3f' $gababfactor)_Fs$(printf '%.3f' $Fs)_Cl${Cl}_NDS${dendnseg}_NMDAFLAG$(printf '%.3f' $nmdaflag)_CLB$(printf '%.3f' $clustbias)_Ss4c${cluster}_SN${sn}_r"
-		# ran after army
-		#jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		#jobname="NFAi_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		#jobname="ERS${ers}_FiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		#jobname="test_SF${stimfreq}_IPID${ipid}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		jobname="halfCaLC${loccl}_SN${stimnoise}_pc2pc${pc2pc}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
-	else
-		exp_str="R"
-		jobname="LOCCL${loccl}SF${stimfreq}SN${stimnoise}_pc2pc${pc2pc}ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s${tstop_sec}c${cluster}_SN${sn}_r"
-		#jobname="NFiSF${stimfreq}_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Ab$(printf '%.3f' $ampabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		#jobname="ctrI50_ERF$(printf '%.1f' $erf)_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_${exp_str}s7c${cluster}_SN${sn}_r"
-		#jobname="F_ctrI50_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_ST${stimmagnitude}_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_Rs7c${cluster}_SN${sn}_r"
-	fi
-	uniquejobname="${jobname}${run}"
-	outputFile=$uniquejobname.out
-	outputDir="${simglia}${uniquejobname}"
-	echo "Output Job directory is:"
-	echo $outputDir
-	if [ -d $outputDir ]; then
-		echo "${WARN}Job directory already exists. Stopping before overriding data.${NOC}"
-		#exit 1
-	else
-		mkdir -p $outputDir;
-	fi
-	## Submit as Job in Sun Grid Engine:
-	if [ "$schedule" == "1" ]; then
-	echo -e "${INFO}SCHEDULER VERSION IS COMMENCING ${NOC}"
-	qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
-	-c "RUN=$run" \
-	-c "execute1\(\\\"'strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA'\\\"\)" \
-	-c "execute1\(\\\"'SN = \\\"$sn\\\"'\\\"\)" \
-	-c "execute1\(\\\"'SNd = $sn'\\\"\)" \
-	-c "execute1\(\\\"'GITSHA1 = \\\"$gitsha1\\\"'\\\"\)" \
-	-c "execute1\(\\\"'JOBNAME = \\\"$uniquejobname\\\"'\\\"\)" \
-	-c "execute1\(\\\"'JOBDIR = \\\"$outputDir\\\"'\\\"\)" \
-	-c "execute1\(\\\"'SIMHOME = \\\"$simhome\\\"'\\\"\)" \
-	-c "execute1\(\\\"'SIMGLIA = \\\"$simglia\\\"'\\\"\)" \
-	-c "PARALLEL=$parallel" \
-	-c "TSTOP_SEC=$tstop_sec" \
-	-c "CLUSTER_ID=$cluster" \
-	-c "EXPERIMENT=$exp" \
-	-c "CLUSTBIAS=$clustbias" \
-	-c "EXCITBIAS=$excitbias" \
-	-c "INHIBIAS=$inhibias" \
-	-c "NMDABIAS=$nmdabias" \
-	-c "AMPABIAS=$ampabias" \
-	-c "ST=$stimmagnitude" \
-	-c "SF=$stimfreq" \
-	-c "STIMNOISE=$stimnoise" \
-	-c "FS=$Fs" \
-	-c "CL=$Cl" \
-	-c "LOCCL=$loccl" \
-	-c "BGE=$BGe" \
-	-c "BGI=$BGi" \
-	-c "ERF=$erf" \
-	-c "ERS=$ers" \
-	-c "IPID=$ipid" \
-	-c "CLPID=$clpid" \
-	-c "LOCPID=$locpid" \
-	-c "NMDATAU=$nmdatau" \
-	-c "NMDA_FLAG=$nmdaflag" \
-	-c "DEND_NSEG=$dendnseg" \
-	-c "PV2PCsyns=$pv2pc" \
-	-c "PC2PCsyns=$pc2pc" \
-	-c "GABABFACTOR=$gababfactor" \
-	-c "VARPID=$VARPID" \
-	-c "NO_MG=$no_mg" \
-	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+for cluster in $(seq 0 0); do
 
-	else
-## Run local mpi without scheduler:
-	echo -e "${INFO}NO SCHEDULED MPI VERSION IS COMMENCING${NOC}"
-PATH=/home/stefanos/Libraries/${nrn_repository}/x86_64/bin:$PATH
-LD_LIBRARY_PATH=/home/stefanos/Libraries/${nrn_repository}/x86_64/lib:$LD_LIBRARY_PATH
-export PATH
-export LD_LIBRARY_PATH
-echo "NEURON executable in PATH before mpirun is: "
-echo `which nrniv`
+#==============================================================================
+#==============================================================================
+## EXECUTE SIMULATION:
+if [ "$parallel" == "1" ]; then
+		## Submit as Job in Sun Grid Engine:
+		if [ "$schedule" == "1" ]; then
+			echo -e "${INFO}SCHEDULED MPI VERSION IS COMMENCING ${NOC}"
+			#qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
+			#$run_variables \
+			#/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
+			qsub -b y -S /bin/bash -V -N ${uniquejobname} -o ${outputDir}/${outputFile} -j y -pe orte 24-${nodes} -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/myspecial -nobanner -mpi "${wrapped_vars_sge[@]}" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc
 
-/opt/openmpi/bin/mpirun -np 1 \
-	-x PATH \
-	-x LD_LIBRARY_PATH \
-	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
-	-c "RUN=$run" \
-	-c 'execute1("strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA")' \
-	-c 'execute1("SN = \"'$sn'\"")' \
-	-c 'execute1("SNd = '$sn'")' \
-	-c 'execute1("GITSHA1 = \"'$gitsha1'\"")' \
-	-c 'execute1("JOBNAME = \"'$uniquejobname'\"")' \
-	-c 'execute1("JOBDIR = \"'$outputDir'\"")' \
-	-c 'execute1("SIMHOME = \"'$simhome'\"")' \
-	-c 'execute1("SIMGLIA = \"'$simglia'\"")' \
-	-c "PARALLEL=$parallel" \
-	-c "CLUSTER_ID=$cluster" \
-	-c "EXPERIMENT=$exp" \
-	-c "CLUSTBIAS=$clustbias" \
-	-c "EXCITBIAS=$excitbias" \
-	-c "INHIBIAS=$inhibias" \
-	-c "NMDABIAS=$nmdabias" \
-	-c "ST=$stimmagnitude" \
-	-c "FS=$Fs" \
-	-c "CL=$Cl" \
-	-c "BGE=$BGe" \
-	-c "BGI=$BGi" \
-	-c "NMDA_FLAG=$nmdaflag" \
-	-c "DEND_NSEG=$dendnseg" \
-	-c "GABABFACTOR=$gababfactor" \
-	-c "VARPID=$VARPID" \
-	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc
-	fi
-	
-done
-done
-##done
-##done
- 
+		else
+			## Run local mpi without scheduler:
+			echo -e "${INFO}NO SCHEDULED MPI VERSION IS COMMENCING${NOC}"
+			# Are those necessary?
+			#PATH=/home/stefanos/Libraries/${nrn_repository}/x86_64/bin:$PATH
+			#LD_LIBRARY_PATH=/home/stefanos/Libraries/${nrn_repository}/x86_64/lib:$LD_LIBRARY_PATH
+			#export PATH
+			#export LD_LIBRARY_PATH
+			#echo "NEURON executable in PATH before mpirun is: "
+			#echo `which nrniv`
+
+			/opt/openmpi/bin/mpirun -np ${nodes} -x PATH -x LD_LIBRARY_PATH /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/myspecial -nobanner -mpi "${wrapped_vars[@]}" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc
+		fi
+		
 else
-
+	# If not $parallel
 	echo -e "${INFO}NO MPI VERSION IS COMMENCING${NOC}"
-nohup ../../$mechanisms/myspecial -nobanner -c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" final.hoc | tee nohup.out &
+	#-c "PARALLEL=$parallel" -c "SIMPLIFIED=$simplified" -c "CLUSTER_ID=$cluster" -c "EXPERIMENT=$exp" -c "ST=$state" -c "ID=$id" -c "SN=$sn" -c "VCLAMP=$vclamp" -c "ISBINARY=$binary" -c "CLUSTBIAS=$clustbias" 
+	#cmd="nohup ../../${mechanisms}/myspecial -nobanner ${run_variables} final.hoc | tee nohup.out &"
+	#echo "${run_variables[@]/#/-c }" -
 
+	#/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/myspecial ${nrn_repository} -nobanner -mpi ${wrapped_vars[@]} /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc
+	/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/myspecial "${wrapped_vars[@]}" test.hoc -
 fi
+
+
+done
+done
+
+#==============================================================================
+#==============================================================================
+# SCRIPT END
 echo Run script reached end.

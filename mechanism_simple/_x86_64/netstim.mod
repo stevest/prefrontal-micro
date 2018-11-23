@@ -1,1 +1,0 @@
-../netstim.mod

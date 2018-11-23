@@ -1,1 +1,0 @@
-../NMDA_syn.mod
