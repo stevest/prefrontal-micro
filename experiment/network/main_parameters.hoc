@@ -5,7 +5,6 @@ SHUFFLE_SYNAPSES = 0
 save_synaptic_locations = 1 
 save_pvsynaptic_locations = 1 
 save_stimulation_locations = 0 
-save_background_locations = 0 
 save_synaptic_delays = 1 
 save_pvsynaptic_delays = 1
 save_inmda = 0 
@@ -14,6 +13,8 @@ save_dend_voltage = 0 // WARNING MEM ISSUES WITH MULTIPLE DEND_NSEG!!!!
 save_bg_iampa = 0 
 // Experimental setup
 //tstop=10 //defined externaly
+stim_start = 500
+stim_stop = 1500
 steps_per_ms=10
 dt=1/steps_per_ms
 n=int(tstop/dt)
@@ -36,12 +37,12 @@ if (name_declared("CALIB_SCRIPT")!=0){
 	BGI = 1
 	ST = 1
 	GABABFACTOR = 1
-	EXPERIMENT = 1
+	//EXPERIMENT = 1
 	CLUSTBIAS = 1
 	EXCITBIAS = 1
 	INHIBIAS = 1
 }
-PC2PC_MaxSyn = PC2PCsyns*5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
+PC2PC_MaxSyn = PC2PCsyns//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
 PC_MaxAutosyn=1//XENIA //1	//autosynapses (one third, Lubke, 1996)
 PV2PV_MaxSyn=12//NASSI	//IN-IN connections
 PC2PV_MaxSyn=2//XENIA//2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
@@ -63,10 +64,11 @@ nmdaweight_stimulus = 0.22  *5
 ampaweightpr=	0.00024			//Initial stimulus
 nmdaweightpr=	0.22			//Initial stimulus
 ampaweight=	0.00019		//According to Wang(2008)
-gabaweight=	0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
-gabaweightb=1.05e-4
-ampaweightin=	7.5e-4 * 1//according to Wang,Gao,2009
-nmdaweightin=	3.2e-4 * 1//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+//Begin from g=1nS and scale it down on soma/dendrites when doing the connectivity.
+//gabaweight=0.001//3.6223e-04 // change gmax as computed from Kawaguchi 2015, eLife, of the average g in soma for max IPSC pair CS55.   0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
+//gabaweightb=0.001// old value 1.05e-4
+ampaweightin=	7.5e-4 * 0.28//according to Wang,Gao,2009
+nmdaweightin=	3.2e-4 * 0.28//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 autogabaweight=	0.006205				//According to Bacci (2003) 
 PC2PV_MaxSyn = 4 //7is the June working
 //So apparently I have calibrated the PV2PC synapses. I will change it for now but should return to validate it! SSS
@@ -99,8 +101,9 @@ gababweights.x[3]=4.65e-4		//0.8
 */
 //gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
-gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-gabaweight_pv2pc_b = gabaweightb   *GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+//This is a 1uS max g, that is converted to nS (per soma/dend) in network.hoc
+gabaweight_pv2pc_a = 1    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = 1 * GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
 /*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
 nmdaweights.x[1]=0.35		//1.5

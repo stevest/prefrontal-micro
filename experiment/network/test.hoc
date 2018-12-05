@@ -1,5 +1,10 @@
 //objref blah[10]
-strdef s
-s = "objref blah[10]"
-execute1(s)
-blah[0] = new Vector(10)
+//strdef s
+//s = "objref blah[10]"
+//execute1(s)
+//blah[0] = new Vector(10)
+//s = "blah"
+//print "a = ",a
+//print "s = ",s
+//print "SN is: ",SN
+print "RUN is ", RUN

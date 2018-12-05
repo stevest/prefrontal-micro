@@ -7,7 +7,7 @@ simglia="${simglia}/"
 schedule="0"
 
 for excitb in $(seq 1 1); do
-for nsyn in $(seq 5 10 400); do
+for nsyn in $(seq 5 10 200); do
 	
 	if [ "$schedule" == "1" ]; then
 	jobname="NMDA_fast_nsyn${nsyn}_excitb$(printf '%.3f' $excitb)_"
@@ -31,7 +31,7 @@ for nsyn in $(seq 5 10 400); do
 	../../mechanism_simple/x86_64/special -nobanner \
 	-c "NSYN=$nsyn"  \
 	-c "EXCITB=$excitb"  \
-	-c "FAST=1" \
+	-c "FAST=0" \
 	-c "HAVEAMPA=1" \
 	NMDA_fast.hoc
 	fi	

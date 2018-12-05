@@ -55,7 +55,7 @@ objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 objref gabaa[4], gabab[4], ncga[4], ncgb[4]
 
 nmdabias = 4 //TEMP CHANGE! REVERT BACK TO 2!!
-ampabias = 2
+ampabias = 1
 excitbias = EXCITB//1
 objref nil
 
@@ -148,7 +148,7 @@ for location = 0, locations_vect.size()-1{
 			run()
 print "RUN FINISHED"
 			vsoma = new File()		
-			sprint(STRING,"DATA/NMDA_noMg/vsoma_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
+			sprint(STRING,"DATA/NMDA_fast/vsoma_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCv.size()-1 {
@@ -157,7 +157,7 @@ print "RUN FINISHED"
 			vsoma.close()
 
 			vsoma = new File()		
-			sprint(STRING,"DATA/NMDA_noMg/vdend_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
+			sprint(STRING,"DATA/NMDA_fast/vdend_%s_%s_%0.1f_%d_%d_%0.1f.txt",FASTSTR,AMPASTR,nmdabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCdv.size()-1 {

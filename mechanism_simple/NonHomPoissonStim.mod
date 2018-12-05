@@ -4,7 +4,7 @@ NEURON {
 	THREADSAFE
 	ARTIFICIAL_CELL NonHomPoissonStim
 	POINTER randObjPtrUniform, randObjPtrPoisson
-	RANGE lambdaMax, lambda, nevents, randNo,cellid,synid
+	RANGE lambdaMax, lambda, nevents, randNo, artcellid, trgid, synid
 }
 
 ASSIGNED {
@@ -17,7 +17,8 @@ ASSIGNED {
 	randObjPtrPoisson
 	randNo
 	nevents
-	cellid
+	artcellid
+	trgid
 	synid
 	myflag
 	vecsize
@@ -66,9 +67,9 @@ NET_RECEIVE (w) {
 			:printf("number of events after thinning are: %f\n",nevents)
 			if ( nevents > 0 ){
 				:printverbatim()
-				:printf("@t: %f Sending event nevents=%g cellid=%g synID=%g\n", t, nevents,cellid,synid)
+				:printf("@t: %f Sending event nevents=%g trgid=%g synID=%g\n", t, nevents,trgid,synid)
 				:if ( myflag == 1 ){
-					:printf("@t=%f cellid=%g nevents=%g lambda=%g randno=%g vecsize=%g\n",t,cellid,nevents,lambda,randNo,vecsize)
+					:printf("@t=%f artcellid=%g nevents=%g lambda=%g randno=%g vecsize=%g\n",t,artcellid,nevents,lambda,randNo,vecsize)
 					net_event(t)
 					:myflag = myflag +1
 					:myflag = 0
@@ -94,12 +95,12 @@ ENDVERBATIM
 PROCEDURE printverbatim() {
 	VERBATIM
 	{
-		//giati den mporw na sygkrinw me cellid? (floating point exception) WTF?
-		//Mallon giati cellid=0 kai division by zero, mipws??
+		//giati den mporw na sygkrinw me artcellid? (floating point exception) WTF?
+		//Mallon giati artcellid=0 kai division by zero, mipws??
 		if ( ((int)t % (int)nevents) == 0 ) {
 			myflag = myflag +1;
 			/*if(myflag ==1){
-				printf("@t=%f cellid=%g nevents=%g myflag=%g\n",t,cellid,nevents,myflag);
+				printf("@t=%f artcellid=%g nevents=%g myflag=%g\n",t,artcellid,nevents,myflag);
 			}*/
 		}
 	}
@@ -127,10 +128,10 @@ VERBATIM
 			//printf("vv=%p\n", vv);
 			//printf("space=%p\n", space);
 			//printf("size=%d\n", size);
-			//printf("cellid=%d\n", (int)cellid);
+			//printf("artcellid=%d\n", (int)artcellid);
 			px = vector_vec(vv);
 			if (i < size) {
-				//printf("t=%d vv=%p size=%d cellid=%d lambda=%f\n", (int)t, vv, size, (int)cellid, px[i]);
+				//printf("t=%d vv=%p size=%d artcellid=%d lambda=%f\n", (int)t, vv, size, (int)artcellid, px[i]);
 				// Lambda in current t is taken from vector
 				lambda = px[i];
 				index += 1.;
@@ -162,11 +163,11 @@ VERBATIM
 		*vv = vector_arg(1);
 		size = vector_capacity(*((void**)(&space)));
 		sizev = vector_capacity(*vv);
-		//printf("isvect=%d vv=%p size=%d sizev=%d cellid=%d\n", flag, *vv, size, sizev, (int)cellid);
+		//printf("isvect=%d vv=%p size=%d sizev=%d artcellid=%d\n", flag, *vv, size, sizev, (int)artcellid);
 		//printf("isvect=%d\n",flag);
 		//printf("space=%p\n",space);
 		//printf("vv=%p\n",*vv);
-		//printf("cellid=%f\n", cellid);
+		//printf("artcellid=%f\n", artcellid);
 		//printf("sizevv=%d sizespace=%d\n",size, size);
 	}else{
 		hoc_execerror("Vector object ref not set correctly"," only via hoc Random");

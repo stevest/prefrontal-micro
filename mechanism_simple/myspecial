@@ -1,19 +1,16 @@
 #!/bin/sh
-# Choose NEURON build to use:
-nrn_repository="$1"
 if test "x${NRNHOME}" = "x" ; then
-	NRNHOME="/home/cluster/stefanos/Libraries/${nrn_repository}"
+	NRNHOME="/home/cluster/stefanos/Libraries/nrn"
+	#NRNHOME="/home/cluster/applications/neuron/nrn"
 fi
 if test "x${NRNBIN}" = "x" ; then
-	NRNBIN="/home/cluster/stefanos/Libraries/${nrn_repository}/x86_64/bin/"
+	NRNBIN="/home/cluster/stefanos/Libraries/nrn/x86_64/bin/"
+	#NRNBIN="/home/cluster/applications/neuron/nrn/x86_64/bin/"
 fi
 if test "" = "yes" ; then
 	NRNIV="${NRNBIN}nrniv.app/Contents/MacOS/nrniv"
 else
 	NRNIV="${NRNBIN}nrniv"
 fi
-#echo "Custom envars set by myspecial:"
-#echo "NEURON repository chosen is: ${nrn_repository}."
-#echo "NEURON executlabe is in location: `which nrniv`"
-#echo "End of custom envars."
-"${NRNIV}" -dll "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/x86_64/.libs/libnrnmech.so" "${@:2}"
+
+"${NRNIV}" -dll "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/x86_64/.libs/libnrnmech.so" "$@"

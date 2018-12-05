@@ -1,0 +1,241 @@
+strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING, EXPSTR, NOJUMPSTR
+PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+objref PC
+PC = new ParallelContext()
+PARALLEL  = 0
+
+
+tstop = 700 
+//{xopen("./DATA/vstim.hoc")}
+xopen("./main_parameters.hoc")
+//steps_per_ms=10
+//dt=1/steps_per_ms
+//n=int(tstop/dt)
+//celsius=34
+DEND_NSEG = 5
+objref v_msec
+v_msec = new Vector(n)
+for q=0,n-1 {v_msec.x[q]=q*dt }
+
+nPCcells = 1
+
+/*
+v_init = -66 
+objref cv
+cv=new CVode(0)
+if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
+if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
+if(!cv.cache_efficient(1)){print "ERRORRRR!"}
+*/
+
+{xopen("pfc_pc_temp.hoc")}
+
+//Balance each cell compartment to the prefered voltage and comply with NEURON initialization routines.
+proc balance_compartments() {
+	//Do not call finitialize with v_init argument, because it sets it in all cells
+	// created up to this point!
+	finitialize()
+	fcurrent()
+	forsec PCcell_list {
+		for (x) {
+			//print "V is: ",v
+			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
+			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+		}
+	}
+	fcurrent()
+	/*if (cv.active()) {
+		cv.re_init()
+	}       else {
+		fcurrent()
+	}*/
+	frecord_init()
+}
+
+objref r, PCv,PCdv,PCi, vsoma, PCvi, PCiampa
+objref PCvd, PCvdd, PCvddd
+
+synapses = 8
+
+objref NS[synapses]
+objref gabaa[synapses], gabab[synapses], nc1[synapses], nc2[synapses]
+objref nil
+
+
+NSnoise = 0.0//0.9
+
+r = new Random(0)
+r.normal(0, 0.3)
+
+objref rl
+rl = new Random()
+rl.uniform(0,1)
+
+
+nmdabias = 3 //TEMP CHANGE! REVERT BACK TO 2!!
+ampabias = 1//1
+
+
+NS=new NetStim()
+NS.interval=10//ISI//isir.repick()
+NS.number=1//20
+NS.start=200
+NS.noise=NSnoise
+
+
+balance_compartments()
+
+proc sadp_soma() {
+	forsec PCsoma_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0 } 
+		}
+	}
+}
+proc sadp_dend() {
+	forsec PCdend_list{
+		for(x) {
+			if(ismembrane("ican")) for(x) { gbar_ican(x)= 0.0 } 
+		}
+	}
+}
+proc ttx() {
+	forsec PCsoma_list {
+		for(x) {
+			if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+			if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+		}
+	}
+}
+proc calcium_block() {
+	forsec PCcell_list{
+		for(x) {
+			if(ismembrane("can")) for(x) {  gcabar_can(x)= gcabar_can(x)*0 }
+			if(ismembrane("cat")) for(x) {  gcatbar_cat(x)= gcatbar_cat(x)*0 }			
+			if(ismembrane("cal")) for(x) {  gcalbar_cal(x)= gcalbar_cal(x)*0 }
+			if(ismembrane("car")) for(x) {  gcabar_car(x)= gcabar_car(x)*0 }
+		}
+	}
+}
+proc validateNMDA () {
+        forsec PCcell_list{
+                for(x) {
+			if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+			if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+			if(ismembrane("kdr")) for(x) {  gkdrbar_kdr(x)= gkdrbar_kdr(x)*0 }
+			if(ismembrane("IKs")) for(x) {  gKsbar_IKs(x)= gKsbar_IKs(x)*0 }
+			if(ismembrane("kad")) for(x) { gkabar_kad(x)= gkabar_kad(x)*0 }
+			if(ismembrane("kca")) for(x) {  gbar_kca(x)= gbar_kca(x)*0}
+			if(ismembrane("iC"))  for(x) {  gkcbar_iC(x)= gkcbar_iC(x)*0}
+		}
+	}
+}
+
+
+objref myvclamp
+PCcells.o(0).soma myvclamp = new VClamp(0.5)
+myvclamp.dur[0] = tstop
+// -65mV as in Kawaguchi and Kubota 2015, eLife
+myvclamp.amp[0] = -65
+//calcium_block()
+//sadp_soma()
+//sadp_dend()
+//ttx()
+
+// these values load from main parameters:
+//gabaweight=	0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
+//gabaweightb=1.05e-4
+//gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+//gabaweight_pv2pc_b = gabaweightb   *GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+
+INHIBIAS = 1// This bias results in ~90pA max current in pyramidal cell.
+GABAAFACTOR = 1
+GABABFACTOR = 8
+
+// location permutations: permute dend attenuating weights and check current at the soma:
+for location = 0, 10-1{
+			print "---------------------"
+
+			for syn=0,8-1{
+				gabaa[syn] = nil
+				gabab[syn] = nil
+				nc1[syn] = nil
+				nc2[syn] = nil
+			}
+			soma_weight = 3.6234e-04 // mean somatic conductance  in uS, (0.36 nS as in Kubota).
+			for syn=0,3-1{
+				PID = 0.5
+				print " Placing somatic synapse : ",syn, " in loc ",PID, " and W ",soma_weight
+					PCcells.o(0).soma gabaa[syn] = new GABAa(PID)
+					nc1[syn]=new NetCon(NS, gabaa[syn])
+					nc1[syn].delay=1
+					nc1[syn].weight=gabaweight_pv2pc_a * soma_weight * INHIBIAS * GABAAFACTOR
+
+					PCcells.o(0).soma gabab[syn] = new GABAb(PID)
+					nc2[syn]=new NetCon(NS, gabab[syn])
+					nc2[syn].delay=1
+					nc2[syn].weight=gabaweight_pv2pc_b * soma_weight * INHIBIAS * GABABFACTOR
+			}
+			for syn=3,8-1{
+				PID=rl.repick()
+				// Calculated weight based on fitted values:
+				// These values are WRONG Don't remember where I got them from:
+				//a=-7.50259257e+01
+				//b= 6.42232615e-04
+				//c= 7.53522217e+01
+				a = -0.11811557
+				b = 0.1926853
+				c = 0.39375158
+				// Aftes oi times antistoixoun se average current 6 pA kai max current 7.3pA.
+				dend_weight = (c + (PCcells.o(0).dend[0].L*PID)^b * a) / 1000 // convert to uS
+				print " Placing dend synapse : ",syn, " in loc ",PID, " and W ",dend_weight
+					PCcells.o(0).dend[0] gabaa[syn] = new GABAa(PID)
+					nc1[syn]=new NetCon(NS, gabaa[syn])
+					nc1[syn].delay=1
+					nc1[syn].weight=gabaweight_pv2pc_a * dend_weight*INHIBIAS * GABAAFACTOR
+
+
+					PCcells.o(0).dend[0] gabab[syn] = new GABAb(PID)
+					nc2[syn]=new NetCon(NS, gabab[syn])
+					nc2[syn].delay=1
+					nc2[syn].weight=gabaweight_pv2pc_b * dend_weight*INHIBIAS * GABABFACTOR
+
+			}
+
+			PCv = new Vector(n,0)
+			PCv.record(&PCcells.o(0).soma.v(0.5),v_msec,0) 
+			PCvi = new Vector(n,0)
+			PCvi.record(&myvclamp.i,v_msec,0) 
+			//PCvi.record(&nmdapr[0].inmda,v_msec,0) 
+
+			run()
+print "RUN FINISHED"
+
+			vsoma = new File()		
+			sprint(STRING,"DATA/pv2pc_valid/ivclamp_%s_iter%d.txt",EXPSTR,location)
+			print STRING
+			vsoma.wopen(STRING)
+			for j=0, PCvi.size()-1 {
+				vsoma.printf ("%f\n",PCvi.x[j])
+			}
+			vsoma.close()
+/*
+			vsoma = new File()		
+			sprint(STRING,"DATA/vclamp/vsoma_figure_%d_%s_%d.txt",synapses, EXPSTR,location)
+			print STRING
+			vsoma.wopen(STRING)
+			for j=0, PCv.size()-1 {
+				vsoma.printf ("%f\n",PCv.x[j])
+			}
+			vsoma.close()
+*/
+
+
+
+print "Vsoma saved"
+
+} //For different dend locations
