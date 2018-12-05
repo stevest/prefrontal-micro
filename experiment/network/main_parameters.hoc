@@ -9,7 +9,7 @@ save_synaptic_delays = 1
 save_pvsynaptic_delays = 1
 save_inmda = 0 
 save_igaba = 0 
-save_dend_voltage = 0 // WARNING MEM ISSUES WITH MULTIPLE DEND_NSEG!!!!
+save_dend_voltage = 1 // WARNING MEM ISSUES WITH MULTIPLE DEND_NSEG!!!!
 save_bg_iampa = 0 
 // Experimental setup
 //tstop=10 //defined externaly
