@@ -55,7 +55,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="78" ##52##jobname="STR_N100_S6_STC0" 
+nodes="12" ##52##jobname="STR_N100_S6_STC0" 
 
 #==============================================================================
 #==============================================================================
@@ -69,7 +69,7 @@ sn="1"
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="1.6"
+inhibias="1"
 excitbias="10"
 ## ONly NMDA bias (default is 10)
 nmdabias="8.0"
@@ -98,7 +98,7 @@ trial="0"
 
 #for learn_cond in $(seq 2 10); do
 #for inhibias in $(seq 0.5 0.5); do
-for trial in $(seq 0 9); do
+for trial in $(seq 0 0); do
 #for excitbias in $(seq 13 20); do
 
 
