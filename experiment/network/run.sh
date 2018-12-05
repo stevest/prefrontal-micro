@@ -48,11 +48,18 @@ echo "Currently at directory:"
 echo $simhome
 echo `pwd`
 
+#==============================================================================
+#==============================================================================
+# SIMULATION PARAMETERS:
 parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
 nodes="78" ##52##jobname="STR_N100_S6_STC0" 
+
+#==============================================================================
+#==============================================================================
+# RUN PARAMETERS:
 trial="0"
 # Experiment alias:
 exp="structured"
@@ -62,19 +69,18 @@ sn="1"
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-excitbias="1"
-inhibias="1"
+inhibias="2.5"
+excitbias="10"
 ## ONly NMDA bias (default is 10)
 nmdabias="8.0"
 ampabias="1.0"
 ## only GABAb
-gababfactor="1"
-## Posa stimulus synapses bazw
+gababfactor="4"
+## No of stimulation synapses:
 stimmagnitude="40"
 ## Stimulus frequency:
-stimfreq="50"
+stimfreq="60"
 ## Default NMDA decay tau:
-## afto grafei sto network.hoc to tau decay tou NMDA!!
 nmdatau="90"
 ## NMDA beta is a factor that shifts the lognormal function to the left 
 ## if negative (minus sign is inside its mod file) so greater values
@@ -82,16 +88,6 @@ nmdatau="90"
 nmdaflag="0"
 ## number of dendritic (basal) segments 
 dendnseg="5"
-
-
-#==============================================================================
-#==============================================================================
-# RUN PARAMETERS:
-
-stimfreq="60"
-inhibias="2.5"
-excitbias="20"
-gababfactor="4"
 #pv2pc="8" #this should be hardcoded!
 #pc2pc="20"
 no_mg="0"
