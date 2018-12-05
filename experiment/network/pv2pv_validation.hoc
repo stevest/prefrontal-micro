@@ -1,0 +1,107 @@
+strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING, EXPSTR, NOJUMPSTR
+PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+objref PC
+PC = new ParallelContext()
+PARALLEL  = 0
+
+tstop = 700 
+xopen("./main_parameters.hoc")
+DEND_NSEG = 5
+objref v_msec
+v_msec = new Vector(n)
+for q=0,n-1 {v_msec.x[q]=q*dt }
+
+nPVcells = 1
+{xopen("pv.hoc")}
+//Balance each cell compartment to the prefered voltage and comply with NEURON initialization routines.
+proc balance_compartments() {
+	//Do not call finitialize with v_init argument, because it sets it in all cells
+	// created up to this point!
+	finitialize()
+	fcurrent()
+	forsec PVcell_list {
+		for (x) {
+			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}     
+			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+		}
+	}
+	fcurrent()
+	frecord_init()
+}
+
+objref r, PCv,PCdv,PCi, vsoma, PCvi, PCiampa
+objref PCvd, PCvdd, PCvddd
+
+synapses = 1
+
+objref NS[synapses]
+objref gabaa[synapses], nc1[synapses]
+objref nil
+
+
+NSnoise = 0.0//0.9
+
+NS=new NetStim()
+NS.interval=10//ISI//isir.repick()
+NS.number=1//20
+NS.start=200
+NS.noise=NSnoise
+
+
+balance_compartments()
+
+objref myvclamp
+PVcells.o(0).soma myvclamp = new VClamp(0.5)
+myvclamp.dur[0] = tstop
+myvclamp.amp[0] = -70 // as in Bacci et al. 2003
+
+INHIBIAS = 1// This bias results in ~90pA max current in pyramidal cell.
+//GABAa reversal potential -56mV as in A network of fast-spiking cells in the neocortex connected by electrical synapses.
+print "---------------------"
+for syn=0,synapses-1{
+	gabaa[syn] = nil
+	nc1[syn] = nil
+}
+for syn=0,synapses-1{
+	PID = 0.5
+	print " Placing somatic synapse : ",syn, " in loc ",PID
+	PVcells.o(0).soma gabaa[syn] = new GABAa(PID)
+	nc1[syn]=new NetCon(NS, gabaa[syn])
+	nc1[syn].delay=1
+	nc1[syn].weight=autogabaweight
+}
+
+//PCv = new Vector(n,0)
+//PCv.record(&PCcells.o(0).soma.v(0.5),v_msec,0) 
+PCvi = new Vector(n,0)
+PCvi.record(&myvclamp.i,v_msec,0) 
+
+run()
+print "RUN FINISHED"
+
+vsoma = new File()		
+sprint(STRING,"DATA/pv2pv_valid/ivclamp_%s_iter.txt",EXPSTR)
+print STRING
+vsoma.wopen(STRING)
+for j=0, PCvi.size()-1 {
+	vsoma.printf ("%f\n",PCvi.x[j])
+}
+vsoma.close()
+/*
+vsoma = new File()		
+sprint(STRING,"DATA/vclamp/vsoma_figure_%d_%s_%d.txt",synapses, EXPSTR,location)
+print STRING
+vsoma.wopen(STRING)
+for j=0, PCv.size()-1 {
+vsoma.printf ("%f\n",PCv.x[j])
+}
+vsoma.close()
+*/
+
+
+
+print "Vsoma saved"
+

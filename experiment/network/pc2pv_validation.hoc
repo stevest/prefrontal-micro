@@ -143,16 +143,7 @@ PVcells.o(0).soma myvclamp = new VClamp(0.5)
 myvclamp.dur[0] = tstop
 // -65mV as in Kawaguchi and Kubota 2015, eLife
 myvclamp.amp[0] = -65
-//calcium_block()
-//sadp_soma()
-//sadp_dend()
-//ttx()
-
-// these values load from main parameters:
-//gabaweight=	0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
-//gabaweightb=1.05e-4
-//gabaweight_pv2pc_a = gabaweight    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-//gabaweight_pv2pc_b = gabaweightb   *GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+// must produce ~41 pA
 
 INHIBIAS = 15// This bias results in ~90pA max current in pyramidal cell.
 

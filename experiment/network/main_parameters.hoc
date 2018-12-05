@@ -40,14 +40,12 @@ if (name_declared("CALIB_SCRIPT")!=0){
 	EXCITBIAS = 1
 	INHIBIAS = 1
 }
-PC2PC_MaxSyn = 5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
-PC_MaxAutosyn=1//XENIA //1	//autosynapses (one third, Lubke, 1996)
-PV2PV_MaxSyn=12//NASSI	//IN-IN connections
-PC2PV_MaxSyn=2//XENIA//2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
-//This parameter was depricated: now it is not.Places one synapse in the soma and the rest on the dend.
-PV2PC_MaxSyn = 8//NASSI//15//XENIA	13//IN-PC connections to soma (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)(15-Tamas 1997, Markram 2004)
+PC2PC_MaxSyn = 5 //PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
+PC_MaxAutosyn=1//autosynapses (one third, Lubke, 1996)
+PC2PV_MaxSyn=1
+PV2PV_MaxSyn=1
+PV2PC_MaxSyn = 8//Average as in Kubota et al., eLife, 2015
 
-//overwrite with NASSI's values:
 //-------------------Set synaptic weights
 bg_nmda_weight_d = 0.25 
 bg_nmda_weight_a = 0.2
@@ -64,47 +62,23 @@ ampaweight=	0.00019		//According to Wang(2008)
 //Begin from g=1nS and scale it down on soma/dendrites when doing the connectivity.
 //gabaweight=0.001//3.6223e-04 // change gmax as computed from Kawaguchi 2015, eLife, of the average g in soma for max IPSC pair CS55.   0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
 //gabaweightb=0.001// old value 1.05e-4
-ampaweightin=	7.5e-4 * 0.28//according to Wang,Gao,2009
-nmdaweightin=	3.2e-4 * 0.28//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
-autogabaweight=	0.006205				//According to Bacci (2003) 
-PC2PV_MaxSyn = 4 //7is the June working
-//So apparently I have calibrated the PV2PC synapses. I will change it for now but should return to validate it! SSS
-//------------------Set # of synapses
-//synapses_backb=300//16//18//60//100
-//synapses_backpr=300//16//18//60//100
-//synapses_backa=300//16//18//60//100
-//synapses_backinh=500
-//synapses_inh=1
+//pc 2 pv weight produces an average ~41 pA as in Kubota et al., eLife 2015
+pv_bias = 0.9
+ampaweightin=	7.5e-4 * pv_bias//according to Wang,Gao,2009
+nmdaweightin=	3.2e-4 * pv_bias//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+gabaweightin = 0.0017 // 1.7nS average conductance as in Galarreta et al., Nature, 1999
+autogabaweight=	0.0067// producing 350nA @ Ecl = -16mV, according to Bacci (2003) 
 
-//override complex background spiketrains:
-//Background activity like Haider
-//PC ~1Hz, PV ~14Hz
-BG_dendSyn = BGE//2 synapses as of 1/10/15 
-BG_apicSyn = BGE//2 synapses as of 1/10/15
-BG_apicprSyn = BGE//2 synapses as of 1/10/15
-BG_PVSyn = BGI//2 synapses as of
-BG_all = BG_dendSyn + BG_apicSyn + BG_apicprSyn
 
 //giati bgazei error ean to kanw 300? exei na kanei me to import?
 Stim_MaxSyn_apic = ST 
 Stim_MaxSyn_basal=0//120	//initial stimulation
 
-/*
-gababweights.x[0]=1.05e-4		//0.2
-gababweights.x[1]=2.22e-4		//0.4
-gababweights.x[2]=3.38e-4		//0.6
-gababweights.x[3]=4.65e-4		//0.8
-*/
-//gabaweight_pv2pc_b = 1.05e-4 //0.2 GABAb/GABAa ratio
 
 //This is a 1uS max g, that is converted to nS (per soma/dend) in network.hoc
 gabaweight_pv2pc_a = 1    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 gabaweight_pv2pc_b = 1 * GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 
-/*nmdaweights.x[0]=0.25		//1.1 ratio //NASSI
-nmdaweights.x[1]=0.35		//1.5
-nmdaweights.x[2]=0.47		//1.9
-nmdaweights.x[3]=0.585		//2.3*/
 nmdaweight = 0.585
 
 //-----Objects for record data
