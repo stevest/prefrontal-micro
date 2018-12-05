@@ -73,9 +73,9 @@ rl.uniform(0,1)
 objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
 objref gabaa[4], gabab[4], ncga[4], ncgb[4]
 
-nmdabias = 4 //TEMP CHANGE! REVERT BACK TO 2!!
+nmdabias = 10 //TEMP CHANGE! REVERT BACK TO 2!!
 //When using the nojump, pipe the erf down a little bit..
-excitbias = 1
+excitbias = 20
 
 objref nil
 objref iNMDA[synapses]

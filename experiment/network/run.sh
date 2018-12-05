@@ -26,7 +26,7 @@ dirtygit=$(( $dirtygit + $(git status --porcelain 2>/dev/null| grep "^ M" | wc -
 
 git_branch=`git rev-parse --abbrev-ref HEAD`
 #Commit only if in specific branch (to avoid spamming) and if git is dirty:
-if [[ ($dirtygit > 0 && $git_branch == "runs") ]]; then
+if [[ ($dirtygit > 0 && $git_branch == "publication") ]]; then
 	#echo -e "${WARN}The git repo is dirty. You have been warned...${NOC}"
 	#echo -e "${INFO}Current HEAD is: ${gitsha1}${NOC}"
 	echo -e "${INFO}Auto-committing dirty repo:${NOC}"
@@ -89,11 +89,11 @@ dendnseg="5"
 # RUN PARAMETERS:
 
 stimfreq="60"
-inhibias="0.8"
-excitbias="1"
+inhibias="2.5"
+excitbias="20"
 gababfactor="8"
-pv2pc="8" #this should be hardcoded!
-pc2pc="20"
+#pv2pc="8" #this should be hardcoded!
+#pc2pc="20"
 no_mg="0"
 # Pass simulation stop externally in seconds:
 tstop_sec="5"
@@ -106,7 +106,7 @@ for trial in $(seq 0 9); do
 #for excitbias in $(seq 13 20); do
 
 
-jobname="SN${sn}LC${learn_cond}TR${trial}_pc2pc${pc2pc}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp}dur${tstop_sec}"
+jobname="SN${sn}LC${learn_cond}TR${trial}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp}dur${tstop_sec}"
 
 uniquejobname="${jobname}"
 outputFile=$uniquejobname.out
@@ -149,8 +149,6 @@ run_variables=(
 "LEARN_COND=$learn_cond" 
 "NMDATAU=$nmdatau" 
 "DEND_NSEG=$dendnseg" 
-"PV2PCsyns=$pv2pc" 
-"PC2PCsyns=$pc2pc"
 "GABABFACTOR=$gababfactor" 
 "NO_MG=$no_mg" 
 )

@@ -31,8 +31,6 @@ Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
 //if comming from a calibration script, ignore most of the parameters:
 if (name_declared("CALIB_SCRIPT")!=0){
 	print "comming from amcalib script"
-	PC2PCsyns = 1//place holder value
-	PV2PCsyns = 1
 	BGE = 1
 	BGI = 1
 	ST = 1
@@ -42,13 +40,12 @@ if (name_declared("CALIB_SCRIPT")!=0){
 	EXCITBIAS = 1
 	INHIBIAS = 1
 }
-PC2PC_MaxSyn = PC2PCsyns//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
+PC2PC_MaxSyn = 5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
 PC_MaxAutosyn=1//XENIA //1	//autosynapses (one third, Lubke, 1996)
 PV2PV_MaxSyn=12//NASSI	//IN-IN connections
 PC2PV_MaxSyn=2//XENIA//2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
 //This parameter was depricated: now it is not.Places one synapse in the soma and the rest on the dend.
-PV2PC_MaxSyn = PV2PCsyns//NASSI//15//XENIA	13//IN-PC connections to soma (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)(15-Tamas 1997, Markram 2004)
-print "PV2PC_MaxSyn ",PV2PCsyns
+PV2PC_MaxSyn = 8//NASSI//15//XENIA	13//IN-PC connections to soma (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)(15-Tamas 1997, Markram 2004)
 
 //overwrite with NASSI's values:
 //-------------------Set synaptic weights
@@ -72,7 +69,6 @@ nmdaweightin=	3.2e-4 * 0.28//ratio inmda/iampa for interneuron *0.5(Wang,Gao,200
 autogabaweight=	0.006205				//According to Bacci (2003) 
 PC2PV_MaxSyn = 4 //7is the June working
 //So apparently I have calibrated the PV2PC synapses. I will change it for now but should return to validate it! SSS
-//PV2PC_MaxSyn = 4 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
 //------------------Set # of synapses
 //synapses_backb=300//16//18//60//100
 //synapses_backpr=300//16//18//60//100

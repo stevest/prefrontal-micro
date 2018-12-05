@@ -287,8 +287,8 @@ proc connectPC2PC() { local i,j,FIDp,PID,synCtr,trg,src,syn,bool,localID,trgGID,
 							{assert(execute1(EXEC_CMD))}
 						}
 						for syn=0, PC2PC_MaxSyn-1{
-							PIDtmp = clusterPID[trgGID].x[syn]
-							PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
+							PID = clusterPID[trgGID].x[syn]
+							//PID = clustbias(PIDtmp,RN_PC2PC[trg].repick())
 							FIDp = abs(fp_PC2PC[trg].repick())
 							if( FIDp <= dt ){ FIDp = dt + 0.01 }
 							if(save_synaptic_delays){
