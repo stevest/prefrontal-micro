@@ -96,9 +96,9 @@ tstop_sec="5"
 learn_cond="1"
 trial="0"
 
-#for learn_cond in $(seq 2 10); do
+for learn_cond in $(seq 1 5); do
 #for inhibias in $(seq 0.5 0.5); do
-for trial in $(seq 0 0); do
+for trial in $(seq 0 9); do
 #for excitbias in $(seq 13 20); do
 
 
