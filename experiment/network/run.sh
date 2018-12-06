@@ -55,7 +55,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="12" ##52##jobname="STR_N100_S6_STC0" 
+nodes="24" ##52##jobname="STR_N100_S6_STC0" 
 
 #==============================================================================
 #==============================================================================
@@ -69,7 +69,7 @@ sn="1"
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="1.4"
+inhibias="2"
 excitbias="10"
 ## ONly NMDA bias (default is 10)
 nmdabias="8.0"
