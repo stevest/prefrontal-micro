@@ -92,11 +92,11 @@ dendnseg="5"
 #pc2pc="20"
 no_mg="0"
 # Pass simulation stop externally in seconds:
-tstop_sec="5"
+tstop_sec="3"
 learn_cond="1"
 trial="0"
 
-for learn_cond in $(seq 1 2); do
+for learn_cond in $(seq 1 50); do
 #for inhibias in $(seq 0.5 0.5); do
 for trial in $(seq 0 9); do
 #for excitbias in $(seq 13 20); do
@@ -197,7 +197,7 @@ fi
 
 
 done
-done
+#done
 
 #==============================================================================
 #==============================================================================

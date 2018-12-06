@@ -2,19 +2,19 @@
 PLOT = 0
 DUMMY_RUN = 0
 SHUFFLE_SYNAPSES = 0
-save_synaptic_locations = 1 
-save_pvsynaptic_locations = 1 
+save_synaptic_locations = 0 
+save_pvsynaptic_locations = 0 
 save_stimulation_locations = 0 
-save_synaptic_delays = 1 
-save_pvsynaptic_delays = 1
+save_synaptic_delays = 0 
+save_pvsynaptic_delays = 0
 save_inmda = 0 
 save_igaba = 0 
 save_dend_voltage = 0 // WARNING MEM ISSUES WITH MULTIPLE DEND_NSEG!!!!
 save_bg_iampa = 0 
 // Experimental setup
 //tstop=10 //defined externaly
-stim_start = 500
-stim_stop = 1500
+stim_start = 50
+stim_stop = 1050
 steps_per_ms=10
 dt=1/steps_per_ms
 n=int(tstop/dt)
