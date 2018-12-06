@@ -69,7 +69,7 @@ sn="1"
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="2"
+inhibias="3"
 excitbias="10"
 ## ONly NMDA bias (default is 10)
 nmdabias="8.0"
@@ -96,7 +96,7 @@ tstop_sec="5"
 learn_cond="1"
 trial="0"
 
-for learn_cond in $(seq 1 5); do
+for learn_cond in $(seq 1 2); do
 #for inhibias in $(seq 0.5 0.5); do
 for trial in $(seq 0 9); do
 #for excitbias in $(seq 13 20); do
