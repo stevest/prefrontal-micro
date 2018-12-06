@@ -69,13 +69,13 @@ sn="1"
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="1"
+inhibias="1.4"
 excitbias="10"
 ## ONly NMDA bias (default is 10)
 nmdabias="8.0"
 ampabias="1.0"
 ## only GABAb
-gababfactor="8"
+gababfactor="2"
 ## No of stimulation synapses:
 stimmagnitude="40"
 ## Stimulus frequency:
