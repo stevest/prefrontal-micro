@@ -55,7 +55,7 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="24" ##52##jobname="STR_N100_S6_STC0" 
+nodes="12" ##52##jobname="STR_N100_S6_STC0" 
 
 #==============================================================================
 #==============================================================================
@@ -96,9 +96,9 @@ tstop_sec="3"
 learn_cond="1"
 trial="0"
 
-for learn_cond in $(seq 1 50); do
+#for learn_cond in $(seq 1 50); do
 #for inhibias in $(seq 0.5 0.5); do
-for trial in $(seq 0 9); do
+for trial in $(seq 0 0); do
 #for excitbias in $(seq 13 20); do
 
 
@@ -197,7 +197,7 @@ fi
 
 
 done
-done
+#done
 
 #==============================================================================
 #==============================================================================
