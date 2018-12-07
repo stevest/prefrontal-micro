@@ -75,7 +75,7 @@ excitbias="10"
 nmdabias="8.0"
 ampabias="1.0"
 ## only GABAb
-gababfactor="4"
+gababfactor="8"
 ## No of stimulation synapses:
 stimmagnitude="40"
 ## Stimulus frequency:
