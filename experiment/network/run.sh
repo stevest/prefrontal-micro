@@ -69,7 +69,7 @@ sn="1"
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="3"
+inhibias="4"
 excitbias="10"
 ## ONly NMDA bias (default is 10)
 nmdabias="8.0"
