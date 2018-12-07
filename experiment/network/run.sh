@@ -98,7 +98,8 @@ trial="0"
 
 #for learn_cond in $(seq 1 50); do
 #for inhibias in $(seq 0.5 0.5); do
-for trial in $(seq 0 0); do
+#for trial in $(seq 0 0); do
+for gababfactor in $(seq 2 2 8); do
 #for excitbias in $(seq 13 20); do
 
 
