@@ -745,7 +745,8 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 		delstimpvpc=fp_PV2PC[i].normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
 	}
 
-
+	//This weight corresponds to the conductance in uS of a charge 61.4615fC as in Kubota et al. 2015 eLife.
+	soma_weight = 3.6234e-04 // mean somatic conductance  in uS, (0.36 nS as in Kubota).
 	//-----------------------------Connect
 	for src=0, nPVcells-1 {
 		for trg=0,nPCcells-1 {
@@ -769,7 +770,7 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 						{sprint(EXEC_CMD,"{pidPV2PC[%d][%d] = new Vector()}",src,trg)}
 						{assert(execute1(EXEC_CMD))}
 					}
-					for syn=0,1-1 { 
+					for syn=0,3-1 { 
 						PID = 0.5 //bias MCMC
 						if(save_pvsynaptic_locations){
 							{sprint(EXEC_CMD,"{pidPV2PC[%d][%d].append(%f)}",src,trg,PID)}
@@ -797,11 +798,11 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d].record(&gabaOnPC_B[%d][%d][%d].g)}",src,trg,syn,src,trg,syn)}
 							{assert(execute1(EXEC_CMD))}
 						}
-						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_a*INHIBIAS) //SSS change weight instead of # of synapses
-						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_b*INHIBIAS) //SSS DEFAULT WEIGHT is 4 !!
+						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, soma_weight * gabaweight_pv2pc_a*INHIBIAS)
+						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, soma_weight * gabaweight_pv2pc_b*INHIBIAS)
 					}
 					//----------------------------Insert synapses at dendrites
-					for syn=1,PV2PC_MaxSyn-1 { 
+					for syn=3,PV2PC_MaxSyn-1 { 
 						//PID = IPID
 						PID = r_PV2PC[PCgids.x[localID]].repick ()
 						if(save_pvsynaptic_locations){
@@ -816,6 +817,16 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 						gabaOnPC_A[src][trg][syn].srcgid = srcGID
 						gabaOnPC_A[src][trg][syn].sid = syn
 						delstimpvpc=abs(fp_PV2PC[PCgids.x[localID]].repick())
+						// Calculated weight based on fitted values:
+						// These values are WRONG Don't remember where I got them from:
+						//a=-7.50259257e+01
+						//b= 6.42232615e-04
+						//c= 7.53522217e+01
+						a = -0.11811557
+						b = 0.1926853
+						c = 0.39375158
+						// Aftes oi times antistoixoun se average current 6 pA kai max current 7.3pA.
+						dend_weight = (c + (PCcells.o(localID).dend[0].L*PID)^b * a) / 1000 // convert to uS
 						if(delstimpvpc<=dt){delstimpvpc=dt+0.01}
 						if(save_pvsynaptic_delays){
 							{sprint(EXEC_CMD,"{delayPV2PC[%d][%d].append(%f)}",src,trg,delstimpvpc)}
@@ -831,8 +842,8 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d].record(&gabaOnPC_B[%d][%d][%d].i)}",src,trg,syn,src,trg,syn)}
 							{assert(execute1(EXEC_CMD))}
 						}
-						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_a*0.33*INHIBIAS) //SSS change weight instead of # of synapses
-						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_b*0.33*INHIBIAS) //SSS DEFAULT WEIGHT is 4 !!
+						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_a*dend_weight*INHIBIAS)
+						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_b*dend_weight*INHIBIAS)
 					}
 				}
 			}

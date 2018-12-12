@@ -32,8 +32,10 @@ PC_MaxAutosyn=1//XENIA //1	//autosynapses (one third, Lubke, 1996)
 PV2PV_MaxSyn=12//NASSI	//IN-IN connections
 PC2PV_MaxSyn=2//XENIA//2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
 //This parameter was depricated: now it is not.Places one synapse in the soma and the rest on the dend.
-PV2PC_MaxSyn = PV2PCsyns//NASSI//15//XENIA	13//IN-PC connections to soma (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)(15-Tamas 1997, Markram 2004)
-print "PV2PC_MaxSyn ",PV2PCsyns
+//This is a 1uS max g, that is converted to nS (per soma/dend) in network.hoc
+gabaweight_pv2pc_a = 1    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+gabaweight_pv2pc_b = 1 * GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
+PV2PC_MaxSyn = 8//Average as in Kubota et al., eLife, 2015
 
 //-----Objects for record data
 //CHANGES after installing devel version 7.4:
