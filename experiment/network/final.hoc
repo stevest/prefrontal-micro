@@ -252,7 +252,7 @@ if(1){
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d)}",0,0)}
+	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
@@ -260,7 +260,7 @@ if(1){
 }
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d)}",0,0)}
+	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
@@ -268,7 +268,7 @@ if(1){
 }
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d)}",0,0)}
+	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}

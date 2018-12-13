@@ -622,8 +622,8 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 	if(PARALLEL){ PC.barrier() }
 	//set parallel PID randomness
 	for i=0, nPVcells-1 {
-		r_PV2PV[i] = new Random(SNd*$1 + 250 + i )
-		fp_PV2PV[i] = new Random(SNd*$1 - 100 + i )
+		r_PV2PV[i] = new Random($1+$3 + 250 + i )
+		fp_PV2PV[i] = new Random($1+$3 + 100 + i )
 		PID = r_PV2PV[i].uniform(0,1)
 		delstimpvpv = fp_PV2PV[i].normal(1.76,0.07) //latency from IN-IN, according to Bacci (2003)   
 	}
@@ -680,8 +680,8 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 
 	//set parallel PID randomness
 	for i=0, nPVcells-1 {
-		r_PC2PV[i] = new Random(SNd*$1 + 150 + i )
-		fp_PC2PV[i] = new Random(SNd*$1 * 2 + i)
+		r_PC2PV[i] = new Random($1+$3 + 150 + i )
+		fp_PC2PV[i] = new Random($1+$3 + 2 + i)
 		PID = r_PC2PV[i].uniform(0,1)
 		delstimpcpv = fp_PC2PV[i].normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999) 
 	}
@@ -737,10 +737,10 @@ objref r_PV2PC[nPCcells],fp_PV2PC[nPCcells], rDend_PV2PC[nPCcells]
 proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn,bool,localID,trgGID,srcGID localobj r,fp,rDend
 	if(PARALLEL){ PC.barrier() }
 	//set parallel PID randomness
+	//Apo pote exw kai to trial sta PV2PC connections?
 	for i=0, nPCcells-1 {
-		r_PV2PC[i] = new Random(SNd*$1 + 180 + i )
-		fp_PV2PC[i] = new Random(SNd*$1 * 8 + i)
-		rDend_PV2PC[i] = new Random(SNd*$1 + 5 + i)
+		r_PV2PC[i] = new Random($1+$3 + 180 + i )
+		fp_PV2PC[i] = new Random($1+$3 + 8 + i)
 		PID = r_PV2PC[i].uniform(0,1)
 		delstimpvpc=fp_PV2PC[i].normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
 	}
@@ -803,16 +803,13 @@ proc connectPV2PC() {local delstimpvpc,PID,BasalNo,rDendidx,rApicidx,src,trg,syn
 					}
 					//----------------------------Insert synapses at dendrites
 					for syn=3,PV2PC_MaxSyn-1 { 
-						//PID = IPID
 						PID = r_PV2PC[PCgids.x[localID]].repick ()
 						if(save_pvsynaptic_locations){
 							{sprint(EXEC_CMD,"{pidPV2PC[%d][%d].append(%f)}",src,trg,PID)}
 							{assert(execute1(EXEC_CMD))}
 						}
-						rDendidx = int(rDend_PV2PC[PCgids.x[localID]].uniform(0,PCcells.o(localID).DendNo-1) )
-						rDendidx = 0 //dendrites!
-						PCcells.o(localID).dend[rDendidx] gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
-						PCcells.o(localID).dend[rDendidx] gabaOnPC_B[src][trg][syn] = new GABAb(PID)
+						PCcells.o(localID).dend[0] gabaOnPC_A[src][trg][syn] = new GABAa(PID) //was @ soma initially...
+						PCcells.o(localID).dend[0] gabaOnPC_B[src][trg][syn] = new GABAb(PID)
 						gabaOnPC_A[src][trg][syn].cellid = trgGID
 						gabaOnPC_A[src][trg][syn].srcgid = srcGID
 						gabaOnPC_A[src][trg][syn].sid = syn
