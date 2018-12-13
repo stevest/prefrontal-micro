@@ -242,7 +242,7 @@ if(0){
 //connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%f)}",0,0,0.585)}
+	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
 	{assert(execute1(EXEC_CMD))}
 	sprint(PPRINT_CMD,"%s executed OK.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
