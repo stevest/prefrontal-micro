@@ -62,8 +62,8 @@ ampaweight=	0.00019		//According to Wang(2008)
 //Begin from g=1nS and scale it down on soma/dendrites when doing the connectivity.
 //gabaweight=0.001//3.6223e-04 // change gmax as computed from Kawaguchi 2015, eLife, of the average g in soma for max IPSC pair CS55.   0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
 //gabaweightb=0.001// old value 1.05e-4
-//pc 2 pv weight produces an average ~41 pA as in Kubota et al., eLife 2015
-pv_bias = 0.9
+//pc 2 pv weight produces an average ~55 pA as in Kubota et al., eLife 2015 and Otsuka et al., 2009
+pv_bias = 1.2
 ampaweightin=	7.5e-4 * pv_bias//according to Wang,Gao,2009
 nmdaweightin=	3.2e-4 * pv_bias//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 gabaweightin = 0.0017 // 1.7nS average conductance as in Galarreta et al., Nature, 1999
