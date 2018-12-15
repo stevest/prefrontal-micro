@@ -53,88 +53,114 @@ if(save_stimulation_locations){
 
 objref ncAMPA[nPCcells][Stim_MaxSyn], nsNMDA[nPCcells][Stim_MaxSyn],nsAMPA[nPCcells][Stim_MaxSyn], ncNMDA[nPCcells][Stim_MaxSyn], ampapr[nPCcells][Stim_MaxSyn], nmdapr[nPCcells][Stim_MaxSyn]
 
-objref r_stimPC[nPCcells], rApic_stimPC[nPCcells], rBasal_stimPC[nPCcells] 
+objref r_stimPC[nPCcells]
 objref stim_artcell[nPCcells*Stim_MaxSyn_apic]
-objref STIMgids, STIMcells
 //keep the GIDs of the stimulation artificial cells
 //ALL NetStim artificial cells MUST lie in node 0!
-STIMgids = new Vector()
-STIMcells = new List()
-proc stimulation() { local trg,syn,PID,ApicalNo,rApicIdx,BasalNo,rBasalIdx, interval, number,localID,tmp,ridx,trgGID,artgid  localobj r,rApic,rBasal,ri,rvect,mynil,artcell
+objref rUniformStim[StimulatedPNs[CLUSTER_ID].size()*Stim_MaxSyn_apic], rPoissonStim[StimulatedPNs[CLUSTER_ID].size()*Stim_MaxSyn_apic]
+objref nhPoissonStim[StimulatedPNs[CLUSTER_ID].size()*Stim_MaxSyn_apic]
+objref STIM_rate_vect
+
+proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  localobj mynil
+	//argument 1 is the animal model, argument 2 is the trial no, argument 3 is the learning condition	
 	if(PARALLEL){ PC.barrier() }
 	//Configure RNG for reproducability over differently distributed parallel environments:
+	//Synapses and locations stay the same between trials of the same learning condition
 	for kk=0,nPCcells-1{
-		r_stimPC[kk] = new Random(SNd*$1 + 165 + kk )
-		rApic_stimPC[kk] = new Random(SNd*$1 + 12 + kk)
-		rBasal_stimPC[kk] = new Random(SNd*$1 + 67 + kk)
+		//Stimulus synapse location on apical random object:
+		r_stimPC[kk] = new Random($1+$3 + 165 + kk )
 		PID = r_stimPC[kk].uniform(0,1)
 	}
-	for trg=0, nPCcells-1 {
-		if(PARALLEL){
-			bool = (PC.id==0)
-		}else{
-			bool=1
-		}
-		if (bool) { 
+	//Only on node zero, create stimulation artificial cells.
+	if(PARALLEL){
+		bool = (PC.id==0)
+	}else{
+		bool=1
+	}
+	if (bool) { 
+		for istim=0, StimulatedPNs[CLUSTER_ID].size()-1 {
+			// Create rate vector holding the Poisson rates:
+			// Estimate Poisson lambda from given stimulation frequency
+			lambdaMax = SF / 1000
+			STIM_rate_vect = new Vector(tstop, 0)
+			for i = stim_start, stim_stop - 1{
+				STIM_rate_vect.x[i] = lambdaMax
+			}
+			// place artificial stimulation cells after all the other PV and PN cells (global ids):
 			for syn=0, (Stim_MaxSyn_apic-1) {
-				artcell = new NetStim()
-				artcell.number = SF//30//50//50
-				artcell.interval = 1000/SF//33.3//20
-				artcell.start = 0
-				artcell.noise = STIMNOISE//0.6//0.2
-				//artificial cell gids:
-				//MAKE SURE NO GIDS ARE THE SAME!
-				artgid = trg + syn*nPCcells + nPCcells + nPVcells 
-				//associate artgid with current node (first node):
+				// Stim synapses linear index:
+				lin_idx = syn + Stim_MaxSyn_apic * istim
+				// Use a Poisson process instead of a random one:
+				rUniformStim[lin_idx] = new Random(lin_idx+$1+$2+$3)
+				rUniformStim[lin_idx].uniform(0,1)
+				rPoissonStim[lin_idx] = new Random(lin_idx+$1+$2+$3)
+				rPoissonStim[lin_idx].poisson(lambdaMax)
+				nhPoissonStim[lin_idx] = new NonHomPoissonStim()
+				nhPoissonStim[lin_idx].trgid = istim
+				nhPoissonStim[lin_idx].synid = syn 
+				nhPoissonStim[lin_idx].getRandObjPtrUniform(rUniformStim[lin_idx])
+				nhPoissonStim[lin_idx].getRandObjPtrPoisson(rPoissonStim[lin_idx])
+				nhPoissonStim[lin_idx].lambdaMax = lambdaMax 
+				nhPoissonStim[lin_idx].play(STIM_rate_vect)
+				//artificial cell gids, append to end of PN+PV cells:
+				//artgid = syn + Stim_MaxSyn_apic * istim + nPCcells + nPVcells 
+				artgid = lin_idx + nPCcells + nPVcells 
+				//print "ArtCell ",artgid
+				nhPoissonStim[lin_idx].artcellid = artgid
+				//associate artgid with current node:
 				PC.set_gid2node(artgid,PC.id)
 				//print "Associating artgid=",artgid," with PC.id=",PC.id
 				//associate ARTIFICIAL_CELL output to artgid:
-				PC.cell(artgid,new NetCon(artcell, mynil),1)
-				STIMcells.append(artcell)
+				PC.cell(artgid, new NetCon(nhPoissonStim[lin_idx], mynil),1)
 			}
 		}
 	}
+	//Wait for association to finish:
+	if(PARALLEL){PC.barrier()}
 
-	for trg=0, nPCcells - 1  { 
-		if(PcellStimList.x(trg)){
-			trgGID = ind2gid(trg,0) //ONLY FOR PC CELLS!
-			if(PARALLEL){
-				bool = PC.gid_exists(trgGID)
-				localID = gid2local(PCgids,trgGID) //target cell
-			}else{
-				bool=1
-				localID = trg
+	for istim=0, StimulatedPNs[CLUSTER_ID].size()-1 {
+		trg = StimulatedPNs[CLUSTER_ID].x[istim]
+		//print "@trg: ",trg
+		trgGID = ind2gid(trg,0) //ONLY FOR PC CELLS!
+		if(PARALLEL){
+			bool = PC.gid_exists(trgGID)
+			localID = gid2local(PCgids,trgGID) //target cell
+		}else{
+			bool=1
+			localID = trg
+		}
+		if( bool ){ //&& PcellStimList.x(trg)
+			if(save_stimulation_locations){
+				{sprint(EXEC_CMD,"{stimpidPC2PC[%d] = new Vector()}",trgGID)}
+				{assert(execute1(EXEC_CMD))}
 			}
+			// Apical input:
+			for syn=0, (Stim_MaxSyn_apic-1) {
+				// Stim synapses linear index:
+				lin_idx = syn + Stim_MaxSyn_apic * istim
 
-			if( bool ){ //&& PcellStimList.x(trg)
+				PID=r_stimPC[trg].repick()
 				if(save_stimulation_locations){
-					{sprint(EXEC_CMD,"{stimpidPC2PC[%d] = new Vector()}",trgGID)}
+					{sprint(EXEC_CMD,"{stimpidPC2PC[%d].append(%f)}",trgGID,PID)}
 					{assert(execute1(EXEC_CMD))}
 				}
-				// Apical input:
-				for syn=0, (Stim_MaxSyn_apic-1) {
-					PID=r_stimPC[trg].repick()
-					rApicIdx = int(rApic_stimPC[trg].uniform(0,PCcells.o(localID).ApicNo-1))
-					if(save_stimulation_locations){
-						{sprint(EXEC_CMD,"{stimpidPC2PC[%d].append(%f)}",trgGID,PID)}
-						{assert(execute1(EXEC_CMD))}
-					}
-					rApicIdx = 0 //PROXIMAL!
-					PCcells.o(localID).apic[rApicIdx] {ampapr[trg][syn] = new GLU(PID)}
-					PCcells.o(localID).apic[rApicIdx] {nmdapr[trg][syn] = new nmda_segev(PID)}
-					artgid = trg + syn*nPCcells + nPCcells + nPVcells 
+				//Stimulate proximal apicals
+				PCcells.o(localID).apic[0] {ampapr[trg][syn] = new GLU(PID)}
+				PCcells.o(localID).apic[0] {nmdapr[trg][syn] = new nmda_segev(PID)}
+				//artgid = syn + Stim_MaxSyn_apic * istim + nPCcells + nPVcells 
+				artgid = lin_idx + nPCcells + nPVcells 
 
-					nmdapr[trg][syn].srcgid = artgid
-					nmdapr[trg][syn].cellid = trgGID
-					nmdapr[trg][syn].sid = syn
+				nmdapr[trg][syn].srcgid = artgid
+				nmdapr[trg][syn].cellid = trgGID
+				nmdapr[trg][syn].sid = syn
+				//print "ArtCell: ",artgid, " stimulates: ",trg
+				//TODO: this is wrong for the single core version, right? PCcells should be the stim cells!
+				ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1,ampaweight_stimulus)
+				ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+			}
 
-					ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,500,ampaweight_stimulus)
-					ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,500,nmdaweight_stimulus)
-				}
-
-			} //if bool
-		} //if stimulated
-	} //for PC cells
+		} //if bool
+	} //for stimulated PN cells
 } //end proc
 
 

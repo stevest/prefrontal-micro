@@ -82,7 +82,7 @@ if(1){assert(execute1(EXEC_CMD))}
 if(1){pprint("Load Network Parameters.")}
 
 EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g_rndI50.hoc\")}",PATH,SN,FS,CL)}
+{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g_rndI50_custom.hoc\")}",PATH,SN,FS,CL)}
 if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint(EXEC_CMD)}
@@ -102,16 +102,16 @@ objref PcellStimList
 {PcellStimList = new Vector(nPCcells,0)}
 
 if(EXPERIMENT){ //if Structured...
-	//print "PcellStimListSTR.size() = ",PcellStimListSTR[CLUSTER_ID].size()
-	for i=0,PcellStimListSTR[CLUSTER_ID].size()-1{
-		//print " ",PcellStimListSTR[CLUSTER_ID].x[i]	
-		PcellStimList.x[PcellStimListSTR[CLUSTER_ID].x[i]]=1
-		// {sprint(PPRINT_CMD,"Stimulating cell: %d",PcellStimListSTR[CLUSTER_ID].x[i])}
+	//print "StimulatedPNs.size() = ",StimulatedPNs[CLUSTER_ID].size()
+	for i=0,StimulatedPNs[CLUSTER_ID].size()-1{
+		//print " ",StimulatedPNs[CLUSTER_ID].x[i]	
+		PcellStimList.x[StimulatedPNs[CLUSTER_ID].x[i]]=1
+		// {sprint(PPRINT_CMD,"Stimulating cell: %d",StimulatedPNs[CLUSTER_ID].x[i])}
 		//if(DEBUG){pprint(PPRINT_CMD)}
 
 	}
 //validate stimulation:
-assert( PcellStimList.sum() == PcellStimListSTR[CLUSTER_ID].size() )
+assert( PcellStimList.sum() == StimulatedPNs[CLUSTER_ID].size() )
 } else {
 	for i=0,PcellStimListRND[CLUSTER_ID].size()-1{
 		PcellStimList.x[PcellStimListRND[CLUSTER_ID].x[i]] = 1
@@ -214,7 +214,7 @@ if(PARALLEL){
 
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{stimulation(%d,%d)}",0,0)}
+	{sprint(EXEC_CMD,"{stimulation(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
 	{assert(execute1(EXEC_CMD))}
 	//stimulation(0,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
