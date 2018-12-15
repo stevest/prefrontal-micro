@@ -152,7 +152,7 @@ gabaweight=	0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
 gabaweightb=1.05e-4
 ampaweightin=	7.5e-4 * 1//according to Wang,Gao,2009
 nmdaweightin=	3.2e-4 * 1//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
-autogabaweight=	0.006205				//According to Bacci (2003) 
+autogabaweight=	0.0067
 PC2PV_MaxSyn = 4 //7is the June working
 //So apparently I have calibrated the PV2PC synapses. I will change it for now but should return to validate it! SSS
 //PV2PC_MaxSyn = 4 //SSS //NEW DATA: 1Soma Strong, 2Dend more distal weak, Kubota, eLife, 2015. ALWAYS ON SOMA AND ONE! CHANGE WEIGHT TO CHANGE # SYNAPSES! //4 is the June working //SSS 8elw ligotero GABAa!! 
