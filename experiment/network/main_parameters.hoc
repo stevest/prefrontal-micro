@@ -29,15 +29,58 @@ for k=0,n-1 {r_msec.x[k] = k*dt }
 Stim_MaxSyn_apic=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn_basal=100//16 min by Nassi criterion	//initial stimulation
 Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
-PC2PC_MaxSyn = 5//24 //Xenia had 24	//PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
-PC_MaxAutosyn=1//XENIA //1	//autosynapses (one third, Lubke, 1996)
-PV2PV_MaxSyn=12//NASSI	//IN-IN connections
-PC2PV_MaxSyn=2//XENIA//2//12	//PC-IN connections (Thomson, 2007) (Markram, 2004sup2)
-//This parameter was depricated: now it is not.Places one synapse in the soma and the rest on the dend.
+//if comming from a calibration script, ignore most of the parameters:
+if (name_declared("CALIB_SCRIPT")!=0){
+	print "comming from amcalib script"
+	BGE = 1
+	BGI = 1
+	ST = 1
+	GABABFACTOR = 1
+	//EXPERIMENT = 1
+	CLUSTBIAS = 1
+	EXCITBIAS = 1
+	INHIBIAS = 1
+}
+PC2PC_MaxSyn = 5 //PC-PC connections Thomson 2007, (to have 87% excitatory synapses, Peters, 2008)
+PC_MaxAutosyn=1//autosynapses (one third, Lubke, 1996)
+PC2PV_MaxSyn=1
+PV2PV_MaxSyn=1
+PV2PC_MaxSyn = 8//Average as in Kubota et al., eLife, 2015
+
+//-------------------Set synaptic weights
+bg_nmda_weight_d = 0.25 
+bg_nmda_weight_a = 0.2
+bg_nmda_weight_pr = 0.22
+bg_ampa_weight_d = 0.00019
+bg_ampa_weight_a = 0.00024
+bg_ampa_weight_pr = 0.00024
+
+ampaweight_stimulus = 0.00024 *5 
+nmdaweight_stimulus = 0.22  *5 
+ampaweightpr=	0.00024			//Initial stimulus
+nmdaweightpr=	0.22			//Initial stimulus
+ampaweight=	0.00019		//According to Wang(2008)
+//Begin from g=1nS and scale it down on soma/dendrites when doing the connectivity.
+//gabaweight=0.001//3.6223e-04 // change gmax as computed from Kawaguchi 2015, eLife, of the average g in soma for max IPSC pair CS55.   0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
+//gabaweightb=0.001// old value 1.05e-4
+//pc 2 pv weight produces an average ~55 pA as in Kubota et al., eLife 2015 and Otsuka et al., 2009
+pv_bias = INHIBIAS // scale inhibition with the same factor
+ampaweightin=	7.5e-4 * pv_bias//according to Wang,Gao,2009
+nmdaweightin=	3.2e-4 * pv_bias//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+gabaweightin = 0.0017 // 1.7nS average conductance as in Galarreta et al., Nature, 1999
+autogabaweight=	0.0067// producing 350nA @ Ecl = -16mV, according to Bacci (2003) 
+
+
+//giati bgazei error ean to kanw 300? exei na kanei me to import?
+Stim_MaxSyn_apic = ST 
+Stim_MaxSyn_basal=0//120	//initial stimulation
+
+
 //This is a 1uS max g, that is converted to nS (per soma/dend) in network.hoc
 gabaweight_pv2pc_a = 1    //3.8// GABA gia to RAND connectivity //OVERRIDED!!
 gabaweight_pv2pc_b = 1 * GABABFACTOR//0.2//0.1//*0.1 is the June working //*0.4//SSS //3.8// GABA gia to RAND connectivity //OVERRIDED!!
-PV2PC_MaxSyn = 8//Average as in Kubota et al., eLife, 2015
+
+nmdaweight = 0.585
 
 //-----Objects for record data
 //CHANGES after installing devel version 7.4:
@@ -52,73 +95,5 @@ if(cv.active(0)){print "ERRORRRR!"}	     //Do NOT use CVODE solver!
 if(!cv.use_long_double(1)){print "ERRORRRR!"}//was cvode
 if(!cv.cache_efficient(1)){print "ERRORRRR!"}
 
-strdef sout
-if (name_declared("CLUSTER_ID")!=5){
-	CLUSTER_ID = 0//default cluster
-}
 
-if (name_declared("EXPERIMENT")!=5){
-	exit(1)
-}
-
-
-sprint(pprintStr,"Microcircuit running with simplified morphologies !\n\n")
-pprint(pprintStr)
-
-
-if (name_declared("CLUSTBIAS")!=5){
-	exit(1)
-}
-if (name_declared("EXCITBIAS")!=5){
-	exit(1)
-}
-if (name_declared("INHIBIAS")!=5){
-	exit(1)
-}
-
-// given a cell index ($1) and the type of cell ($2), return the gid
-// As for $2, 0 stands for pyramidal cells, 1 for PVs
-objref offsets
-{offsets = new Vector()}
-{offsets.append(0,nPCcells,nPVcells)}
-{offsets.append(offsets.sum(0,offsets.size()-1))}
-
-//global_gid=offsets.v[offsets.size()-1]  // points to the next available gid
-func ind2gid(){local i  
-  if(numarg()<2) { printf("wrong number of arguments to func ind2gid") }
-  i=$1+offsets.sum(0,$2)
-  if(i>=offsets.sum(0,$2+1)) { i-=1 }   
-  return i 
-}
-
-// register the connection target locally given a synapse gid and a synapse mechanism as arguments
-// if given additional arguments, it will set them as weight, delay, and threshold, respectively
-// http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2158
-obfunc makeSynapse(){ localobj nc, src
-	if(PARALLEL){
-		nc=PC.gid_connect($3,$o4)
-
-	}else{
-		src = $o1
-		access src.o($2).axon
-		nc = new NetCon(&v(x),$o4)
-	}
-	nc.threshold = $5
-	nc.delay = $6
-	nc.weight = $7
-	return nc
-}
-
-func gid2local(){local i localobj arg
-	arg = $o1
-	for i=0, arg.size()-1 {
-		if(arg.x(i) == $2){
-			return i
-		}
-	}
-	return -1 //if error
-}
-
-strdef mname,sprop,tempString
-objref mt,pp,mechFile
 
