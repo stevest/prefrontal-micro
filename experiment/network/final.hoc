@@ -68,7 +68,7 @@ if(1){pprint("Load NEURON environment.")}
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
 EXEC_CMD = ""
 if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s_Fs_%g_Cl_%g_custompv_sn1.hoc\")}",PATH,SN,FS,CL)}
+	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersSTR_SN%s_Fs_%g_Cl_%g_custompv_sn2.hoc\")}",PATH,SN,FS,CL)}
 } else {
 	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
 }
@@ -92,10 +92,10 @@ if(1){assert(execute1(EXEC_CMD))}
 sprint(pprintStr,"Microcircuit running with simplified morphologies !\n\n")
 pprint(pprintStr)
 
-if (name_declared("TRIAL")!=5){
+if (name_declared("CLUSTER_ID")!=5){
 	exit(1)
 }
-if (name_declared("EXPERIMENT")!=4){
+if (name_declared("EXPERIMENT")!=5){
 	exit(1)
 }
 if (name_declared("CLUSTBIAS")!=5){
