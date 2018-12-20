@@ -2,7 +2,9 @@
 //Written 1/8/13 stamatiad.st@gmail.com
 DEBUG=1
 ISBINARY=0
-ID=12
+//Get the serial_no as an integer:
+SNd=0
+sscanf(SN,"%d",&SNd)
 // OVVERIDES CAREFULL DO NOT COMMIT!
 strdef PATH, PPRINT_CMD, EXEC_CMD, temp, STDOUT, PPRINT_CMD,pprintStr
 //PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
@@ -67,11 +69,7 @@ if(1){pprint("Load NEURON environment.")}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
 EXEC_CMD = ""
-if (EXPERIMENT) { //if Structured...
-	{sprint(EXEC_CMD,"{xopen(\"%simportNetworkParameters_structured_SN2_.hoc\")}",PATH)}
-} else {
-	sprint(EXEC_CMD,"{xopen(\"%simportNetworkParametersRND_SN%s_Fs_%g_Cl_%g.hoc\")}",PATH,SN,FS,CL)
-}
+sprint(EXEC_CMD,"{xopen(\"%simportNetworkParameters_structured_SN2_.hoc\")}",PATH)
 if(PARALLEL){PC.barrier}
 tstop = TSTOP_SEC * 1000
 //Use execute1() instead of execute() feed the bool into assert
@@ -81,9 +79,6 @@ pprint(EXEC_CMD)
 if(1){assert(execute1(EXEC_CMD))}
 if(1){pprint("Load Network Parameters.")}
 
-EXEC_CMD = ""
-{sprint(EXEC_CMD,"{xopen(\"%simportStimulationParameters_SN%s_Fs_%g_Cl_%g_rndI50_custom.hoc\")}",PATH,SN,FS,CL)}
-if(1){assert(execute1(EXEC_CMD))}
 if(PARALLEL){PC.barrier}
 
 {sprint(EXEC_CMD,"{xopen(\"%smain_parameters.hoc\")}",PATH)}
@@ -158,29 +153,6 @@ if(1){pprint("Load Main Parameters.")}
 strdef syscmd, data_dir, data_dira, data_dirb, data_dirc, data_dird, running, tmpstr
 
 if(PARALLEL){PC.barrier}
-//parse stimulation parameters
-objref PcellStimList
-{PcellStimList = new Vector(nPCcells,0)}
-
-if(EXPERIMENT){ //if Structured...
-	//print "StimulatedPNs.size() = ",StimulatedPNs[CLUSTER_ID].size()
-	for i=0,StimulatedPNs[CLUSTER_ID].size()-1{
-		//print " ",StimulatedPNs[CLUSTER_ID].x[i]	
-		PcellStimList.x[StimulatedPNs[CLUSTER_ID].x[i]]=1
-		// {sprint(PPRINT_CMD,"Stimulating cell: %d",StimulatedPNs[CLUSTER_ID].x[i])}
-		//if(DEBUG){pprint(PPRINT_CMD)}
-
-	}
-//validate stimulation:
-assert( PcellStimList.sum() == StimulatedPNs[CLUSTER_ID].size() )
-} else {
-	for i=0,PcellStimListRND[CLUSTER_ID].size()-1{
-		PcellStimList.x[PcellStimListRND[CLUSTER_ID].x[i]] = 1
-
-	}
-//validate stimulation:
-assert( PcellStimList.sum() == PcellStimListRND[CLUSTER_ID].size() )
-}
 if(DEBUG){pprint("Stimulation is OK.")}
 
 

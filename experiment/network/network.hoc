@@ -421,7 +421,7 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 							delstimpvpv=abs(fp_PV2PV[PVgids.x[localID]-nPCcells].repick())
 							if(delstimpvpv<=dt){delstimpvpv=dt+0.01}
 							PVcells.o(localID).soma gabaOnPV_A[src][trg][syn] = new GABAa(PID)//was GABAain
-							congabaPV2PV_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID,gabaOnPV_A[src][trg][syn],-10,delstimpvpv,0.0017 )
+							congabaPV2PV_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID,gabaOnPV_A[src][trg][syn],-10,delstimpvpv, gabaweightin)
 						}
 						
 					}
