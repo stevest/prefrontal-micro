@@ -473,8 +473,8 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 						if(delstimpcpv<=dt){delstimpcpv=dt+0.01}
 						PVcells.o(localID).dend {ampaOnPV[src][trg][syn] = new GLUIN(PID)} //no Dends available in the model! (???????)
 						PVcells.o(localID).dend {nmdaOnPV[src][trg][syn] = new NMDA(PID)}
-						conampaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, ampaOnPV[src][trg][syn], -10, delstimpcpv, ampaweightin)
-						connmdaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, nmdaOnPV[src][trg][syn], -10, delstimpcpv, nmdaweightin)    
+						conampaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, ampaOnPV[src][trg][syn], -10, delstimpcpv, W.x[srcGID][trgGID] * ampaweightin)
+						connmdaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, nmdaOnPV[src][trg][syn], -10, delstimpcpv, W.x[srcGID][trgGID] * nmdaweightin)    
 					}
 				}
 			}
@@ -567,8 +567,8 @@ proc connectPV2PC() {local delstimpvpc,PID,src,trg,syn,bool,localID,trgGID,srcGI
 							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d].record(&gabaOnPC_B[%d][%d][%d].g)}",src,trg,syn,src,trg,syn)}
 							{assert(execute1(EXEC_CMD))}
 						}
-						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, soma_weight * gabaweight_pv2pc_a*INHIBIAS)
-						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, soma_weight * gabaweight_pv2pc_b*INHIBIAS)
+						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, W.x[srcGID][trgGID] * soma_weight * gabaweight_pv2pc_a*INHIBIAS) 
+						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, W.x[srcGID][trgGID] * soma_weight * gabaweight_pv2pc_b*INHIBIAS)
 					}
 					//----------------------------Insert synapses at dendrites
 					for syn=3,PV2PC_MaxSyn-1 { 
@@ -608,8 +608,8 @@ proc connectPV2PC() {local delstimpvpc,PID,src,trg,syn,bool,localID,trgGID,srcGI
 							{sprint(EXEC_CMD,"{igababPV2PC[%d][%d][%d].record(&gabaOnPC_B[%d][%d][%d].i)}",src,trg,syn,src,trg,syn)}
 							{assert(execute1(EXEC_CMD))}
 						}
-						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_a*dend_weight*INHIBIAS)
-						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, gabaweight_pv2pc_b*dend_weight*INHIBIAS)
+						congabaPV2PC_A[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_A[src][trg][syn], -10, delstimpvpc, W.x[srcGID][trgGID] * gabaweight_pv2pc_a*dend_weight*INHIBIAS) 
+						congabaPV2PC_B[src][trg][syn] = makeSynapse(PVcells,src,srcGID, gabaOnPC_B[src][trg][syn], -10, delstimpvpc, W.x[srcGID][trgGID] * gabaweight_pv2pc_b*dend_weight*INHIBIAS)
 					}
 				}
 			}
