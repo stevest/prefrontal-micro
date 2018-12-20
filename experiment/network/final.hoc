@@ -72,7 +72,7 @@ if(1){pprint("Load NEURON environment.")}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
 EXEC_CMD = ""
-sprint(EXEC_CMD,"{xopen(\"%simportNetworkParameters_structured_SN2_.hoc\")}",PATH)
+sprint(EXEC_CMD,"{xopen(\"%simportNetworkParameters_structured_SN%d_.hoc\")}",PATH, SNd)
 if(PARALLEL){PC.barrier}
 tstop = TSTOP_SEC * 1000
 //Use execute1() instead of execute() feed the bool into assert
@@ -238,7 +238,7 @@ if(1){
 
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{noise(%d)}",0)}
+	{sprint(EXEC_CMD,"{noise(%d)}",TRIAL)}
 	{assert(execute1(EXEC_CMD))}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}

@@ -64,7 +64,7 @@ trial="0"
 # Experiment alias:
 exp="structured"
 ## Serial number of network (RNG) in MATLAB:
-sn="20"
+sn="1"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
@@ -96,9 +96,9 @@ tstop_sec="3"
 learn_cond="3"
 trial="0"
 
-#for learn_cond in $(seq 1 50); do
+for sn in $(seq 1 4); do
+for learn_cond in $(seq 1 10); do
 #for inhibias in $(seq 0.5 0.5); do
-#for sn in $(seq 2 2); do
 for trial in $(seq 0 9); do
 #for gababfactor in $(seq 2 2 8); do
 #for excitbias in $(seq 13 20); do
@@ -199,7 +199,8 @@ fi
 
 
 done
-#done
+done
+done
 
 #==============================================================================
 #==============================================================================
