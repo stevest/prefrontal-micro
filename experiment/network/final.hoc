@@ -29,6 +29,9 @@ if(PARALLEL){
 }else{
          printf("Microcircuit running in 'SINGLE CORE' !\n\n")
 }
+if(NO_MG){
+         printf("Microcircuit running with no Mg blockage!\n\n")
+} 
 //process to print only on node zero (if parallel):
 proc pprint(){
         //if (name_declared("PC")==2){
@@ -87,10 +90,10 @@ if(1){assert(execute1(EXEC_CMD))}
 sprint(pprintStr,"Microcircuit running with simplified morphologies !\n\n")
 pprint(pprintStr)
 
-if (name_declared("CLUSTER_ID")!=5){
+if (name_declared("TRIAL")!=5){
 	exit(1)
 }
-if (name_declared("EXPERIMENT")!=5){
+if (name_declared("EXPERIMENT")!=4){
 	exit(1)
 }
 if (name_declared("CLUSTBIAS")!=5){
@@ -189,7 +192,7 @@ if(PARALLEL){
 
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{stimulation(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
+	{sprint(EXEC_CMD,"{stimulation(%d,%d,%d)}",SNd,TRIAL,LEARN_COND)}
 	{assert(execute1(EXEC_CMD))}
 	//stimulation(0,0)   //synaptic location Random seed, axon conductanse delay Random seed
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -200,7 +203,7 @@ if(1){
 //connectPC2PC(0,0,Wvec.x[Widx])// synaptic location Random seed, axon conductanse delay Random seed
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
+	{sprint(EXEC_CMD,"{connectPC2PC(%d,%d,%d)}",SNd,TRIAL,LEARN_COND)}
 	{assert(execute1(EXEC_CMD))}
 	sprint(PPRINT_CMD,"%s executed OK.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
@@ -210,7 +213,7 @@ if(1){
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
+	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d,%d)}",SNd,TRIAL,LEARN_COND)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
@@ -218,7 +221,7 @@ if(1){
 }
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
+	{sprint(EXEC_CMD,"{connectPC2PV(%d,%d,%d)}",SNd,TRIAL,LEARN_COND)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
@@ -226,7 +229,7 @@ if(1){
 }
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d,%d)}",SNd,CLUSTER_ID,LOCCL)}
+	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d,%d)}",SNd,TRIAL,LEARN_COND)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
 	{assert(execute1(EXEC_CMD))}
@@ -235,7 +238,7 @@ if(1){
 
 if(1){
 	EXEC_CMD = ""
-	{sprint(EXEC_CMD,"{noise(%d)}",RUN)}
+	{sprint(EXEC_CMD,"{noise(%d)}",0)}
 	{assert(execute1(EXEC_CMD))}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
 	{pprint(PPRINT_CMD)}
@@ -276,54 +279,54 @@ if(PARALLEL){
 	if(1){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_soma_voltage.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_soma_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
+		par_save_soma_voltage(JOBDIR,TRIAL, ISBINARY)
 		{pprint("par_save_soma_voltage() is active.")}
 	}
 	if(save_dend_voltage){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_voltage.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_dend_voltage(JOBDIR,CLUSTER_ID, ISBINARY)
+		par_save_dend_voltage(JOBDIR,TRIAL, ISBINARY)
 		{pprint("par_save_dend_voltage() is active.")}
 	}
 	if(save_synaptic_locations){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_locations_PCrec.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_synaptic_locations_PCrec(JOBDIR,CLUSTER_ID,0)
+		par_save_synaptic_locations_PCrec(JOBDIR,TRIAL,0)
 		{pprint("par_save_synaptic_locations_PCrec() is active.")}	
 	}
 	
 	if(save_stimulation_locations){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_stimulation_locations_PCrec.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_stimulation_locations_PCrec(JOBDIR,CLUSTER_ID,0)
+		par_save_stimulation_locations_PCrec(JOBDIR,TRIAL,0)
 		{pprint("par_save_stimulation_locations_PCrec() is active.")}
 	}
 
 	if(save_synaptic_delays){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_delays.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_synaptic_delays(JOBDIR,CLUSTER_ID,ISBINARY)
+		par_save_synaptic_delays(JOBDIR,TRIAL,ISBINARY)
 		{pprint("par_save_synaptic_delays() is active.")}
 	}
 
 	if(save_bg_iampa){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_bg_iampa.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_bg_iampa(JOBDIR,CLUSTER_ID,0)
+		par_save_bg_iampa(JOBDIR,TRIAL,0)
 		{pprint("par_save_bg_iampa() is active.")}
 	}
 	if(save_inmda){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_inmda.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_dend_inmda(JOBDIR,CLUSTER_ID, ISBINARY)
+		par_save_dend_inmda(JOBDIR,TRIAL, ISBINARY)
 		{pprint("par_save_dend_inmda() is active.")}
-		//par_save_inmda(JOBDIR,CLUSTER_ID,ISBINARY)
+		//par_save_inmda(JOBDIR,TRIAL,ISBINARY)
 		//{pprint("par_save_inmda() is active.")}
 	}
 	if(save_igaba){
 		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_igaba.hoc\")}",PATH)}
 		if(1){assert(execute1(EXEC_CMD))}
-		par_save_dend_igaba(JOBDIR,CLUSTER_ID, ISBINARY)
+		par_save_dend_igaba(JOBDIR,TRIAL, ISBINARY)
 		{pprint("par_save_dend_igaba() is active.")}
 	}
 

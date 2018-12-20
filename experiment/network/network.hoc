@@ -57,8 +57,8 @@ objref r_stimPC[nPCcells]
 objref stim_artcell[nPCcells*Stim_MaxSyn_apic]
 //keep the GIDs of the stimulation artificial cells
 //ALL NetStim artificial cells MUST lie in node 0!
-objref rUniformStim[StimulatedPNs[CLUSTER_ID].size()*Stim_MaxSyn_apic], rPoissonStim[StimulatedPNs[CLUSTER_ID].size()*Stim_MaxSyn_apic]
-objref nhPoissonStim[StimulatedPNs[CLUSTER_ID].size()*Stim_MaxSyn_apic]
+objref rUniformStim[StimulatedPNs[TRIAL].size()*Stim_MaxSyn_apic], rPoissonStim[StimulatedPNs[TRIAL].size()*Stim_MaxSyn_apic]
+objref nhPoissonStim[StimulatedPNs[TRIAL].size()*Stim_MaxSyn_apic]
 objref STIM_rate_vect
 
 proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  localobj mynil
@@ -78,7 +78,7 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 		bool=1
 	}
 	if (bool) { 
-		for istim=0, StimulatedPNs[CLUSTER_ID].size()-1 {
+		for istim=0, StimulatedPNs[TRIAL].size()-1 {
 			// Create rate vector holding the Poisson rates:
 			// Estimate Poisson lambda from given stimulation frequency
 			lambdaMax = SF / 1000
@@ -118,8 +118,8 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 	//Wait for association to finish:
 	if(PARALLEL){PC.barrier()}
 
-	for istim=0, StimulatedPNs[CLUSTER_ID].size()-1 {
-		trg = StimulatedPNs[CLUSTER_ID].x[istim]
+	for istim=0, StimulatedPNs[TRIAL].size()-1 {
+		trg = StimulatedPNs[TRIAL].x[istim]
 		//print "@trg: ",trg
 		trgGID = ind2gid(trg,0) //ONLY FOR PC CELLS!
 		if(PARALLEL){
@@ -299,7 +299,7 @@ proc connectPC2PC() { local i,j,FIDp,PID,synCtr,trg,src,syn,bool,localID,trgGID,
 								{assert(execute1(EXEC_CMD))}
 							}
 							PCcells.o(localID).dend[0] {ampaOnPC[src][trg][syn] = new GLU(PID)}					
-							if(0){
+							if(NO_MG){
 								PCcells.o(localID).dend[0] {nmdaOnPC[src][trg][syn] = new nmda_nojump(PID)}					
 							} else {
 								PCcells.o(localID).dend[0] {nmdaOnPC[src][trg][syn] = new nmda_segev(PID)}					
