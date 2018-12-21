@@ -72,7 +72,7 @@ if(1){pprint("Load NEURON environment.")}
 //----------------------------------------Set parameters--------------------------------------------------------------//
 //Import netrork parameters (Connectivity, synaptic weights etc..) from MATLAB
 EXEC_CMD = ""
-sprint(EXEC_CMD,"{xopen(\"%simportNetworkParameters_structured_SN%d_.hoc\")}",PATH, SNd)
+sprint(EXEC_CMD,"{xopen(\"%simportNetworkParameters_%s_SN%d_.hoc\")}", PATH, EXPERIMENT, SNd)
 if(PARALLEL){PC.barrier}
 tstop = TSTOP_SEC * 1000
 //Use execute1() instead of execute() feed the bool into assert

@@ -62,17 +62,17 @@ nodes="24" ##52##jobname="STR_N100_S6_STC0"
 # RUN PARAMETERS:
 trial="0"
 # Experiment alias:
-exp="structured"
+exp="random"
 ## Serial number of network (RNG) in MATLAB:
 sn="1"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="3.5"
+inhibias="2.5"
 excitbias="1.75"
 ## ONly NMDA bias (default is 10)
-nmdabias="10.0"
+nmdabias="6.0"
 ampabias="1.0"
 ## only GABAb
 gababfactor="2"
@@ -96,8 +96,8 @@ tstop_sec="3"
 learn_cond="3"
 trial="0"
 
-for sn in $(seq 1 4); do
-for learn_cond in $(seq 1 10); do
+for sn in $(seq 1 1); do
+for learn_cond in $(seq 1 1); do
 #for inhibias in $(seq 0.5 0.5); do
 for trial in $(seq 0 9); do
 #for gababfactor in $(seq 2 2 8); do
