@@ -96,10 +96,10 @@ tstop_sec="3"
 learn_cond="3"
 trial="0"
 
-for sn in $(seq 2 4); do
-for learn_cond in $(seq 1 10); do
+for sn in $(seq 2 2); do
+for learn_cond in $(seq 1 1); do
 #for inhibias in $(seq 0.5 0.5); do
-for trial in $(seq 0 9); do
+for trial in $(seq 0 0); do
 #for gababfactor in $(seq 2 2 8); do
 #for excitbias in $(seq 13 20); do
 

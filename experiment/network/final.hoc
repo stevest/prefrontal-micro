@@ -342,9 +342,9 @@ if(PARALLEL){
 	//Only master node is active now.
 	print "Success"
 	//Run matlab script to analyze the data!.
-	print "Running epilog script..."
-	{sprint(EXEC_CMD,"%sepilog.sh \"%s\" \"%s\"",PATH,PATH,JOBDIR)}
-	exitcode = system(EXEC_CMD)
+	//print "Running epilog script..."
+	//{sprint(EXEC_CMD,"%sepilog.sh \"%s\" \"%s\"",PATH,PATH,JOBDIR)}
+	//exitcode = system(EXEC_CMD)
 	quit()
 }
 
