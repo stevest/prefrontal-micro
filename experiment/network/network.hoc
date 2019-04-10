@@ -81,6 +81,7 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 		for istim=0, StimulatedPNs[TRIAL].size()-1 {
 			// Create rate vector holding the Poisson rates:
 			// Estimate Poisson lambda from given stimulation frequency
+			//TODO: This handling produce error if simulation duration is less than stimulus one:
 			lambdaMax = SF / 1000
 			STIM_rate_vect = new Vector(tstop, 0)
 			for i = stim_start, stim_stop - 1{
@@ -104,14 +105,22 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				nhPoissonStim[lin_idx].play(STIM_rate_vect)
 				//artificial cell gids, append to end of PN+PV cells:
 				//artgid = syn + Stim_MaxSyn_apic * istim + nPCcells + nPVcells 
+				//TODO: this needs to be setup for single core simulations also.
 				artgid = lin_idx + nPCcells + nPVcells 
 				//print "ArtCell ",artgid
-				nhPoissonStim[lin_idx].artcellid = artgid
-				//associate artgid with current node:
-				PC.set_gid2node(artgid,PC.id)
-				//print "Associating artgid=",artgid," with PC.id=",PC.id
-				//associate ARTIFICIAL_CELL output to artgid:
-				PC.cell(artgid, new NetCon(nhPoissonStim[lin_idx], mynil),1)
+				//TODO: this assignment is depricated:
+				//nhPoissonStim[lin_idx].artcellid = artgid
+				if (PARALLEL) {
+					//If in PC, associate a artificial gid with the Poisson stim:
+					//associate artgid with current node:
+					PC.set_gid2node(artgid,PC.id)
+					//print "Associating artgid=",artgid," with PC.id=",PC.id
+					//associate ARTIFICIAL_CELL output to artgid:
+					PC.cell(artgid, new NetCon(nhPoissonStim[lin_idx], mynil),1)
+				} else {
+					//If not in PC, move on.
+					//pass
+				}
 			}
 		}
 	}
@@ -155,8 +164,18 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				nmdapr[trg][syn].sid = syn
 				//print "ArtCell: ",artgid, " stimulates: ",trg
 				//TODO: this is wrong for the single core version, right? PCcells should be the stim cells!
-				ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1,ampaweight_stimulus)
-				ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+				//TODO: make SURE that this nested conditional is what you want!!!!
+				//I must create a dummy class cells that give the stimulation:
+				if (PARALLEL) {
+					ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1,ampaweight_stimulus)
+					ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+				}else{
+					//print "Stim object synid is ", nhPoissonStim[lin_idx].synid
+					//Use non-PC function for simplicity:
+					ncAMPA[trg][syn] = makeSynapseFromArtificial(nhPoissonStim[lin_idx], ampapr[trg][syn],-10,1,ampaweight_stimulus)
+					ncNMDA[trg][syn] = makeSynapseFromArtificial(nhPoissonStim[lin_idx], nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+
+				}
 			}
 
 		} //if bool

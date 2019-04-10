@@ -10,7 +10,6 @@ strdef PATH, PPRINT_CMD, EXEC_CMD, temp, STDOUT, PPRINT_CMD,pprintStr
 //PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
 PATH = SIMHOME
 inittime=startsw()
-//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
 //The assert argument:
 //An assert is there to help you, by alerting you to errors that must never occur in the first place.
 proc assert(){ 
@@ -65,7 +64,10 @@ proc pprint(){
 if(PARALLEL){
 
 } else {
-if(!load_file("nrniv.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//TODO: this should go in a variable outside the simulation:
+//{load_file("nrngui.hoc")}
+{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+//if(!load_file("nrniv.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
 }
 if(PARALLEL){PC.barrier}
 if(1){pprint("Load NEURON environment.")}
@@ -131,11 +133,19 @@ obfunc makeSynapse(){ localobj nc, src
 	}else{
 		src = $o1
 		access src.o($2).axon
-		nc = new NetCon(&v(x),$o4)
+		nc = new NetCon(&v(1),$o4)
 	}
 	nc.threshold = $5
 	nc.delay = $6
 	nc.weight = $7
+	return nc
+}
+
+obfunc makeSynapseFromArtificial(){ localobj nc
+	nc = new NetCon($o1, $o2)
+	nc.threshold = $3
+	nc.delay = $4
+	nc.weight = $5
 	return nc
 }
 
@@ -244,107 +254,112 @@ if(1){
 	{pprint(PPRINT_CMD)}
 }
 
-if(PARALLEL){
-	recordedCells = new Vector()
-	for pyr=0,nPCcells-1{ // record all cells!
-	  par_rec_soma_voltage(pyr)
-	  par_rec_dend_voltage(pyr)
-	}
-	for pvs=nPCcells,nPCcells+nPVcells-1{ // record all cells!
-	  par_rec_soma_voltage(pvs)
-	}
-
-	{pprint("----------------------------------------------------------------------------------------")}
-	{pprint("Commencing Parallel run!")}
-	{pprint("----------------------------------------------------------------------------------------")}
-	inittime = startsw() - inittime
-	{sprint(PPRINT_CMD,"Network Initialization time: %10.4g minutes.\n", inittime/60)}
-	{pprint(PPRINT_CMD)}
-	inittime=startsw()
-	//stdinit() //not such function after devel version 7.4
-	{sprint(EXEC_CMD,"{xopen(\"%sbalance_compartments.hoc\")}",PATH)}
-	if(1){assert(execute1(EXEC_CMD))}
-	fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
-	balance_compartments()
-	inittime = startsw() - inittime
-	{sprint(PPRINT_CMD,"Compartment Initialization (stdinit()) time: %10.4g minutes.\n", inittime/60)}
-	{pprint(PPRINT_CMD)}
-	runtime=startsw()
-	PC.psolve(tstop)
-	runtime = startsw() - runtime
-	sprint(PPRINT_CMD,"All reached tstop: %d ms.\n",tstop)
-	{pprint(PPRINT_CMD)}
-	{ PC.barrier()	}
-	
-	if(1){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_soma_voltage.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_soma_voltage(JOBDIR,TRIAL, ISBINARY)
-		{pprint("par_save_soma_voltage() is active.")}
-	}
-	if(save_dend_voltage){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_voltage.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_dend_voltage(JOBDIR,TRIAL, ISBINARY)
-		{pprint("par_save_dend_voltage() is active.")}
-	}
-	if(save_synaptic_locations){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_locations_PCrec.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_synaptic_locations_PCrec(JOBDIR,TRIAL,0)
-		{pprint("par_save_synaptic_locations_PCrec() is active.")}	
-	}
-	
-	if(save_stimulation_locations){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_stimulation_locations_PCrec.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_stimulation_locations_PCrec(JOBDIR,TRIAL,0)
-		{pprint("par_save_stimulation_locations_PCrec() is active.")}
-	}
-
-	if(save_synaptic_delays){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_delays.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_synaptic_delays(JOBDIR,TRIAL,ISBINARY)
-		{pprint("par_save_synaptic_delays() is active.")}
-	}
-
-	if(save_bg_iampa){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_bg_iampa.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_bg_iampa(JOBDIR,TRIAL,0)
-		{pprint("par_save_bg_iampa() is active.")}
-	}
-	if(save_inmda){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_inmda.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_dend_inmda(JOBDIR,TRIAL, ISBINARY)
-		{pprint("par_save_dend_inmda() is active.")}
-		//par_save_inmda(JOBDIR,TRIAL,ISBINARY)
-		//{pprint("par_save_inmda() is active.")}
-	}
-	if(save_igaba){
-		{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_igaba.hoc\")}",PATH)}
-		if(1){assert(execute1(EXEC_CMD))}
-		par_save_dend_igaba(JOBDIR,TRIAL, ISBINARY)
-		{pprint("par_save_dend_igaba() is active.")}
-	}
-
+//Run the simulation
+//=============================================================================
+for pyr=0,nPCcells-1{ // record all cells!
+  rec_soma_voltage(pyr)
+  rec_dend_voltage(pyr)
 }
-
+for pvs=nPCcells,nPCcells+nPVcells-1{ // record all cells!
+  rec_soma_voltage(pvs)
+}
+{pprint("----------------------------------------------------------------------------------------")}
+{pprint("Commencing run!")}
+{pprint("----------------------------------------------------------------------------------------")}
+inittime = startsw() - inittime
+{sprint(PPRINT_CMD,"Network Initialization time: %10.4g minutes.\n", inittime/60)}
+{pprint(PPRINT_CMD)}
+inittime=startsw()
+//stdinit() //not such function after devel version 7.4
+{sprint(EXEC_CMD,"{xopen(\"%sbalance_compartments.hoc\")}",PATH)}
+if(1){assert(execute1(EXEC_CMD))}
+fadp=0.0//1.27//MUST BE SET FOR EACH MORPHOLOGY!!! //.35// (maximum ~7mV (normal gyrw sta 4mV)me train sta 20Hz (5 clamps diarkeias 1ms, ana 50 ms)current clamp)
+balance_compartments()
+inittime = startsw() - inittime
+{sprint(PPRINT_CMD,"Compartment Initialization (stdinit()) time: %10.4g minutes.\n", inittime/60)}
+{pprint(PPRINT_CMD)}
+runtime=startsw()
+if(PARALLEL){
+	PC.psolve(tstop)
+}else{
+	run()
+}
+sprint(PPRINT_CMD,"Simulation reached tstop: %d ms.\n",tstop)
+{pprint(PPRINT_CMD)}
+runtime = startsw() - runtime
 {sprint(PPRINT_CMD,"Runtime: %10.4g minutes.\n", runtime/60)}
 {pprint(PPRINT_CMD)}
+if(PARALLEL){ PC.barrier()}
+	
+if(1){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_soma_voltage.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_soma_voltage(JOBDIR,TRIAL, ISBINARY)
+	{pprint("par_save_soma_voltage() is active.")}
+}
+if(save_dend_voltage){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_voltage.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_dend_voltage(JOBDIR,TRIAL, ISBINARY)
+	{pprint("par_save_dend_voltage() is active.")}
+}
+if(save_synaptic_locations){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_locations_PCrec.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_synaptic_locations_PCrec(JOBDIR,TRIAL,0)
+	{pprint("par_save_synaptic_locations_PCrec() is active.")}	
+}
+
+if(save_stimulation_locations){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_stimulation_locations_PCrec.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_stimulation_locations_PCrec(JOBDIR,TRIAL,0)
+	{pprint("par_save_stimulation_locations_PCrec() is active.")}
+}
+
+if(save_synaptic_delays){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_synaptic_delays.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_synaptic_delays(JOBDIR,TRIAL,ISBINARY)
+	{pprint("par_save_synaptic_delays() is active.")}
+}
+
+//TODO: these are not made to work without PC!
+if(save_bg_iampa){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_bg_iampa.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_bg_iampa(JOBDIR,TRIAL,0)
+	{pprint("par_save_bg_iampa() is active.")}
+}
+if(save_inmda){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_inmda.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_dend_inmda(JOBDIR,TRIAL, ISBINARY)
+	{pprint("par_save_dend_inmda() is active.")}
+	//par_save_inmda(JOBDIR,TRIAL,ISBINARY)
+	//{pprint("par_save_inmda() is active.")}
+}
+if(save_igaba){
+	{sprint(EXEC_CMD,"{xopen(\"%spar_save_dend_igaba.hoc\")}",PATH)}
+	if(1){assert(execute1(EXEC_CMD))}
+	par_save_dend_igaba(JOBDIR,TRIAL, ISBINARY)
+	{pprint("par_save_dend_igaba() is active.")}
+}
+
+
 
 if(PARALLEL){
 	{ PC.barrier }
 	{ PC.runworker() }
 	{ PC.done() }// tell workers to quit
-	//Only master node is active now.
-	print "Success"
-	//Run matlab script to analyze the data!.
-	//print "Running epilog script..."
-	//{sprint(EXEC_CMD,"%sepilog.sh \"%s\" \"%s\"",PATH,PATH,JOBDIR)}
-	//exitcode = system(EXEC_CMD)
-	quit()
 }
+//Only master node is active now.
+print "Success"
+//Run matlab script to analyze the data!.
+//print "Running epilog script..."
+{sprint(EXEC_CMD,"python %sload_raw_batch.py \"%s\"",PATH,JOBDIR)}
+exitcode = system(EXEC_CMD)
+//{sprint(EXEC_CMD,"%sepilog.sh \"%s\" \"%s\"",PATH,PATH,JOBDIR)}
+//exitcode = system(EXEC_CMD)
+quit()
 

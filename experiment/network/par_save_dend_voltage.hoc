@@ -1,4 +1,4 @@
-proc par_save_dend_voltage() {local i,s,j,fctr localobj vfilePC
+proc par_save_dend_voltage() {local i,s,j,fctr, nodeid localobj vfilePC
 	//print "@=",PC.id, "dend recordedCells.size=",recordedCells.size()
 	for s=0,recordedDends.size()-1{
 		trgGID = recordedDends.x[s]
@@ -10,12 +10,17 @@ proc par_save_dend_voltage() {local i,s,j,fctr localobj vfilePC
 				vfilePC.wopen(vfilePC_filename)
 				fh = vfilePC.isopen()
 				fctr = 0
+				if(PARALLEL) {
+					nodeid = PC.id
+				}else{
+					nodeid = 0
+				}
 				while (!fh) {
 					vfilePC.wopen(vfilePC_filename)
 					fh = vfilePC.isopen()
 					fctr = fctr + 1
 				}
-				if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+				if(fctr>0){print "@ ",nodeid ," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 				r_dvolts[trgGID][cseg].printf(vfilePC,"%8.4f\n")
 				vfilePC.close()
 			}else{

@@ -1,4 +1,4 @@
-proc par_save_stimulation_locations_PCrec(){  local src,trg,j,fctr localobj vfilePC
+proc par_save_stimulation_locations_PCrec(){  local src,trg,j,fctr,nodeid localobj vfilePC
 	//writing only in txt format!
 	//save stimulation (apical) synaptic locations
 	//save in the same file for enhanced reading performance by MATLAB:
@@ -7,12 +7,17 @@ proc par_save_stimulation_locations_PCrec(){  local src,trg,j,fctr localobj vfil
 	vfilePC.wopen(vfilePC_filename)
 	fh = vfilePC.isopen()
 	fctr = 0
+	if(PARALLEL) {
+		nodeid = PC.id
+	}else{
+		nodeid = 0
+	}
 	while (!fh) {
 		vfilePC.wopen(vfilePC_filename)
 		fh = vfilePC.isopen()
 		fctr = fctr + 1
 	}
-	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	if(fctr>0){print "@ ",nodeid ," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 	//save all src/trg pairs of this node:
 	for trg=0, nPCcells-1{
 		if(object_id(stimpidPC2PC[trg])!= 0){

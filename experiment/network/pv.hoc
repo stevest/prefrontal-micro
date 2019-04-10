@@ -141,7 +141,7 @@ proc createPVs(){local i,host,gid localobj cell,mynil
 		for i = 0, nPVcells-1 {
 			cell = new PVcell()
 			PVcells.append(cell)
-			PVgids.append(i)
+			PVgids.append(i + nPCcells)
 		}
 	}
 }

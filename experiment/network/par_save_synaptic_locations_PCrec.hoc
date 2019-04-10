@@ -1,9 +1,14 @@
-proc par_save_synaptic_locations_PCrec(){ local src,trg,j,fctr localobj vfilePC
+proc par_save_synaptic_locations_PCrec(){ local src,trg,j,fctr, nodeid localobj vfilePC
 	//writing only in txt format!
 	//save PC2PC synaptic locations
 	//save in the same file for enhanced reading performance by MATLAB:
+	if(PARALLEL) {
+		nodeid = PC.id
+	}else{
+		nodeid = 0
+	}
 	vfilePC = new File()	
-	sprint(vfilePC_filename,"%s/pid_pyramidal_%03d.txt", $s1,PC.id) 
+	sprint(vfilePC_filename,"%s/pid_pyramidal_%03d.txt", $s1,nodeid) 
 	vfilePC.wopen(vfilePC_filename)
 	fh = vfilePC.isopen()
 	fctr = 0
@@ -12,7 +17,7 @@ proc par_save_synaptic_locations_PCrec(){ local src,trg,j,fctr localobj vfilePC
 		fh = vfilePC.isopen()
 		fctr = fctr + 1
 	}
-	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	if(fctr>0){print "@ ",nodeid ," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 	//save all src/trg pairs of this node:
 	for trg=0, nPCcells-1{
 		for src=0, nPCcells-1{
@@ -31,7 +36,7 @@ proc par_save_synaptic_locations_PCrec(){ local src,trg,j,fctr localobj vfilePC
 	vfilePC.close()
 
 	vfilePC = new File()	
-	sprint(vfilePC_filename,"%s/pid_interneurons_%03d.txt", $s1,PC.id) 
+	sprint(vfilePC_filename,"%s/pid_interneurons_%03d.txt", $s1,nodeid) 
 	vfilePC.wopen(vfilePC_filename)
 	fh = vfilePC.isopen()
 	fctr = 0
@@ -40,7 +45,7 @@ proc par_save_synaptic_locations_PCrec(){ local src,trg,j,fctr localobj vfilePC
 		fh = vfilePC.isopen()
 		fctr = fctr + 1
 	}
-	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	if(fctr>0){print "@ ",nodeid," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 	//save all src/trg pairs of this node:
 	for src=0, nPVcells-1{
 		for trg=0, nPCcells-1{

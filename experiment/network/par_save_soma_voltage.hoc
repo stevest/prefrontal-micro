@@ -1,20 +1,27 @@
-proc par_save_soma_voltage() {local i,s,j,fctr localobj vfilePC
+proc par_save_soma_voltage() {local i,s,j,fctr,nodeid localobj vfilePC
 	//print "@=",PC.id, "soma recordedCells.size=",recordedCells.size()
 	for s=0,recordedCells.size()-1{
 		trgGID = recordedCells.x[s]
 		if (object_id(r_volts[trgGID])) {
-			//print "@=",PC.id," Saving soma=",s
 			vfilePC = new File()	
 			sprint(vfilePC_filename,"%s/v_soma_%03d.txt", $s1,trgGID) 
 			vfilePC.wopen(vfilePC_filename)
 			fh = vfilePC.isopen()
 			fctr = 0
+			if(PARALLEL) {
+				nodeid = PC.id
+			}else{
+				nodeid = 0
+			}
+			if (DEBUG){
+				print "@=",nodeid ," Saving soma=",s
+			}
 			while (!fh) {
 				vfilePC.wopen(vfilePC_filename)
 				fh = vfilePC.isopen()
 				fctr = fctr + 1
 			}
-			if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+			if(fctr>0){print "@ ",nodeid ," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 			r_volts[trgGID].printf(vfilePC,"%8.4f\n")
 			vfilePC.close()
 		}else{

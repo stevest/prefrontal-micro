@@ -1,7 +1,15 @@
-proc par_save_synaptic_delays(){ local src,trg,j,fctr localobj vfilePC
+proc par_save_synaptic_delays(){ local src,trg,j,fctr,nodeid localobj vfilePC
 	//Saving only in txt format!
+	if(PARALLEL) {
+		nodeid = PC.id
+	}else{
+		nodeid = 0
+	}
 	vfilePC = new File()	
-	sprint(vfilePC_filename,"%s/delay_pyramidal__%03d.txt", $s1,PC.id) 
+	sprint(vfilePC_filename,"%s/delay_pyramidal__%03d.txt", $s1,nodeid) 
+	if(DEBUG){
+		print "Opening file: ", vfilePC_filename
+	}
 	vfilePC.wopen(vfilePC_filename)
 	fh = vfilePC.isopen()
 	fctr = 0
@@ -10,7 +18,7 @@ proc par_save_synaptic_delays(){ local src,trg,j,fctr localobj vfilePC
 		fh = vfilePC.isopen()
 		fctr = fctr + 1
 	}
-	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	if(fctr>0){print "@ ",nodeid ," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 	for src=0, nPCcells-1{
 		for trg=0, nPCcells-1{
 			if (object_id(delayPC2PC[src][trg]) != 0){
@@ -30,7 +38,7 @@ proc par_save_synaptic_delays(){ local src,trg,j,fctr localobj vfilePC
 	vfilePC.close()
 
 	vfilePC = new File()	
-	sprint(vfilePC_filename,"%s/delay_interneurons__%03d.txt", $s1,PC.id) 
+	sprint(vfilePC_filename,"%s/delay_interneurons__%03d.txt", $s1,nodeid) 
 	vfilePC.wopen(vfilePC_filename)
 	fh = vfilePC.isopen()
 	fctr = 0
@@ -39,7 +47,7 @@ proc par_save_synaptic_delays(){ local src,trg,j,fctr localobj vfilePC
 		fh = vfilePC.isopen()
 		fctr = fctr + 1
 	}
-	if(fctr>0){print "@ ",PC.id," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
+	if(fctr>0){print "@ ",nodeid ," File ",vfilePC_filename," opened after ",fctr, " attempts!"}
 	for src=0, nPVcells-1{
 		for trg=0, nPCcells-1{
 			if (object_id(delayPV2PC[src][trg]) != 0){
