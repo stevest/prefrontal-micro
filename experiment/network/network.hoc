@@ -92,6 +92,7 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				// Stim synapses linear index:
 				lin_idx = syn + Stim_MaxSyn_apic * istim
 				// Use a Poisson process instead of a random one:
+				//print "DEBUG: Stim ",istim,", Syn ",syn, ", has Uniform/Poisson seed: ",lin_idx+$1+$2+$3
 				rUniformStim[lin_idx] = new Random(lin_idx+$1+$2+$3)
 				rUniformStim[lin_idx].uniform(0,1)
 				rPoissonStim[lin_idx] = new Random(lin_idx+$1+$2+$3)
@@ -109,7 +110,7 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				artgid = lin_idx + nPCcells + nPVcells 
 				//print "ArtCell ",artgid
 				//TODO: this assignment is depricated:
-				//nhPoissonStim[lin_idx].artcellid = artgid
+				nhPoissonStim[lin_idx].cellid = artgid
 				if (PARALLEL) {
 					//If in PC, associate a artificial gid with the Poisson stim:
 					//associate artgid with current node:
@@ -169,11 +170,13 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				if (PARALLEL) {
 					ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1,ampaweight_stimulus)
 					ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+					print "Connecting artgid: ",artgid, " to trg: ",trg,", syn :",syn,". (",lin_idx,")."
 				}else{
 					//print "Stim object synid is ", nhPoissonStim[lin_idx].synid
 					//Use non-PC function for simplicity:
 					ncAMPA[trg][syn] = makeSynapseFromArtificial(nhPoissonStim[lin_idx], ampapr[trg][syn],-10,1,ampaweight_stimulus)
 					ncNMDA[trg][syn] = makeSynapseFromArtificial(nhPoissonStim[lin_idx], nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+					print "Connecting artgid: ",artgid, " to trg: ",trg,", syn :",syn,". (",lin_idx,")."
 
 				}
 			}
@@ -490,6 +493,7 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 						PID = 0.01
 						delstimpcpv=abs(fp_PC2PV[PVgids.x[localID]-nPCcells].repick())
 						if(delstimpcpv<=dt){delstimpcpv=dt+0.01}
+						print "PC: ",srcGID," to PV: ",trgGID,", delay: ",delstimpcpv
 						PVcells.o(localID).dend {ampaOnPV[src][trg][syn] = new GLUIN(PID)} //no Dends available in the model! (???????)
 						PVcells.o(localID).dend {nmdaOnPV[src][trg][syn] = new NMDA(PID)}
 						conampaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, ampaOnPV[src][trg][syn], -10, delstimpcpv, W.x[srcGID][trgGID] * ampaweightin)
@@ -562,6 +566,7 @@ proc connectPV2PC() {local delstimpvpc,PID,src,trg,syn,bool,localID,trgGID,srcGI
 						PID = 0.5 //bias MCMC
 						if(save_pvsynaptic_locations){
 							{sprint(EXEC_CMD,"{pidPV2PC[%d][%d].append(%f)}",src,trg,PID)}
+							pprint(EXEC_CMD)
 							{assert(execute1(EXEC_CMD))}
 						}
 						PCcells.o(localID).soma gabaOnPC_A[src][trg][syn] = new GABAa(PID) //carefull not to overwrite array!

@@ -4,7 +4,7 @@ NEURON {
 	THREADSAFE
 	ARTIFICIAL_CELL NonHomPoissonStim
 	POINTER randObjPtrUniform, randObjPtrPoisson
-	RANGE lambdaMax, lambda, nevents, randNo,cellid,synid
+	RANGE lambdaMax, lambda, nevents, randNo,cellid,synid, trgid
 }
 
 ASSIGNED {
@@ -19,6 +19,7 @@ ASSIGNED {
 	nevents
 	cellid
 	synid
+	trgid
 	myflag
 	vecsize
 }
@@ -66,7 +67,7 @@ NET_RECEIVE (w) {
 			:printf("number of events after thinning are: %f\n",nevents)
 			if ( nevents > 0 ){
 				:printverbatim()
-				:printf("@t: %f Sending event nevents=%g cellid=%g synID=%g\n", t, nevents,cellid,synid)
+				:printf("@t: %f Sending event nevents=%g from: cellid=%g, to: trgid=%g, on synid=%g\n", t, nevents, cellid, trgid, synid)
 				:if ( myflag == 1 ){
 					:printf("@t=%f cellid=%g nevents=%g lambda=%g randno=%g vecsize=%g\n",t,cellid,nevents,lambda,randNo,vecsize)
 					net_event(t)

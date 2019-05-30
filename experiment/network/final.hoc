@@ -65,8 +65,9 @@ if(PARALLEL){
 
 } else {
 //TODO: this should go in a variable outside the simulation:
-//{load_file("nrngui.hoc")}
-{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+{load_file("./stdrun.hoc")}
+//Don't load NEURONS gui, since it contains a init() that messes with my custom initialization
 //if(!load_file("nrniv.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
 }
 if(PARALLEL){PC.barrier}
@@ -221,7 +222,7 @@ if(1){
 }
 //GABAbFactor = 10.7//Gvec.x[Gidx]
 //network working with 0.47 (1.9) NMDA/AMPA, 10.7 gababfactor and 70 synchronus stim synapses
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PV(%d,%d,%d)}",SNd,TRIAL,LEARN_COND)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -237,7 +238,7 @@ if(1){
 	{assert(execute1(EXEC_CMD))}
 	//connectPC2PV(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{connectPV2PC(%d,%d,%d)}",SNd,TRIAL,LEARN_COND)}
 	sprint(PPRINT_CMD,"%s executed.\n",EXEC_CMD)
@@ -246,7 +247,7 @@ if(1){
 	//connectPV2PC(0,0)// synaptic location Random seed, axon conductanse delay Random seed
 }
 
-if(1){
+if(0){
 	EXEC_CMD = ""
 	{sprint(EXEC_CMD,"{noise(%d)}",TRIAL)}
 	{assert(execute1(EXEC_CMD))}
@@ -358,7 +359,7 @@ print "Success"
 //Run matlab script to analyze the data!.
 //print "Running epilog script..."
 {sprint(EXEC_CMD,"python %sload_raw_batch.py \"%s\"",PATH,JOBDIR)}
-exitcode = system(EXEC_CMD)
+//exitcode = system(EXEC_CMD)
 //{sprint(EXEC_CMD,"%sepilog.sh \"%s\" \"%s\"",PATH,PATH,JOBDIR)}
 //exitcode = system(EXEC_CMD)
 quit()

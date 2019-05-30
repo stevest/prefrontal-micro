@@ -26,9 +26,6 @@ r_msec = new Vector(n)
 for k=0,n-1 {r_msec.x[k] = k*dt }
 //-------------------------------------------------------------
 //Primary synapses (Xenia)
-Stim_MaxSyn_apic=100//16 min by Nassi criterion	//initial stimulation
-Stim_MaxSyn_basal=100//16 min by Nassi criterion	//initial stimulation
-Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
 //if comming from a calibration script, ignore most of the parameters:
 if (name_declared("CALIB_SCRIPT")!=0){
 	print "comming from amcalib script"
@@ -74,6 +71,7 @@ autogabaweight=	0.0067// producing 350nA @ Ecl = -16mV, according to Bacci (2003
 //giati bgazei error ean to kanw 300? exei na kanei me to import?
 Stim_MaxSyn_apic = ST 
 Stim_MaxSyn_basal=0//120	//initial stimulation
+Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
 
 
 //This is a 1uS max g, that is converted to nS (per soma/dend) in network.hoc
