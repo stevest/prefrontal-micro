@@ -1,0 +1,200 @@
+strdef STDOUT, PPRINT_CMD,EXEC_CMD, PATH, STRING, CONFIGSTR, FASTSTR
+PATH = "/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/"
+if(!load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/nrngui.hoc")){print "ERROR	Failed to load NEURON!"}			//load main NEURON library
+//{load_file("/home/cluster/stefanos/Libraries/nrn/share/nrn/lib/hoc/stdrun.hoc")}
+objref PC
+PC = new ParallelContext()
+PARALLEL  = 0
+
+tstop = 700 
+//{xopen("./publication_validation/vstim.hoc")}
+xopen("./main_parameters.hoc")
+DEND_NSEG = 5
+
+nPCcells = 1
+
+{xopen("pfc_pc_temp.hoc")}
+
+//Balance each cell compartment to the prefered voltage and comply with NEURON initialization routines.
+proc balance_compartments() {
+	//Do not call finitialize with v_init argument, because it sets it in all cells
+	// created up to this point!
+	finitialize()
+	fcurrent()
+	forsec PCcell_list {
+		for (x) {
+			//print "V is: ",v
+			if (ismembrane("na_ion")) {e_passive(x)=v(x)+ina(x)/g_passive(x)} 
+			if (ismembrane("k_ion")) {e_passive(x)=e_passive(x)+ik(x)/g_passive(x)} 
+			if (ismembrane("ca_ion")) {e_passive(x)=e_passive(x)+ica(x)/g_passive(x)}
+			if (ismembrane("h")) {e_passive(x)=e_passive(x)+ihi(x)/g_passive(x)}
+		}
+	}
+	fcurrent()
+	frecord_init()
+}
+
+
+
+objref r, PCv,PCdv,PCi, vsoma, PCinmda, PCiampa
+objref PCvd, PCvdd, PCvddd
+
+synapses = NSYN//40
+
+objref NS[synapses]
+NSnoise = 0.0//0.9
+
+r = new Random(0)
+r.normal(0, 0.3)
+
+objref rl
+rl = new Random()
+rl.uniform(0,1)
+
+objref ampapr[synapses], nmdapr[synapses], nc1[synapses], nc2[synapses]
+objref gabaa[4], gabab[4], ncga[4], ncgb[4]
+
+nmdabias = 6 //TEMP CHANGE! REVERT BACK TO 2!!
+ampabias = 1
+excitbias = EXCITB//1
+objref nil
+
+NS=new NetStim()
+NS.interval=20//ISI//isir.repick()
+NS.number=2//20
+NS.start=100
+NS.noise=NSnoise
+
+objref locations_vect
+locations_vect = new Vector()
+locations_vect.append(0.05)
+locations_vect.append(0.25)
+locations_vect.append(0.45)
+locations_vect.append(0.65)
+locations_vect.append(0.85)
+
+proc ttx() {
+	forsec PCcell_list {
+	for(x) {
+		if(ismembrane("Naf")) for(x) {  gnafbar_Naf(x)= gnafbar_Naf(x)*0 }
+		if(ismembrane("nap")) for(x) {  gnabar_nap(x)= gnabar_nap(x)*0 }
+	}
+	}
+}
+
+if(NOMG){
+	FASTSTR = "noMg"
+}else{
+	FASTSTR = "normal"
+}
+if(HAVENMDA && HAVEAMPA){
+	CONFIGSTR = "NMDA+AMPA"
+}else if(HAVENMDA && !HAVEAMPA){
+	CONFIGSTR = "NMDA"
+}else if(!HAVENMDA && HAVEAMPA){
+	CONFIGSTR = "AMPA"
+	nmdabias = 0 //TEMP CHANGE! REVERT BACK TO 2!!
+	ampabias = 50
+}else{
+	print "No excitatory mechanisms requested. Exiting..."
+	qit()
+}
+balance_compartments()
+ttx()
+for location = 0, locations_vect.size()-1{
+			print "---------------------"
+			PID=locations_vect.x[location]
+
+			for syn=0,synapses-1{
+				nmdapr[syn] = nil
+				ampapr[syn] = nil
+				nc1[syn] = nil
+				nc2[syn] = nil
+			}
+			for syn=0,synapses-1{
+				print " Placing synapse : ",syn, " in loc ",PID
+
+
+				if (HAVENMDA) {
+					if (NOMG){
+						PCcells.o(0).dend[0] nmdapr[syn] = new nmda_nojump(PID)
+					}else{	
+						PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
+					}
+					nc2[syn]=new NetCon(NS, nmdapr[syn])
+					nc2[syn].delay=1
+					nc2[syn].weight= 0.25 * excitbias * nmdabias //4.2 
+				}
+
+
+				if (HAVEAMPA) {
+					PCcells.o(0).dend[0] ampapr[syn] = new GLU(PID)
+					nc1[syn]=new NetCon(NS, ampapr[syn])
+					nc1[syn].delay=1
+					nc1[syn].weight=ampaweight * excitbias * ampabias//SSS
+				}
+				
+			}
+
+
+			PCv = new Vector(n,0)
+			PCv.record(&PCcells.o(0).soma.v(0.5)) 
+			//PCv.record(&PCcells.o(0).soma.i_passive(0.5)) 
+
+			PCdv = new Vector(n,0)
+			PCdv.record(&PCcells.o(0).dend[0].v(PID)) 
+
+/*
+			PCinmda = new Vector(n,0)
+			PCinmda.record(&nmdapr[0].inmda) 
+
+			if (HAVEAMPA) {
+				PCiampa = new Vector(n,0)
+				PCiampa.record(&ampapr[0].iglu) 
+			}
+*/
+
+			run()
+print "RUN FINISHED"
+			vsoma = new File()		
+			sprint(STRING,"publication_validation/excitatory_validation_dense/vsoma_%s_%s_%0.1f_%0.1f_%d_%d_%0.2f.txt",FASTSTR,CONFIGSTR,nmdabias,ampabias,synapses,location,excitbias)
+			print STRING
+			vsoma.wopen(STRING)
+			for j=0, PCv.size()-1 {
+				vsoma.printf ("%f\n",PCv.x[j])
+			}
+			vsoma.close()
+
+			vsoma = new File()		
+			sprint(STRING,"publication_validation/excitatory_validation_dense/vdend_%s_%s_%0.1f_%0.1f_%d_%d_%0.2f.txt",FASTSTR,CONFIGSTR,nmdabias,ampabias,synapses,location,excitbias)
+			print STRING
+			vsoma.wopen(STRING)
+			for j=0, PCdv.size()-1 {
+				vsoma.printf ("%f\n",PCdv.x[j])
+			}
+			vsoma.close()
+/*
+			vsoma = new File()		
+			sprint(STRING,"publication_validation/excitatory_validation/inmda_%s_%s_%d_%d_%0.1f.txt",FASTSTR,CONFIGSTR,synapses,location,excitbias)
+			print STRING
+			vsoma.wopen(STRING)
+			for j=0, PCinmda.size()-1 {
+				vsoma.printf ("%f\n",PCinmda.x[j])
+			}
+			vsoma.close()
+
+			if (HAVEAMPA) {
+				vsoma = new File()		
+				sprint(STRING,"publication_validation/excitatory_validation/iampa_%s_%s_%d_%d_%0.1f.txt",FASTSTR,CONFIGSTR,synapses,location,excitbias)
+				print STRING
+				vsoma.wopen(STRING)
+				for j=0, PCiampa.size()-1 {
+					vsoma.printf ("%f\n",PCiampa.x[j])
+				}
+				vsoma.close()
+			}
+*/
+
+print "Vsoma saved"
+
+} //For different dend locations

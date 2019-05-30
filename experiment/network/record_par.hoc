@@ -24,26 +24,49 @@ recordedCells = new Vector()
 objref recordedDends
 recordedDends = new Vector()
 // recording routines for the parallel context
-proc par_rec_soma_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
+proc rec_soma_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
 	trgGID = $1
-	if (PC.gid_exists(trgGID)) { 
+	print "recording voltage of soma ",trgGID
+	if (PARALLEL) {
+		if (PC.gid_exists(trgGID)) { 
+			r_volts[trgGID]=new Vector(n)
+			//Also a known bug:
+			//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
+			PC.gid2cell(trgGID).soma {cv.record(&v(0.5),r_volts[trgGID],r_msec,0)}
+			recordedCells.append(trgGID)
+		}
+	}else{
 		r_volts[trgGID]=new Vector(n)
-		//Also a known bug:
-		//http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2046
-		PC.gid2cell(trgGID).soma {cv.record(&v(0.5),r_volts[trgGID],r_msec,0)}
+		if (trgGID < nPCcells) {
+			print "PCsoma NOPC condition"
+			PCcells.o(trgGID).soma {cv.record(&v(0.5),r_volts[trgGID],r_msec,0)}
+		}else{
+			print "PVsoma NOPC condition"
+			//These are the PV cells now:
+			PVcells.o(trgGID - nPCcells).soma {cv.record(&v(0.5),r_volts[trgGID],r_msec,0)}
+		}
 		recordedCells.append(trgGID)
-		//}
 	}
 }
 
-proc par_rec_dend_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
+proc rec_dend_voltage(){local i,s,q,trgGID,trg  // use gid as parameter
 	trgGID = $1
-	if (PC.gid_exists(trgGID)) { 
+	if (PARALLEL) {
+		if (PC.gid_exists(trgGID)) { 
+			initial = (1/DEND_NSEG)/2
+			for cseg = 0,DEND_NSEG-1 {
+				r_dvolts[trgGID][cseg]=new Vector(n)
+				csegloc = initial + (1/DEND_NSEG)*cseg
+				PC.gid2cell(trgGID).dend {cv.record(&v(csegloc),r_dvolts[trgGID][cseg],r_msec,0)}
+			}
+			recordedDends.append(trgGID)
+		}
+	}else{
 		initial = (1/DEND_NSEG)/2
 		for cseg = 0,DEND_NSEG-1 {
 			r_dvolts[trgGID][cseg]=new Vector(n)
 			csegloc = initial + (1/DEND_NSEG)*cseg
-			PC.gid2cell(trgGID).dend {cv.record(&v(csegloc),r_dvolts[trgGID][cseg],r_msec,0)}
+			PCcells.o(trgGID).dend {cv.record(&v(csegloc),r_dvolts[trgGID][cseg],r_msec,0)}
 		}
 		recordedDends.append(trgGID)
 	}

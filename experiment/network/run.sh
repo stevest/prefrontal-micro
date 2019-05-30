@@ -55,27 +55,27 @@ parallel="1"
 ## Use scheduler or directly run with mpi:
 schedule="1"
 #All nodes are:312 
-nodes="78" ##52##jobname="STR_N100_S6_STC0" 
+nodes="24" ##52##jobname="STR_N100_S6_STC0" 
 
 #==============================================================================
 #==============================================================================
 # RUN PARAMETERS:
 trial="0"
 # Experiment alias:
-exp="structured"
+exp="structured_half_reciprocals"
 ## Serial number of network (RNG) in MATLAB:
 sn="1"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="4"
-excitbias="10"
+inhibias="2.5"
+excitbias="1.75"
 ## ONly NMDA bias (default is 10)
-nmdabias="8.0"
+nmdabias="6.0"
 ampabias="1.0"
 ## only GABAb
-gababfactor="8"
+gababfactor="2"
 ## No of stimulation synapses:
 stimmagnitude="40"
 ## Stimulus frequency:
@@ -92,18 +92,20 @@ dendnseg="5"
 #pc2pc="20"
 no_mg="0"
 # Pass simulation stop externally in seconds:
-tstop_sec="3"
-learn_cond="1"
+# ALWAYS RUN more than stimulus duration (1.1 seconds)!
+tstop_sec="1.5"
+learn_cond="3"
 trial="0"
 
-#for learn_cond in $(seq 1 50); do
+for sn in $(seq 1 1); do
+for learn_cond in $(seq 1 1); do
 #for inhibias in $(seq 0.5 0.5); do
-for trial in $(seq 0 9); do
+for trial in $(seq 0 0); do
 #for gababfactor in $(seq 2 2 8); do
 #for excitbias in $(seq 13 20); do
 
 
-jobname="SN${sn}LC${learn_cond}TR${trial}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp}dur${tstop_sec}"
+jobname="multicoreSN${sn}LC${learn_cond}TR${trial}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp}_simdur${tstop_sec}"
 
 uniquejobname="${jobname}"
 outputFile=$uniquejobname.out
@@ -198,7 +200,8 @@ fi
 
 
 done
-#done
+done
+done
 
 #==============================================================================
 #==============================================================================

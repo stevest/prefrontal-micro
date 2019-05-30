@@ -92,7 +92,7 @@ isir.normal(0,3)
 
 NS[0]=new NetStim()
 NS[0].interval=10//isir.repick()
-NS[0].number=100
+NS[0].number=1
 NS[0].start=50
 NS[0].noise=0
 

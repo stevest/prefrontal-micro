@@ -5,9 +5,14 @@
 //Though,calling AFTER A RUN finitialize again produces weird results. So make sure you update the voltages
 //for EACH COMPARTMENT before each run.
 
-proc balance_compartments() {
+proc balance_compartments() {local nodeid
 	//Do not call finitialize with v_init argument, because it sets it in all cells
 	// created up to this point!
+	if(PARALLEL){
+		nodeid = PC.id
+	}else{
+		nodeid=0
+	}
 	finitialize()
 	forsec PCcell_list {
 		for (x) {
@@ -31,9 +36,14 @@ proc balance_compartments() {
 	}
 
 	fcurrent()
+	// This is straight from NEURONS stdrun.hoc:
 	if (cv.active()) {
+		{sprint(STDOUT, "NODEID: %g: has CVode ENABLED!", nodeid)}
+		pprint(STDOUT)
 		cv.re_init()
 	}       else {
+		{sprint(STDOUT, "NODEID: %g: has CVode DISABLED!", nodeid)}
+		pprint(STDOUT)
 		fcurrent()
 	}
 	frecord_init()

@@ -2,8 +2,8 @@
 PLOT = 0
 DUMMY_RUN = 0
 SHUFFLE_SYNAPSES = 0
-save_synaptic_locations = 0 
-save_pvsynaptic_locations = 0 
+save_synaptic_locations = 1 
+save_pvsynaptic_locations = 1
 save_stimulation_locations = 0 
 save_synaptic_delays = 0 
 save_pvsynaptic_delays = 0
@@ -25,9 +25,6 @@ r_msec = new Vector(n)
 for k=0,n-1 {r_msec.x[k] = k*dt }
 //-------------------------------------------------------------
 //Primary synapses (Xenia)
-Stim_MaxSyn_apic=100//16 min by Nassi criterion	//initial stimulation
-Stim_MaxSyn_basal=100//16 min by Nassi criterion	//initial stimulation
-Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
 //if comming from a calibration script, ignore most of the parameters:
 if (name_declared("CALIB_SCRIPT")!=0){
 	print "comming from amcalib script"
@@ -63,7 +60,7 @@ ampaweight=	0.00019		//According to Wang(2008)
 //gabaweight=0.001//3.6223e-04 // change gmax as computed from Kawaguchi 2015, eLife, of the average g in soma for max IPSC pair CS55.   0.00083//XENIA GABAa //6.9e-4 			//According to Woo(2007)
 //gabaweightb=0.001// old value 1.05e-4
 //pc 2 pv weight produces an average ~55 pA as in Kubota et al., eLife 2015 and Otsuka et al., 2009
-pv_bias = 1.2
+pv_bias = INHIBIAS // scale inhibition with the same factor
 ampaweightin=	7.5e-4 * pv_bias//according to Wang,Gao,2009
 nmdaweightin=	3.2e-4 * pv_bias//ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
 gabaweightin = 0.0017 // 1.7nS average conductance as in Galarreta et al., Nature, 1999
@@ -73,6 +70,10 @@ autogabaweight=	0.0067// producing 350nA @ Ecl = -16mV, according to Bacci (2003
 //giati bgazei error ean to kanw 300? exei na kanei me to import?
 Stim_MaxSyn_apic = ST 
 Stim_MaxSyn_basal=0//120	//initial stimulation
+Stim_MaxSyn = Stim_MaxSyn_apic+Stim_MaxSyn_basal
+// This file used to be called from within calibraiton scripts.
+// So I use to have smth to ignore some variables/flags.
+// What is the current state of this handling??
 
 
 //This is a 1uS max g, that is converted to nS (per soma/dend) in network.hoc

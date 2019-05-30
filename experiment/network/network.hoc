@@ -68,7 +68,7 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 	//Synapses and locations stay the same between trials of the same learning condition
 	for kk=0,nPCcells-1{
 		//Stimulus synapse location on apical random object:
-		r_stimPC[kk] = new Random($1*$3 + 165 + kk )
+		r_stimPC[kk] = new Random($1+$3 + 165 + kk )
 		PID = r_stimPC[kk].uniform(0,1)
 	}
 	//Only on node zero, create stimulation artificial cells.
@@ -81,6 +81,7 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 		for istim=0, StimulatedPNs[TRIAL].size()-1 {
 			// Create rate vector holding the Poisson rates:
 			// Estimate Poisson lambda from given stimulation frequency
+			//TODO: This handling produce error if simulation duration is less than stimulus one:
 			lambdaMax = SF / 1000
 			STIM_rate_vect = new Vector(tstop, 0)
 			for i = stim_start, stim_stop - 1{
@@ -91,6 +92,7 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				// Stim synapses linear index:
 				lin_idx = syn + Stim_MaxSyn_apic * istim
 				// Use a Poisson process instead of a random one:
+				//print "DEBUG: Stim ",istim,", Syn ",syn, ", has Uniform/Poisson seed: ",lin_idx+$1+$2+$3
 				rUniformStim[lin_idx] = new Random(lin_idx+$1+$2+$3)
 				rUniformStim[lin_idx].uniform(0,1)
 				rPoissonStim[lin_idx] = new Random(lin_idx+$1+$2+$3)
@@ -104,14 +106,22 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				nhPoissonStim[lin_idx].play(STIM_rate_vect)
 				//artificial cell gids, append to end of PN+PV cells:
 				//artgid = syn + Stim_MaxSyn_apic * istim + nPCcells + nPVcells 
+				//TODO: this needs to be setup for single core simulations also.
 				artgid = lin_idx + nPCcells + nPVcells 
 				//print "ArtCell ",artgid
-				nhPoissonStim[lin_idx].artcellid = artgid
-				//associate artgid with current node:
-				PC.set_gid2node(artgid,PC.id)
-				//print "Associating artgid=",artgid," with PC.id=",PC.id
-				//associate ARTIFICIAL_CELL output to artgid:
-				PC.cell(artgid, new NetCon(nhPoissonStim[lin_idx], mynil),1)
+				//TODO: this assignment is depricated:
+				nhPoissonStim[lin_idx].cellid = artgid
+				if (PARALLEL) {
+					//If in PC, associate a artificial gid with the Poisson stim:
+					//associate artgid with current node:
+					PC.set_gid2node(artgid,PC.id)
+					//print "Associating artgid=",artgid," with PC.id=",PC.id
+					//associate ARTIFICIAL_CELL output to artgid:
+					PC.cell(artgid, new NetCon(nhPoissonStim[lin_idx], mynil),1)
+				} else {
+					//If not in PC, move on.
+					//pass
+				}
 			}
 		}
 	}
@@ -155,8 +165,20 @@ proc stimulation() { local trg,syn,PID,localID,tmp,ridx,trgGID,artgid,bool  loca
 				nmdapr[trg][syn].sid = syn
 				//print "ArtCell: ",artgid, " stimulates: ",trg
 				//TODO: this is wrong for the single core version, right? PCcells should be the stim cells!
-				ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1,ampaweight_stimulus)
-				ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+				//TODO: make SURE that this nested conditional is what you want!!!!
+				//I must create a dummy class cells that give the stimulation:
+				if (PARALLEL) {
+					ncAMPA[trg][syn] = makeSynapse(PCcells,0,artgid,ampapr[trg][syn],-10,1,ampaweight_stimulus)
+					ncNMDA[trg][syn] = makeSynapse(PCcells,0,artgid,nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+					print "Connecting artgid: ",artgid, " to trg: ",trg,", syn :",syn,". (",lin_idx,")."
+				}else{
+					//print "Stim object synid is ", nhPoissonStim[lin_idx].synid
+					//Use non-PC function for simplicity:
+					ncAMPA[trg][syn] = makeSynapseFromArtificial(nhPoissonStim[lin_idx], ampapr[trg][syn],-10,1,ampaweight_stimulus)
+					ncNMDA[trg][syn] = makeSynapseFromArtificial(nhPoissonStim[lin_idx], nmdapr[trg][syn],-10,1,nmdaweight_stimulus)
+					print "Connecting artgid: ",artgid, " to trg: ",trg,", syn :",syn,". (",lin_idx,")."
+
+				}
 			}
 
 		} //if bool
@@ -233,10 +255,9 @@ proc connectPC2PC() { local i,j,FIDp,PID,synCtr,trg,src,syn,bool,localID,trgGID,
 	//set parallel PID randomness
 	for kk=0,nPCcells-1{
 		//SOS added +sth to the seed to get different configs of clustering
-		//This is the PID, i.e. synapse location random object:
-		r_PC2PC[kk] = new Random($1*$3 + 350 + kk)// No pseudorandom PID variability between runs.
-		RN_PC2PC[kk] = new Random($1*$3 + 360 + kk)
-		fp_PC2PC[kk] = new Random($1*$3 + 3 + kk)	
+		r_PC2PC[kk] = new Random($1 + 350 + kk +$3)// No pseudorandom PID variability between runs.
+		RN_PC2PC[kk] = new Random($1 + 360 + kk+$3)
+		fp_PC2PC[kk] = new Random($1 + 3 + kk+$3)	
 		rn = RN_PC2PC[kk].uniform(0,1)
 		PID = r_PC2PC[kk].uniform(0,1)
 		FIDp=fp_PC2PC[kk].normal(1.7,0.9)	//According to Thomson(2007)
@@ -328,7 +349,7 @@ if (0){//Save iNMDA for each cell separately:
 }
 							}
 							conampaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,ampaOnPC[src][trg][syn],-10,FIDp,ampaweight *  W.x[srcGID][trgGID] * EXCITBIAS * AMPABIAS)
-							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25  *  W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
+							connmdaPC2PC[src][trg][syn] = makeSynapse(PCcells,src,srcGID,nmdaOnPC[src][trg][syn],-10,FIDp,0.25 * W.x[srcGID][trgGID] * EXCITBIAS * NMDABIAS)
 						}
 					}
 				}
@@ -389,8 +410,8 @@ proc connectPV2PV() { local delstimpvpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 	if(PARALLEL){ PC.barrier() }
 	//set parallel PID randomness
 	for i=0, nPVcells-1 {
-		r_PV2PV[i] = new Random($1*$3 + 250 + i )
-		fp_PV2PV[i] = new Random($1*$3 - 100 + i )
+		r_PV2PV[i] = new Random($1+$3 + 250 + i )
+		fp_PV2PV[i] = new Random($1+$3 + 100 + i )
 		PID = r_PV2PV[i].uniform(0,1)
 		delstimpvpv = fp_PV2PV[i].normal(1.76,0.07) //latency from IN-IN, according to Bacci (2003)   
 	}
@@ -446,8 +467,8 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 	if(PARALLEL){ PC.barrier() }
 	//set parallel PID randomness
 	for i=0, nPVcells-1 {
-		r_PC2PV[i] = new Random($1*$3 + 150 + i )
-		fp_PC2PV[i] = new Random($1*$3 * 2 + i)
+		r_PC2PV[i] = new Random($1+$3 + 150 + i )
+		fp_PC2PV[i] = new Random($1+$3 + 2 + i)
 		PID = r_PC2PV[i].uniform(0,1)
 		delstimpcpv = fp_PC2PV[i].normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999) 
 	}
@@ -472,10 +493,11 @@ proc connectPC2PV() { local delstimpcpv,PID,src,trg,syn,bool,localID,trgGID,srcG
 						PID = 0.01
 						delstimpcpv=abs(fp_PC2PV[PVgids.x[localID]-nPCcells].repick())
 						if(delstimpcpv<=dt){delstimpcpv=dt+0.01}
+						print "PC: ",srcGID," to PV: ",trgGID,", delay: ",delstimpcpv
 						PVcells.o(localID).dend {ampaOnPV[src][trg][syn] = new GLUIN(PID)} //no Dends available in the model! (???????)
 						PVcells.o(localID).dend {nmdaOnPV[src][trg][syn] = new NMDA(PID)}
-						conampaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, ampaOnPV[src][trg][syn], 0, delstimpcpv, W.x[srcGID][trgGID] * ampaweightin)
-						connmdaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, nmdaOnPV[src][trg][syn], 0, delstimpcpv, W.x[srcGID][trgGID] * nmdaweightin)    
+						conampaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, ampaOnPV[src][trg][syn], -10, delstimpcpv, W.x[srcGID][trgGID] * ampaweightin)
+						connmdaPC2PV[src][trg][syn] = makeSynapse(PCcells,src,srcGID, nmdaOnPV[src][trg][syn], -10, delstimpcpv, W.x[srcGID][trgGID] * nmdaweightin)    
 					}
 				}
 			}
@@ -509,8 +531,14 @@ proc connectPV2PC() {local delstimpvpc,PID,src,trg,syn,bool,localID,trgGID,srcGI
 	if(PARALLEL){ PC.barrier() }
 	//set parallel PID randomness
 	for i=0, nPCcells-1 {
-		r_PV2PC[i] = new Random($1*$3 + 180 + i + TRIAL )
-		fp_PV2PC[i] = new Random($1*$3 * 8 + i+ TRIAL)
+		//Double and triple check: This used to be like this:
+		/*
+		 * r_PV2PC[i] = new Random($1*$3 + 180 + i + TRIAL )
+		 * fp_PV2PC[i] = new Random($1*$3 * 8 + i+ TRIAL)
+		 */
+		// MAKE SURE that I have no runs with PV projections changing during trials!!!
+		r_PV2PC[i] = new Random($1+$3 + 180 + i )
+		fp_PV2PC[i] = new Random($1+$3 + 8 + i)
 		PID = r_PV2PC[i].uniform(0,1)
 		delstimpvpc=fp_PV2PC[i].normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
 	}
@@ -544,6 +572,7 @@ proc connectPV2PC() {local delstimpvpc,PID,src,trg,syn,bool,localID,trgGID,srcGI
 						PID = 0.5 //bias MCMC
 						if(save_pvsynaptic_locations){
 							{sprint(EXEC_CMD,"{pidPV2PC[%d][%d].append(%f)}",src,trg,PID)}
+							pprint(EXEC_CMD)
 							{assert(execute1(EXEC_CMD))}
 						}
 						PCcells.o(localID).soma gabaOnPC_A[src][trg][syn] = new GABAa(PID) //carefull not to overwrite array!
