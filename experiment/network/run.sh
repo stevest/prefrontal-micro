@@ -93,7 +93,7 @@ dendnseg="5"
 no_mg="1"
 # Pass simulation stop externally in seconds:
 # ALWAYS RUN more than stimulus duration (1.1 seconds)!
-tstop_sec="3.0"
+tstop_sec="5.0"
 learn_cond="3"
 trial="0"
 
