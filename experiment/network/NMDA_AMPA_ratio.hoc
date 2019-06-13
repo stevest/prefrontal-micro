@@ -185,7 +185,9 @@ for experiment_conf = 0,0{
 						if(!NMDA_FAST){
 							PCcells.o(0).dend[0] nmdapr[syn] = new nmda_segev(PID)
 						}else{
-							PCcells.o(0).dend[0] nmdapr[syn] = new nmda_fast(PID)
+							//This is lost somewhere in the git history of another branch
+							//Look for it just to remember what it did.
+							//PCcells.o(0).dend[0] nmdapr[syn] = new nmda_fast(PID)
 						}
 						nc2[syn]=new NetCon(NS, nmdapr[syn])
 						nc2[syn].delay=1
@@ -205,7 +207,7 @@ for experiment_conf = 0,0{
 	print "RUN FINISHED"
 
 				vsoma = new File()		
-				sprint(STRING,"DATA/ratio/ivclamp_NB_%0.1f_AB_%0.1f_NF_%d_%s_%d.txt",nmdabias,ampabias,NMDA_FAST,EXPSTR,location)
+				sprint(STRING,"publication_validation/synaptic_validation/ivclamp_NB_%0.1f_AB_%0.1f_NF_%d_%s_%d.txt",nmdabias,ampabias,NMDA_FAST,EXPSTR,location)
 				print STRING
 				vsoma.wopen(STRING)
 				for j=0, PCvi.size()-1 {
