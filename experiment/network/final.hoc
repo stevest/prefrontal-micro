@@ -90,70 +90,6 @@ if(PARALLEL){PC.barrier}
 
 {sprint(EXEC_CMD,"{xopen(\"%smain_parameters.hoc\")}",PATH)}
 if(1){assert(execute1(EXEC_CMD))}
-<<<<<<< HEAD
-
-sprint(pprintStr,"Microcircuit running with simplified morphologies !\n\n")
-pprint(pprintStr)
-
-if (name_declared("TRIAL")!=5){
-	exit(1)
-}
-if (name_declared("EXPERIMENT")!=4){
-	exit(1)
-}
-if (name_declared("CLUSTBIAS")!=5){
-	exit(1)
-}
-if (name_declared("EXCITBIAS")!=5){
-	exit(1)
-}
-if (name_declared("INHIBIAS")!=5){
-	exit(1)
-}
-
-// given a cell index ($1) and the type of cell ($2), return the gid
-// As for $2, 0 stands for pyramidal cells, 1 for PVs
-objref offsets
-{offsets = new Vector()}
-{offsets.append(0,nPCcells,nPVcells)}
-{offsets.append(offsets.sum(0,offsets.size()-1))}
-
-//global_gid=offsets.v[offsets.size()-1]  // points to the next available gid
-func ind2gid(){local i  
-  if(numarg()<2) { printf("wrong number of arguments to func ind2gid") }
-  i=$1+offsets.sum(0,$2)
-  if(i>=offsets.sum(0,$2+1)) { i-=1 }   
-  return i 
-}
-
-// register the connection target locally given a synapse gid and a synapse mechanism as arguments
-// if given additional arguments, it will set them as weight, delay, and threshold, respectively
-// http://www.neuron.yale.edu/phpbb/viewtopic.php?f=31&t=2158
-obfunc makeSynapse(){ localobj nc, src
-	if(PARALLEL){
-		nc=PC.gid_connect($3,$o4)
-
-	}else{
-		src = $o1
-		access src.o($2).axon
-		nc = new NetCon(&v(x),$o4)
-	}
-	nc.threshold = $5
-	nc.delay = $6
-	nc.weight = $7
-	return nc
-}
-
-func gid2local(){local i localobj arg
-	arg = $o1
-	for i=0, arg.size()-1 {
-		if(arg.x(i) == $2){
-			return i
-		}
-	}
-	return -1 //if error
-}
-=======
 
 sprint(pprintStr,"Microcircuit running with simplified morphologies !\n\n")
 pprint(pprintStr)
@@ -233,7 +169,6 @@ strdef syscmd, data_dir, data_dira, data_dirb, data_dirc, data_dird, running, tm
 
 if(PARALLEL){PC.barrier}
 if(DEBUG){pprint("Stimulation is OK.")}
->>>>>>> debug4
 
 //if(!xopen("main_parameters.hoc")){print "ERROR	Failed to load main parameters!"}
 if(PARALLEL){PC.barrier}
