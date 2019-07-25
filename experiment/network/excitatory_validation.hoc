@@ -94,7 +94,7 @@ if(HAVENMDA && HAVEAMPA){
 }else if(!HAVENMDA && HAVEAMPA){
 	CONFIGSTR = "AMPA"
 	nmdabias = 0 //TEMP CHANGE! REVERT BACK TO 2!!
-	ampabias = 50
+	ampabias = 1
 }else{
 	print "No excitatory mechanisms requested. Exiting..."
 	qit()
@@ -157,7 +157,7 @@ for location = 0, locations_vect.size()-1{
 			run()
 print "RUN FINISHED"
 			vsoma = new File()		
-			sprint(STRING,"publication_validation/excitatory_validation_dense/vsoma_%s_%s_%0.1f_%0.1f_%d_%d_%0.2f.txt",FASTSTR,CONFIGSTR,nmdabias,ampabias,synapses,location,excitbias)
+			sprint(STRING,"publication_validation/excitatory_validation_ampatest_1/vsoma_%s_%s_%0.1f_%0.1f_%d_%d_%0.2f.txt",FASTSTR,CONFIGSTR,nmdabias,ampabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCv.size()-1 {
@@ -166,7 +166,7 @@ print "RUN FINISHED"
 			vsoma.close()
 
 			vsoma = new File()		
-			sprint(STRING,"publication_validation/excitatory_validation_dense/vdend_%s_%s_%0.1f_%0.1f_%d_%d_%0.2f.txt",FASTSTR,CONFIGSTR,nmdabias,ampabias,synapses,location,excitbias)
+			sprint(STRING,"publication_validation/excitatory_validation_ampatest_1/vdend_%s_%s_%0.1f_%0.1f_%d_%d_%0.2f.txt",FASTSTR,CONFIGSTR,nmdabias,ampabias,synapses,location,excitbias)
 			print STRING
 			vsoma.wopen(STRING)
 			for j=0, PCdv.size()-1 {

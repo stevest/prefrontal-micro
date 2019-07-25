@@ -31,9 +31,9 @@ for nsyn in $(seq 1 25); do
 	../../mechanism_simple/x86_64/special -nobanner \
 	-c "NSYN=$nsyn"  \
 	-c "EXCITB=$excitb"  \
-	-c "NOMG=1" \
+	-c "NOMG=0" \
 	-c "HAVEAMPA=1" \
-	-c "HAVENMDA=1" \
+	-c "HAVENMDA=0" \
 	excitatory_validation.hoc
 	fi	
 done
