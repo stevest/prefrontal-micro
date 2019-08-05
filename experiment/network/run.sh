@@ -1,4 +1,14 @@
 #!/bin/bash
+## For running simulation check instructions in README.MD
+
+#==============================================================================
+#==============================================================================
+# Git functionality:
+#==============================================================================
+#==============================================================================
+# This is only for model development.
+# NO NEED TO CHANGE/ENABLE THIS FUNCTIONALITY TO RUN THE MODEL.
+
 ##Make sure that before each run git repo is clean, so 
 ##one can track each run to its source code:
 ## ANSI escape codes:
@@ -28,10 +38,10 @@ git_branch=`git rev-parse --abbrev-ref HEAD`
 #Commit only if in specific branch (to avoid spamming) and if git is dirty:
 if [[ ($dirtygit > 0 && $git_branch == "publication") ]]; then
 	#echo -e "${WARN}The git repo is dirty. You have been warned...${NOC}"
-	#echo -e "${INFO}Current HEAD is: ${gitsha1}${NOC}"
-	echo -e "${INFO}Auto-committing dirty repo:${NOC}"
+	echo -e "${INFO}Current HEAD is: ${gitsha1}${NOC}"
+	#echo -e "${INFO}Auto-committing dirty repo:${NOC}"
 	# Auto commit only modified/deleted files:
-	eval "git commit -am 'RUN AUTOCOMMIT'"
+	#eval "git commit -am 'RUN AUTOCOMMIT'"
 	#exit 1
 	gitsha1=`git rev-parse HEAD`
 else
@@ -39,40 +49,65 @@ else
 	echo -e ${INFO}"Git repo is clean. Continue run with SHA1: ${gitsha1}${NOC}"
 fi
 
+#==============================================================================
+#==============================================================================
+# DIRECTORY SETUP:
+#==============================================================================
+#==============================================================================
 ##source /opt/gridengine/default/common/settings.csh
+
+# Make sure the NEURON's special file contains the full path of the simulator
+# in its environmental variables. If you run in a cluster environment this
+# may change (depending on volume mounts etc). The file I use is named:
+# 'myspecial' as a reminder of that.
+# Change the parameters such as variable $simglia will be the parent folder
+# of simulation outputs.
 simhome=`pwd`
 simhome="${simhome}/"
 simglia="/home/cluster/stefanos/Documents/Glia"
 simglia="${simglia}/"
+# Set the git directory in order to run the simulation:
+projecthome="/home/cluster/stefanos/Documents/GitHub/prefrontal-micro"
+projecthome="${projecthome}/"
 echo "Currently at directory:"
 echo $simhome
 echo `pwd`
 
 #==============================================================================
 #==============================================================================
-# SIMULATION PARAMETERS:
-parallel="1"
-## Use scheduler or directly run with mpi:
-schedule="1"
+# EXECUTION PARAMETERS:
+#==============================================================================
+#==============================================================================
+# Choose here is the simulation will run locally in single core, locally 
+
+# utilizing the MPI or using the Sun Grid Engine.
+# Use parallel MPI version
+parallel="0"
+## Use SGE scheduler or directly run with mpi, locally:
+schedule="0"
 #All nodes are:312 
-nodes="24" ##52##jobname="STR_N100_S6_STC0" 
+nodes="24" 
 
 #==============================================================================
 #==============================================================================
-# RUN PARAMETERS:
+# SIMULATION PARAMETERS:
+#==============================================================================
+#==============================================================================
+# Choose simulation parameters as used in the publication.
+
 trial="0"
 # Experiment alias:
-exp="structured_nomg"
+exp="structured"
 ## Serial number of network (RNG) in MATLAB:
 sn="1"
 ## Ean einai clustered oi synapseeis stous dendrites:
 clustbias="1"
 ## Excitation /inhibition bias (multiplier factor) gia PC2PC synapses
 ## for both NMDA AMPA
-inhibias="3.0"
-excitbias="1.75"
+inhibias="2.5"
+excitbias="4.0"
 ## ONly NMDA bias (default is 10)
-nmdabias="6.0"
+nmdabias="3.0"
 ampabias="1.0"
 ## only GABAb
 gababfactor="2"
@@ -88,24 +123,20 @@ nmdatau="90"
 nmdaflag="0"
 ## number of dendritic (basal) segments 
 dendnseg="5"
-#pv2pc="8" #this should be hardcoded!
-#pc2pc="20"
-no_mg="1"
+no_mg="0"
 # Pass simulation stop externally in seconds:
 # ALWAYS RUN more than stimulus duration (1.1 seconds)!
-tstop_sec="5.0"
+tstop_sec="1.2"
 learn_cond="3"
 trial="0"
 
+# If you need to iterate across multiple simulations, do it here:
 for sn in $(seq 1 1); do
-for learn_cond in $(seq 1 5); do
-#for inhibias in $(seq 0.5 0.5); do
-for trial in $(seq 0 9); do
-#for gababfactor in $(seq 2 2 8); do
-#for excitbias in $(seq 13 20); do
+for learn_cond in $(seq 1 1); do
+for trial in $(seq 0 0); do
 
-
-jobname="SN${sn}LC${learn_cond}TR${trial}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp}_simdur${tstop_sec}"
+# The simulation output folder:
+jobname="singlecoreSN${sn}LC${learn_cond}TR${trial}_EB$(printf '%.3f' $excitbias)_IB$(printf '%.3f' $inhibias)_GBF$(printf '%.3f' $gababfactor)_NMDAb$(printf '%.3f' $nmdabias)_AMPAb$(printf '%.3f' $ampabias)_${exp}_simdur${tstop_sec}"
 
 uniquejobname="${jobname}"
 outputFile=$uniquejobname.out
@@ -125,8 +156,8 @@ jobstdout="${jobstdout}\\\n=====================================================
 jobstdout="${jobstdout}\\\nJOB NAME IS: ${jobname}"
 jobstdout="${jobstdout}\\\n========================================================================================"
 
-# Group all run parameters in one variable to use across running scenarios:
-run_variables=( 
+# Group all simulation parameters in one variable to use across running scenarios:
+simulation_variables=( 
 "execute1(\"strdef JOBNAME, JOBDIR, GITSHA1, SN, SIMHOME, SIMGLIA, EXPERIMENT\")" 
 "execute1(\"SN = \\\"$sn\\\"\")" 
 "execute1(\"GITSHA1 = \\\"$gitsha1\\\"\")" 
@@ -154,14 +185,14 @@ run_variables=(
 
 # Interleave variables with NEURON -c flag:
 wrapped_vars=()
-for E in "${run_variables[@]}"; do
+for E in "${simulation_variables[@]}"; do
     wrapped_vars+=("-c")
     wrapped_vars+=("${E}")
 done
 
 # Parenthesis need escaping in SGE version:
 wrapped_vars_sge=()
-for E in "${run_variables[@]}"; do
+for E in "${simulation_variables[@]}"; do
     wrapped_vars_sge+=("-c")
     wrapped_vars_sge+=("'${E}'")
 done
@@ -174,27 +205,18 @@ if [ "$parallel" == "1" ]; then
 		## Submit as Job in Sun Grid Engine:
 		if [ "$schedule" == "1" ]; then
 			echo -e "${INFO}SCHEDULED MPI VERSION IS COMMENCING ${NOC}"
-			#qsub -b y -S /bin/bash -V -N $uniquejobname -o "${outputDir}/${outputFile}" -j y -pe orte 24-$nodes -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/$mechanisms/myspecial ${nrn_repository} -nobanner -mpi \
-			#$run_variables \
-			#/home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc 
-			qsub -b y -S /bin/bash -V -N ${uniquejobname} -o ${outputDir}/${outputFile} -j y -pe orte 12-${nodes} -p 0 -R y /opt/openmpi/bin/mpirun /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/myspecial -nobanner -mpi "${wrapped_vars_sge[@]}" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc
+			qsub -b y -S /bin/bash -V -N ${uniquejobname} -o ${outputDir}/${outputFile} -j y -pe orte 12-${nodes} -p 0 -R y /opt/openmpi/bin/mpirun /${projecthome}/mechanism_simple/myspecial -nobanner -mpi "${wrapped_vars_sge[@]}" ${projecthome}/experiment/network/final.hoc
 
 		else
 			## Run local mpi without scheduler:
 			echo -e "${INFO}NO SCHEDULED MPI VERSION IS COMMENCING${NOC}"
-			#PATH=/home/stefanos/Libraries/${nrn_repository}/x86_64/bin:$PATH
-			#LD_LIBRARY_PATH=/home/stefanos/Libraries/${nrn_repository}/x86_64/lib:$LD_LIBRARY_PATH
-			#export PATH
-			#export LD_LIBRARY_PATH
-
-			/opt/openmpi/bin/mpirun -np "$nodes" -x PATH -x LD_LIBRARY_PATH /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/myspecial -nobanner -mpi "${wrapped_vars[@]}" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc
+			/opt/openmpi/bin/mpirun -np "$nodes" -x PATH -x LD_LIBRARY_PATH ${projecthome}/mechanism_simple/myspecial -nobanner -mpi "${wrapped_vars[@]}" ${projecthome}/experiment/network/final.hoc
 		fi
 		
 else
 	# If not $parallel
 	echo -e "${INFO}NO MPI VERSION IS COMMENCING${NOC}"
-	#nohup ../../${mechanisms}/myspecial -nobanner ${run_variables} final.hoc | tee nohup.out &
-	nohup /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/mechanism_simple/myspecial -nobanner "${wrapped_vars[@]}" /home/cluster/stefanos/Documents/GitHub/prefrontal-micro/experiment/network/final.hoc | tee ${outputDir}/${outputFile} &
+	nohup ${projecthome}/mechanism_simple/myspecial -nobanner "${wrapped_vars[@]}" ${projecthome}/experiment/network/final.hoc | tee ${outputDir}/${outputFile} &
 
 fi
 
